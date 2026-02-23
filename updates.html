@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Updates</title>
+  <meta name="description" content="Changelog and updates for the evict Discord bot.">
+  <meta name="theme-color" content="#1c2137">
+  <link rel="icon" href="/img/evict.webp" type="image/png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="page">
+
+    <div class="upd-wrap">
+      <div class="container">
+
+        <div class="upd-header" data-reveal>
+          <h1 class="upd-title">Updates</h1>
+        </div>
+
+        <div style="margin: 2rem 0; width: 100%; overflow: hidden;">
+          <svg width="100%" height="60" viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,30 Q150,10 300,30 T600,30 T900,30 T1200,30" 
+                  stroke="rgba(71,141,166,0.3)" 
+                  stroke-width="1" 
+                  fill="none"
+                  stroke-linecap="round"/>
+            <path d="M0,30 Q150,50 300,30 T600,30 T900,30 T1200,30" 
+                  stroke="rgba(102,178,204,0.2)" 
+                  stroke-width="1" 
+                  fill="none"
+                  stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="upd-layout" data-reveal>
+          <div class="upd-sidebar">
+            <div class="upd-sidebar-label">Releases</div>
+            <div id="updates-timeline"></div>
+          </div>
+          <div class="upd-panel" id="update-detail">
+            <div class="update-detail-empty">Select an update to view details</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/gradient.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/updates.js"></script>
+</body>
+</html>
