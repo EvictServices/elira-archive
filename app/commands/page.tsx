@@ -62,7 +62,7 @@ export default function CommandsPage() {
           .filter((c) => !c.hidden && (c.category || '').toLowerCase() !== 'jishaku')
           .map((c, i) => ({
             name: (c as { qualified_name?: string }).qualified_name || c.name || `cmd${i}`,
-            description: c.description || '',
+            description: c.description || (c as { help?: string }).help || '',
             category: c.category || 'Uncategorized',
             aliases: c.aliases || [],
             signature: c.signature || '',

@@ -83,7 +83,6 @@ export default function HeroStats() {
               : {}
           }
         />
-        {online === false ? ' Offline' : ' Online now'}
       </div>
 
       <div className="hero-stats">
