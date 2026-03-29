@@ -3,19 +3,10 @@ import { INVITE_URL, SUPPORT_URL } from '@/lib/constants'
 import HeroStats from '@/components/HeroStats'
 
 export const metadata: Metadata = {
-  title: 'evict',
+  title: 'Evict',
   description:
     'Advanced Discord bot with comprehensive moderation, robust antinuke protection, and versatile utility tools.',
 }
-
-const WaveDivider = () => (
-  <div style={{ margin: '3rem 0', width: '100%', overflow: 'hidden' }}>
-    <svg width="100%" height="60" viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,30 Q150,10 300,30 T600,30 T900,30 T1200,30" stroke="rgba(71,141,166,0.3)" strokeWidth="1" fill="none" strokeLinecap="round" />
-      <path d="M0,30 Q150,50 300,30 T600,30 T900,30 T1200,30" stroke="rgba(102,178,204,0.2)" strokeWidth="1" fill="none" strokeLinecap="round" />
-    </svg>
-  </div>
-)
 
 export default function HomePage() {
   return (
@@ -49,8 +40,6 @@ export default function HomePage() {
           <HeroStats />
         </div>
       </section>
-
-      <WaveDivider />
 
       <section className="section">
         <div className="container">

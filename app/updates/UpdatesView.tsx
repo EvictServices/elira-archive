@@ -26,15 +26,11 @@ export default function UpdatesView({ updates }: Props) {
   return (
     <div className="upd-wrap">
       <div className="container">
-        <div className="upd-header" data-reveal>
-          <h1 className="upd-title">Updates</h1>
-        </div>
-
-        <div style={{ margin: '2rem 0', width: '100%', overflow: 'hidden' }}>
-          <svg width="100%" height="60" viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,30 Q150,10 300,30 T600,30 T900,30 T1200,30" stroke="rgba(71,141,166,0.3)" strokeWidth="1" fill="none" strokeLinecap="round" />
-            <path d="M0,30 Q150,50 300,30 T600,30 T900,30 T1200,30" stroke="rgba(102,178,204,0.2)" strokeWidth="1" fill="none" strokeLinecap="round" />
-          </svg>
+        <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
+          <h2 className="section-title">Updates</h2>
+          <p className="section-desc" style={{ margin: 0 }}>
+            Latest changelog entries and release notes for evict.
+          </p>
         </div>
 
         <div className="upd-layout" data-reveal>

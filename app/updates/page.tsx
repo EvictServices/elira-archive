@@ -12,7 +12,7 @@ export default async function UpdatesPage() {
     updates = parseYAML(text).sort(
       (a, b) => new Date(b.date ?? '').getTime() - new Date(a.date ?? '').getTime()
     )
-  } catch { /* no file or parse error — show empty state */ }
+  } catch {}
 
   return <UpdatesView updates={updates} />
 }

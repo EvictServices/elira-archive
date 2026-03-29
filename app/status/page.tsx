@@ -234,30 +234,15 @@ export default function StatusPage() {
     })
   }
 
-  const WaveDivider = () => (
-    <div style={{ margin: '2rem 0', width: '100%', overflow: 'hidden' }}>
-      <svg width="100%" height="60" viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,30 Q150,10 300,30 T600,30 T900,30 T1200,30" stroke="rgba(71,141,166,0.3)" strokeWidth="1" fill="none" strokeLinecap="round" />
-        <path d="M0,30 Q150,50 300,30 T600,30 T900,30 T1200,30" stroke="rgba(102,178,204,0.2)" strokeWidth="1" fill="none" strokeLinecap="round" />
-      </svg>
-    </div>
-  )
-
   return (
     <div className="st-wrap">
       <div className="container">
-        <div className="st-header" data-reveal>
-          <div className="st-header-left">
-            <h1 className="st-title">Status</h1>
-          </div>
-          <div className="st-header-stats">
-            <div className="st-hstat"><span className="st-hstat-num">{guilds}</span><span className="st-hstat-key">Servers</span></div>
-            <div className="st-hstat"><span className="st-hstat-num">{users}</span><span className="st-hstat-key">Users</span></div>
-            <div className="st-hstat"><span className="st-hstat-num">{shards}</span><span className="st-hstat-key">Shards</span></div>
-          </div>
+        <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
+          <h2 className="section-title">Status</h2>
+          <p className="section-desc" style={{ margin: 0 }}>
+            Real-time performance metrics and cluster health for evict.
+          </p>
         </div>
-
-        <WaveDivider />
 
         <div className="st-charts" data-reveal>
           {([
