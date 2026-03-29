@@ -1,0 +1,113 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { timeAgo, type Update } from '@/lib/parseYaml'
+
+interface Props {
+  updates: Update[]
+}
+
+export default function UpdatesView({ updates }: Props) {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [switching, setSwitching] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  function switchTo(index: number) {
+    if (index === activeIndex) return
+    setSwitching(true)
+    setTimeout(() => {
+      setActiveIndex(index)
+      setSwitching(false)
+    }, 150)
+  }
+
+  const u = updates[activeIndex]
+
+  return (
+    <div className="upd-wrap">
+      <div className="container">
+        <div className="upd-header" data-reveal>
+          <h1 className="upd-title">Updates</h1>
+        </div>
+
+        <div style={{ margin: '2rem 0', width: '100%', overflow: 'hidden' }}>
+          <svg width="100%" height="60" viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,30 Q150,10 300,30 T600,30 T900,30 T1200,30" stroke="rgba(71,141,166,0.3)" strokeWidth="1" fill="none" strokeLinecap="round" />
+            <path d="M0,30 Q150,50 300,30 T600,30 T900,30 T1200,30" stroke="rgba(102,178,204,0.2)" strokeWidth="1" fill="none" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        <div className="upd-layout" data-reveal>
+          <div className="upd-sidebar">
+            <div className="upd-sidebar-label">Releases</div>
+            <div id="updates-timeline">
+              {updates.length === 0 ? (
+                <div style={{ padding: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
+                  No updates yet.
+                </div>
+              ) : (
+                updates.map((entry, i) => (
+                  <div
+                    key={i}
+                    className={`timeline-entry${i === activeIndex ? ' active' : ''}`}
+                    onClick={() => switchTo(i)}
+                  >
+                    <div className="timeline-info">
+                      <span className="timeline-version">Entry {updates.length - i}</span>
+                      <div className="timeline-title">{entry.title || ''}</div>
+                      <div className="timeline-meta">
+                        <span>{entry.date || ''}</span>
+                        <span className="timeline-meta-sep">&middot;</span>
+                        <span>{timeAgo(entry.date)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div
+            ref={panelRef}
+            className={`upd-panel${switching ? ' switching' : ''}`}
+            id="update-detail"
+          >
+            {!u ? (
+              <div className="update-detail-empty">Select an update to view details</div>
+            ) : (
+              <>
+                <div className="update-detail-header">
+                  <span className="update-detail-version">Entry {updates.length - activeIndex}</span>
+                  <h2 className="update-detail-title">{u.title || ''}</h2>
+                  <p className="update-detail-date">
+                    {u.date || ''}{timeAgo(u.date) ? ` — ${timeAgo(u.date)}` : ''}
+                  </p>
+                </div>
+                <div className="update-detail-body">
+                  {u.description && (
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem', fontSize: '0.9rem', lineHeight: 1.65 }}>
+                      {u.description}
+                    </p>
+                  )}
+                  {(u.sections || []).map((s, si: number) => (
+                    <div key={si}>
+                      <h4>{s.heading}</h4>
+                      <ul>
+                        {s.items.map((item, ii) => (
+                          <li key={ii}>
+                            <span className={`update-tag ${item.tag}`}>{item.tag}</span>
+                            {item.text}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
