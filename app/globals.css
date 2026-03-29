@@ -465,10 +465,19 @@ body.nav-open { overflow: hidden; }
   border-color: rgba(255, 255, 255, 0.15);
 }
 
+@keyframes gridFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .commands-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.55rem;
+  animation: gridFadeIn 0.2s ease both;
+}
+.commands-grid.grid-fading {
+  opacity: 0;
+  transform: translateY(6px);
 }
 
 .command-card {

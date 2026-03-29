@@ -35,6 +35,7 @@ export default function CommandsPage() {
   const [categories, setCategories] = useState<string[]>([])
   const [activeCategory, setActiveCategory] = useState('all')
   const [search, setSearch] = useState('')
+  const [gridKey, setGridKey] = useState(0)
   const [modalCmd, setModalCmd] = useState<Command | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -96,7 +97,14 @@ export default function CommandsPage() {
 
   useEffect(() => {
     setFiltered(applyFilter(search, activeCategory, allCommands))
-  }, [search, activeCategory, allCommands, applyFilter])
+  }, [search, allCommands, applyFilter])
+
+  function switchCategory(cat: string) {
+    if (cat === activeCategory) return
+    setActiveCategory(cat)
+    setFiltered(applyFilter(search, cat, allCommands))
+    setGridKey((k) => k + 1)
+  }
 
   async function copyCmd(name: string) {
     try {
@@ -159,7 +167,7 @@ export default function CommandsPage() {
             <div className="commands-filters" id="commands-filters">
               <button
                 className={`filter-btn${activeCategory === 'all' ? ' active' : ''}`}
-                onClick={() => setActiveCategory('all')}
+                onClick={() => switchCategory('all')}
               >
                 All
               </button>
@@ -167,7 +175,7 @@ export default function CommandsPage() {
                 <button
                   key={cat}
                   className={`filter-btn${activeCategory === cat ? ' active' : ''}`}
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => switchCategory(cat)}
                 >
                   {cat[0].toUpperCase() + cat.slice(1)}
                 </button>
@@ -175,7 +183,7 @@ export default function CommandsPage() {
             </div>
           </div>
 
-          <div className="commands-grid" id="commands-grid" data-reveal>
+          <div key={gridKey} className="commands-grid" id="commands-grid" data-reveal>
             {filtered.length === 0 ? (
               <div className="commands-empty">No commands found.</div>
             ) : (
