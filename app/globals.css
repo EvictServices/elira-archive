@@ -3,22 +3,22 @@
 
 :root {
   --bg-primary:    #0a1a24;
-  --bg-secondary:  #1a3d4f;
-  --bg-tertiary:   #2a5568;
-  --bg-card:       rgba(26, 61, 79, 0.55);
-  --bg-card-hover: rgba(42, 85, 104, 0.7);
+  --bg-secondary:  #2a2a2a;
+  --bg-tertiary:   #3a3a3a;
+  --bg-card:       rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
 
-  --border:        rgba(102, 178, 204, 0.20);
-  --border-hover:  rgba(102, 178, 204, 0.38);
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-hover:  rgba(255, 255, 255, 0.15);
 
   --text-primary:  #ffffff;
   --text-secondary:#ffffff;
   --text-muted:    #ffffff;
 
-  --accent:        #478da6;
-  --accent-bright: #66b2cc;
-  --accent-glow:   rgba(71, 141, 166, 0.30);
-  --accent-dim:    rgba(71, 141, 166, 0.10);
+  --accent:        #ffffff;
+  --accent-bright: #ffffff;
+  --accent-glow:   rgba(255, 255, 255, 0.30);
+  --accent-dim:    rgba(255, 255, 255, 0.10);
 
   --silver:        #cfd8dc;
   --success: #4ade80;
@@ -183,7 +183,7 @@ code {
 .nav-btn-ghost:hover {
   color: var(--text-primary);
   border-color: var(--border-hover);
-  background: rgba(90, 99, 136, 0.06);
+  background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
 }
 .nav-btn-solid {
@@ -278,12 +278,12 @@ body.nav-open { overflow: hidden; }
 .btn-ghost {
   background: #1a1a1a;
   color: var(--text-primary);
-  border: 1px solid rgba(90, 99, 136, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .btn-ghost:hover {
   background: #2a2a2a; color: var(--text-primary);
   transform: translateY(-2px);
-  border-color: rgba(90, 99, 136, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 24px rgba(255, 255, 255, 0.3);
 }
 
@@ -350,7 +350,7 @@ body.nav-open { overflow: hidden; }
 .hero-stats {
   display: flex; justify-content: center; gap: 2.5rem;
   margin-top: 3rem; padding-top: 1.5rem;
-  border-top: 1px solid rgba(90, 99, 136, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 .hero-stat { text-align: center; }
 .hero-stat-value {
@@ -374,12 +374,12 @@ body.nav-open { overflow: hidden; }
 .feature-card {
   padding: 1.75rem;
   background: rgba(19, 24, 36, 0.5);
-  border: 1px solid rgba(90, 99, 136, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--r-lg);
   transition: all var(--ease);
 }
 .feature-card:hover {
-  border-color: rgba(90, 99, 136, 0.15);
+  border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
   box-shadow: 0 0 28px rgba(255, 255, 255, 0.3), 0 4px 20px rgba(0, 0, 0, 0.2);
 }
@@ -389,8 +389,8 @@ body.nav-open { overflow: hidden; }
   border-radius: var(--r-md);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 1rem;
-  background: rgba(90, 99, 136, 0.06);
-  border: 1px solid rgba(90, 99, 136, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--accent-bright);
 }
 
@@ -1335,7 +1335,7 @@ body.nav-open { overflow: hidden; }
     top: 56px; left: 12px; right: 12px;
     background: rgba(16, 20, 30, 0.92);
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(90, 99, 136, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--r-lg);
     padding: 0.6rem 0;
     opacity: 0;
@@ -1393,7 +1393,7 @@ body.nav-open { overflow: hidden; }
   .nav-menu-section + .nav-menu-section {
     margin-top: 0.35rem;
     padding-top: 0.35rem;
-    border-top: 1px solid rgba(90, 99, 136, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
   .nav-menu-label { display: none; }
   .nav-pill a svg { display: inline-block; }

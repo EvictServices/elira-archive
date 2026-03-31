@@ -50,74 +50,9 @@ export default function HomePage() {
       <section className="section">
         <div className="container">
           <div className="section-header" data-reveal>
-            <span className="section-badge">Why Evict?</span>
-            <h2 className="section-title">Everything your server needs</h2>
-            <p className="section-desc">Powerful features to protect and enhance your Discord community</p>
-          </div>
-
-          <div className="features-grid">
-            {[
-              {
-                delay: 1,
-                icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
-                title: 'Advanced Moderation',
-                desc: 'Comprehensive moderation tools with warnings, timeouts, and detailed logging to keep your community safe.',
-              },
-              {
-                delay: 2,
-                icon: <><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></>,
-                title: 'Server Analytics',
-                desc: 'Track server growth, member activity, and command usage with real-time charts and insights.',
-              },
-              {
-                delay: 3,
-                icon: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
-                title: 'System Messages',
-                desc: 'Fully customizable welcome and goodbye messages with embed support and dynamic placeholders.',
-              },
-              {
-                delay: 4,
-                icon: <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />,
-                title: 'Rewards Systems',
-                desc: 'Engaging leveling and economy systems to keep your members active and involved.',
-              },
-              {
-                delay: 5,
-                icon: (
-                  <>
-                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                    <path d="M2 17l10 5 10-5" />
-                    <path d="M2 12l10 5 10-5" />
-                  </>
-                ),
-                title: 'Top Tier Protection',
-                desc: 'Advanced anti-nuke and anti-raid systems to safeguard your server from malicious attacks.',
-              },
-              {
-                delay: 6,
-                icon: (
-                  <>
-                    <circle cx="12" cy="12" r="10" />
-                    <circle cx="12" cy="12" r="4" />
-                    <line x1="21.17" y1="8" x2="12" y2="8" />
-                    <line x1="3.95" y1="6.06" x2="8.54" y2="14" />
-                    <line x1="10.88" y1="21.94" x2="15.46" y2="14" />
-                  </>
-                ),
-                title: 'Automated Roles',
-                desc: 'Advanced role assignment with reaction roles, auto-roles, and custom role management.',
-              },
-            ].map((f) => (
-              <div key={f.delay} className="feature-card" data-reveal data-delay={f.delay}>
-                <div className="feature-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {f.icon}
-                  </svg>
-                </div>
-                <h3>{f.title}</h3>
-                <p>{f.desc}</p>
-              </div>
-            ))}
+            <span className="section-badge">Coming Soon</span>
+            <h2 className="section-title">More features on the way</h2>
+            <p className="section-desc">We're working on something amazing. Stay tuned for updates.</p>
           </div>
         </div>
       </section>
