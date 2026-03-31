@@ -37,18 +37,19 @@ async function fetchAvatars(userId: string): Promise<Avatar[]> {
 
 async function fetchUserInfo(userId: string): Promise<UserInfo | null> {
   try {
-    const res = await fetch('http://localhost:6978/user/find', {
+    const response = await fetch('http://127.0.0.1:6978/user/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId }),
-      next: { revalidate: 300 },
+      body: `{"user_id": ${userId}}`,
+      next: { revalidate: 60 },
     })
 
-    if (!res.ok) return null
+    if (!response.ok) throw new Error('Failed to find user')
 
-    const data: UserInfo = await res.json()
-    return data
-  } catch {
+    const data = await response.json()
+    return data || null
+  } catch (error) {
+    console.error('Error finding user:', error)
     return null
   }
 }
