@@ -11,20 +11,6 @@ interface AvatarsViewProps {
   username: string | null
 }
 
-function formatTimestamp(timestamp: number): string {
-  const date = new Date(timestamp * 1000)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 7) return `${days}d ago`
-  if (days < 30) return `${Math.floor(days / 7)}w ago`
-  if (days < 365) return `${Math.floor(days / 30)}mo ago`
-  return `${Math.floor(days / 365)}y ago`
-}
-
 function formatFullDate(timestamp: number): string {
   const date = new Date(timestamp * 1000)
   return date.toLocaleDateString('en-US', {
@@ -94,7 +80,7 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
               >
                 <img
                   src={avatar.url}
-                  alt={`Avatar from ${formatTimestamp(avatar.created_at)}`}
+                  alt={`Avatar from ${formatFullDate(avatar.created_at)}`}
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -120,7 +106,7 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
                     fontWeight: 500,
                   }}
                 >
-                  {formatTimestamp(avatar.created_at)}
+                  {formatFullDate(avatar.created_at)}
                 </span>
               </div>
             </div>
