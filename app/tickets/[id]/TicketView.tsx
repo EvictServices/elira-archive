@@ -27,11 +27,32 @@ interface Attachment {
   message_id: string
 }
 
+interface EmbedField {
+  name: string
+  value: string
+  inline: boolean
+}
+
+interface Embed {
+  author: { icon_url: string | null; name: string | null; url: string | null } | null
+  color: string | null
+  description: string | null
+  fields: EmbedField[]
+  footer: { icon_url: string | null; text: string | null } | null
+  image: { url: string | null } | null
+  message_id: string
+  thumbnail: { url: string | null } | null
+  timestamp: string | null
+  title: string | null
+  url: string | null
+}
+
 interface TicketData {
   ticket: {
     messages: Message[]
     users: User[]
     attachments: Attachment[]
+    embeds: Embed[]
     channel: {
       name: string
       created_at: string
@@ -202,7 +223,7 @@ function parseContent(content: string, userMap: Map<string, User>): React.ReactN
 }
 
 export default function TicketView({ ticketData, ticketId }: Props) {
-  const { messages, users, attachments, channel } = ticketData.ticket
+  const { messages, users, attachments, embeds, channel } = ticketData.ticket
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
@@ -215,6 +236,14 @@ export default function TicketView({ ticketData, ticketId }: Props) {
     const existing = attachmentMap.get(att.message_id) || []
     existing.push(att)
     attachmentMap.set(att.message_id, existing)
+  })
+
+  // Group embeds by message_id
+  const embedMap = new Map<string, Embed[]>()
+  ;(embeds || []).forEach((emb) => {
+    const existing = embedMap.get(emb.message_id) || []
+    existing.push(emb)
+    embedMap.set(emb.message_id, existing)
   })
 
   return (
@@ -253,6 +282,7 @@ export default function TicketView({ ticketData, ticketId }: Props) {
               if (!author) return null
 
               const msgAttachments = attachmentMap.get(msg.id) || []
+              const msgEmbeds = embedMap.get(msg.id) || []
 
               return (
                 <div
@@ -329,6 +359,134 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                         }}
                       >
                         {parseContent(msg.content, userMap)}
+                      </div>
+                    )}
+
+                    {/* Embeds */}
+                    {msgEmbeds.length > 0 && (
+                      <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {msgEmbeds.map((emb, idx) => {
+                          const borderColor = emb.color ? `#${parseInt(emb.color).toString(16).padStart(6, '0')}` : '#202225'
+                          return (
+                            <div
+                              key={idx}
+                              style={{
+                                display: 'flex',
+                                maxWidth: '520px',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: '4px',
+                                  borderRadius: '4px 0 0 4px',
+                                  background: borderColor,
+                                  flexShrink: 0,
+                                }}
+                              />
+                              <div
+                                style={{
+                                  background: 'rgba(0,0,0,0.2)',
+                                  border: '1px solid rgba(255,255,255,0.06)',
+                                  borderLeft: 'none',
+                                  borderRadius: '0 4px 4px 0',
+                                  padding: '0.75rem 1rem',
+                                  flex: 1,
+                                  minWidth: 0,
+                                }}
+                              >
+                                {/* Author */}
+                                {emb.author?.name && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                    {emb.author.icon_url && (
+                                      <img
+                                        src={emb.author.icon_url}
+                                        alt=""
+                                        referrerPolicy="no-referrer"
+                                        style={{ width: '20px', height: '20px', borderRadius: '50%' }}
+                                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                      />
+                                    )}
+                                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#f2f3f5' }}>
+                                      {emb.author.name}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Title */}
+                                {emb.title && (
+                                  <div style={{ fontSize: '1rem', fontWeight: 700, color: emb.url ? '#00a8fc' : '#f2f3f5', marginBottom: '0.25rem' }}>
+                                    {emb.title}
+                                  </div>
+                                )}
+
+                                {/* Description */}
+                                {emb.description && (
+                                  <div style={{ fontSize: '0.875rem', color: '#dbdee1', lineHeight: '1.375', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                                    {parseContent(emb.description, userMap)}
+                                  </div>
+                                )}
+
+                                {/* Fields */}
+                                {emb.fields.length > 0 && (
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                    {emb.fields.map((field, fi) => (
+                                      <div key={fi} style={{ gridColumn: field.inline ? 'span 1' : '1 / -1' }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f2f3f5', marginBottom: '0.125rem' }}>{field.name}</div>
+                                        <div style={{ fontSize: '0.875rem', color: '#dbdee1', whiteSpace: 'pre-wrap' }}>{parseContent(field.value, userMap)}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Image */}
+                                {emb.image?.url && (
+                                  <div style={{ marginTop: '0.5rem' }}>
+                                    <img
+                                      src={emb.image.url}
+                                      alt=""
+                                      referrerPolicy="no-referrer"
+                                      style={{ maxWidth: '100%', borderRadius: '4px', maxHeight: '300px', objectFit: 'contain' }}
+                                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Thumbnail (top-right) is handled via flex in a real Discord, but simplified here */}
+                                {emb.thumbnail?.url && (
+                                  <div style={{ marginTop: '0.5rem' }}>
+                                    <img
+                                      src={emb.thumbnail.url}
+                                      alt=""
+                                      referrerPolicy="no-referrer"
+                                      style={{ maxWidth: '80px', maxHeight: '80px', borderRadius: '4px', objectFit: 'cover' }}
+                                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Footer */}
+                                {(emb.footer?.text || emb.timestamp) && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                    {emb.footer?.icon_url && (
+                                      <img
+                                        src={emb.footer.icon_url}
+                                        alt=""
+                                        referrerPolicy="no-referrer"
+                                        style={{ width: '16px', height: '16px', borderRadius: '50%' }}
+                                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                      />
+                                    )}
+                                    <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>
+                                      {emb.footer?.text}
+                                      {emb.footer?.text && emb.timestamp && ' • '}
+                                      {emb.timestamp && formatTimestamp(emb.timestamp)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
 

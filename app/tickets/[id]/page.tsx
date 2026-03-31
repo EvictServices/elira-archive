@@ -31,11 +31,32 @@ interface Attachment {
   message_id: string
 }
 
+interface EmbedField {
+  name: string
+  value: string
+  inline: boolean
+}
+
+interface Embed {
+  author: { icon_url: string | null; name: string | null; url: string | null } | null
+  color: string | null
+  description: string | null
+  fields: EmbedField[]
+  footer: { icon_url: string | null; text: string | null } | null
+  image: { url: string | null } | null
+  message_id: string
+  thumbnail: { url: string | null } | null
+  timestamp: string | null
+  title: string | null
+  url: string | null
+}
+
 interface TicketData {
   ticket: {
     messages: Message[]
     users: User[]
     attachments: Attachment[]
+    embeds: Embed[]
     channel: {
       name: string
       created_at: string
