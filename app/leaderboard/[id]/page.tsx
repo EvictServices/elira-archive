@@ -26,10 +26,7 @@ interface GuildInfo {
 
 async function fetchGuildInfo(guildId: string): Promise<GuildInfo | null> {
   try {
-    const response = await fetch('http://127.0.0.1:6978/guild', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: `{"guild_id": ${guildId}}`,
+    const response = await fetch(`http://127.0.0.1:6978/guild?idx=${guildId}`, {
       next: { revalidate: 60 },
     })
 

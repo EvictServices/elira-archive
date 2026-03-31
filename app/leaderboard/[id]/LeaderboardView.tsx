@@ -24,8 +24,7 @@ function getAvatarUrl(userId: string, avatar: string | null) {
 
 function getGuildIconUrl(guildId: string, icon: string | null) {
   if (!icon) return null
-  const ext = icon.startsWith('a_') ? 'gif' : 'png'
-  return `https://cdn.discordapp.com/icons/${guildId}/${icon}.${ext}?size=64`
+  return icon
 }
 
 export default function LeaderboardView({
