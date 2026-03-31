@@ -137,6 +137,11 @@ function fmtBytes(b: number): string {
   return (b / 1048576).toFixed(2) + ' MB/s'
 }
 
+function fmtMem(mb: number): string {
+  if (mb >= 1024) return (mb / 1024).toFixed(2) + ' GB'
+  return mb + ' MB'
+}
+
 function animateNum(setter: (v: string) => void, to: number, dur = 900) {
   const t0 = performance.now()
   let prev = 0
@@ -176,7 +181,7 @@ export default function StatusView() {
       renderChartToEl(chartLatRef.current, [...h.latency], Math.max(...h.latency, 50), 'accent', (v) => v.toFixed(0) + 'ms', 'lat')
     if (chartCpuRef.current) renderChartToEl(chartCpuRef.current, [...h.cpu], 100, 'orange', (v) => v.toFixed(1) + '%', 'cpu')
     if (chartMemRef.current)
-      renderChartToEl(chartMemRef.current, [...h.memory], Math.max(...h.memory, 64), 'purple', (v) => v.toFixed(0) + ' MB', 'mem')
+      renderChartToEl(chartMemRef.current, [...h.memory], Math.max(...h.memory, 64), 'purple', (v) => fmtMem(Math.round(v)), 'mem')
     if (chartNetRef.current)
       renderChartToEl(chartNetRef.current, [...h.network], Math.max(...h.network, 1024), 'green', fmtBytes, 'net')
   }, [])
@@ -266,7 +271,7 @@ export default function StatusView() {
       histRef.current.network.push(netRate)
 
       setCpuVal(cpu.toFixed(1) + '%')
-      setMemVal(memMb + ' MB')
+      setMemVal(fmtMem(memMb))
       setNetVal(fmtBytes(histRef.current.network[histRef.current.network.length - 1] || 0))
     }
 
