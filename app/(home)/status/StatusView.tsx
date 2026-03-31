@@ -172,6 +172,7 @@ export default function StatusView() {
   const [clusters, setClusters] = useState<Record<string, ClusterData>>({})
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [topCmds, setTopCmds] = useState<TopCmd[]>([])
+  const [totalCmds, setTotalCmds] = useState(0)
 
   const histRef = useRef<History>({ latency: [], cpu: [], memory: [], network: [] })
   const lastRxRef = useRef<number | null>(null)
@@ -210,7 +211,8 @@ export default function StatusView() {
     ])
 
     if (cmdRes.status === 'fulfilled') {
-      setTopCmds(cmdRes.value)
+      setTopCmds(cmdRes.value.commands)
+      setTotalCmds(cmdRes.value.total)
     }
 
     if (healthRes.status === 'fulfilled') {
@@ -412,7 +414,10 @@ export default function StatusView() {
           </div>
 
           <div className="st-panel">
-            <div className="st-panel-title">Top Commands</div>
+            <div className="st-panel-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Top Commands</span>
+              <span style={{ fontSize: '0.65rem', fontWeight: 500, color: 'rgba(255,255,255,0.35)', fontFamily: '"SF Mono","Fira Code","Cascadia Code",monospace' }}>{totalCmds.toLocaleString()} ran today</span>
+            </div>
             <div className="top-commands-grid">
               {topCmds.length === 0 ? (
                 <div className="top-cmd-empty">No data yet</div>
