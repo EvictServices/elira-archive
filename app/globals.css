@@ -1333,7 +1333,7 @@ body.nav-open { overflow: hidden; }
     flex-direction: column;
     position: absolute;
     top: 56px; left: 12px; right: 12px;
-    background: rgba(16, 20, 30, 0.88);
+    background: rgba(26, 26, 26, 0.88);
     backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--r-lg);
@@ -1419,7 +1419,7 @@ body.nav-open { overflow: hidden; }
   .nav-hamburger { display: flex; }
 
   body.nav-open .navbar {
-    background: rgba(10, 12, 18, 0.98);
+    background: rgba(26, 26, 26, 0.98);
   }
 
   .hero { padding: 6rem 1.25rem 3rem; }
