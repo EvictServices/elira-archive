@@ -204,6 +204,7 @@ function parseContent(content: string, userMap: Map<string, User>): React.ReactN
 export default function TicketView({ ticketData, ticketId }: Props) {
   const { messages, users, attachments, channel } = ticketData.ticket
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
   // Create user lookup map
   const userMap = new Map(users.map((u) => [u.id, u]))
@@ -335,7 +336,7 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                     {msgAttachments.length > 0 && (
                       <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                         {msgAttachments.map((att, idx) => {
-                          const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(att.filename)
+                          const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(att.filename) && !failedImages.has(att.url)
                           if (isImage) {
                             return (
                               <div
@@ -362,16 +363,14 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                                   }}
                                   loading="lazy"
                                   referrerPolicy="no-referrer"
+                                  onError={() => setFailedImages((prev) => new Set(prev).add(att.url))}
                                 />
                               </div>
                             )
                           } else {
                             return (
-                              <a
+                              <div
                                 key={idx}
-                                href={att.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 style={{
                                   background: 'rgba(255,255,255,0.03)',
                                   border: '1px solid rgba(255,255,255,0.08)',
@@ -380,12 +379,8 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '0.75rem',
-                                  textDecoration: 'none',
-                                  color: '#00a8fc',
-                                  transition: 'background 0.1s',
+                                  color: '#dbdee1',
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
                               >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#80848e">
                                   <path d="M6 2C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2H6ZM13 9V3.5L18.5 9H13Z" />
@@ -396,7 +391,7 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                                     {formatFileSize(att.file_size)}
                                   </div>
                                 </div>
-                              </a>
+                              </div>
                             )
                           }
                         })}
