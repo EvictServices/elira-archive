@@ -2,10 +2,6 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import AvatarsView from './AvatarsView'
 
-export const metadata: Metadata = {
-  title: 'Avatar History',
-}
-
 interface Avatar {
   url: string
   created_at: number
@@ -18,6 +14,30 @@ interface AvatarsResponse {
 interface UserInfo {
   display_name?: string
   username?: string
+}
+
+async function fetchUserInfoForMeta(userId: string): Promise<string | null> {
+  try {
+    const response = await fetch('http://127.0.0.1:6978/user/find', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: `{"user_id": ${userId}}`,
+      next: { revalidate: 60 },
+    })
+    if (!response.ok) return null
+    const data = await response.json()
+    return data?.username || null
+  } catch {
+    return null
+  }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const username = await fetchUserInfoForMeta(id)
+  return {
+    title: username ? `${username} - Avatar History` : 'Avatar History',
+  }
 }
 
 async function fetchAvatars(userId: string): Promise<Avatar[]> {
