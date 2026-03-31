@@ -295,7 +295,7 @@ export default function StatusView() {
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
           <h2 className="section-title">Status</h2>
           <p className="section-desc" style={{ margin: 0 }}>
-            Real-time performance metrics and cluster health for evict.
+            Real-time performance metrics and cluster health for Evict.
           </p>
         </div>
 

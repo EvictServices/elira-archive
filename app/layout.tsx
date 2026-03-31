@@ -11,12 +11,12 @@ export const metadata: Metadata = {
     template: '%s | Evict',
   },
   description:
-    'Advanced Discord bot with comprehensive moderation, robust antinuke protection, and versatile utility tools.',
+    'The all-in-one solution for seamless server management — powerful, polished, and visually refined.',
   icons: { icon: '/img/evict.webp' },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1c2137',
+  themeColor: '#1a1a1a',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
