@@ -8,6 +8,7 @@ interface Avatar {
 interface AvatarsViewProps {
   avatars: Avatar[]
   userId: string
+  displayName: string | null
 }
 
 function formatTimestamp(timestamp: number): string {
@@ -35,12 +36,14 @@ function formatFullDate(timestamp: number): string {
   })
 }
 
-export default function AvatarsView({ avatars, userId }: AvatarsViewProps) {
+export default function AvatarsView({ avatars, userId, displayName }: AvatarsViewProps) {
   return (
     <div style={{ background: '#1a1a1a', minHeight: '100vh' }}>
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
-          <h2 className="section-title">Avatar History</h2>
+          <h2 className="section-title">
+            {displayName ? `${displayName}'s Avatar History` : 'Avatar History'}
+          </h2>
           <p className="section-desc" style={{ margin: 0 }}>
             {avatars.length} avatar{avatars.length !== 1 ? 's' : ''} • User ID: {userId}
           </p>

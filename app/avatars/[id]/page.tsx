@@ -15,6 +15,11 @@ interface AvatarsResponse {
   avatars: Avatar[]
 }
 
+interface UserInfo {
+  display_name?: string
+  username?: string
+}
+
 async function fetchAvatars(userId: string): Promise<Avatar[]> {
   try {
     const res = await fetch(`https://cdn.azron.net/api/cdn/avatars/evict/${userId}`, {
@@ -30,6 +35,24 @@ async function fetchAvatars(userId: string): Promise<Avatar[]> {
   }
 }
 
+async function fetchUserInfo(userId: string): Promise<UserInfo | null> {
+  try {
+    const res = await fetch('http://localhost:6978/user/find', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+      next: { revalidate: 300 },
+    })
+
+    if (!res.ok) return null
+
+    const data: UserInfo = await res.json()
+    return data
+  } catch {
+    return null
+  }
+}
+
 export default async function AvatarsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
@@ -37,13 +60,17 @@ export default async function AvatarsPage({ params }: { params: Promise<{ id: st
     notFound()
   }
 
-  const avatars = await fetchAvatars(id)
+  const [avatars, userInfo] = await Promise.all([
+    fetchAvatars(id),
+    fetchUserInfo(id),
+  ])
 
   if (avatars.length === 0) {
     notFound()
   }
 
   const sortedAvatars = avatars.sort((a, b) => b.created_at - a.created_at)
+  const displayName = userInfo?.display_name || userInfo?.username || null
 
-  return <AvatarsView avatars={sortedAvatars} userId={id} />
+  return <AvatarsView avatars={sortedAvatars} userId={id} displayName={displayName} />
 }
