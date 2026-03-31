@@ -1,60 +1,152 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+interface Dot {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  size: number
+  opacity: number
+}
+
+interface Ripple {
+  x: number
+  y: number
+  timestamp: number
+}
 
 export default function Stars() {
-  const [stars, setStars] = useState<{ x: number; y: number; size: number; delay: number }[]>([])
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const dotsRef = useRef<Dot[]>([])
+  const mouseRef = useRef({ x: 0, y: 0 })
+  const trailRef = useRef<{ x: number; y: number; opacity: number }[]>([])
+  const ripplesRef = useRef<Ripple[]>([])
+  const frameRef = useRef<number | undefined>(undefined)
 
   useEffect(() => {
-    const generateStars = () => {
-      const starCount = 150
-      const newStars = []
-      for (let i = 0; i < starCount; i++) {
-        newStars.push({
-          x: Math.random() * 100,
-          y: Math.random() * 100,
-          size: Math.random() * 2 + 0.5,
-          delay: Math.random() * 3,
-        })
-      }
-      setStars(newStars)
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
     }
-    generateStars()
+    resize()
+    window.addEventListener('resize', resize)
+
+    // Initialize dots
+    const dotCount = 60
+    for (let i = 0; i < dotCount; i++) {
+      dotsRef.current.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        size: 1 + Math.random() * 2.5,
+        opacity: 0.15 + Math.random() * 0.25,
+      })
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseRef.current = { x: e.clientX, y: e.clientY }
+      trailRef.current.push({ x: e.clientX, y: e.clientY, opacity: 0.6 })
+      if (trailRef.current.length > 15) trailRef.current.shift()
+    }
+
+    const handleClick = (e: MouseEvent) => {
+      ripplesRef.current.push({ x: e.clientX, y: e.clientY, timestamp: Date.now() })
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('click', handleClick)
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // Update and draw dots
+      dotsRef.current.forEach((dot) => {
+        dot.x += dot.vx
+        dot.y += dot.vy
+
+        if (dot.x < 0 || dot.x > canvas.width) dot.vx *= -1
+        if (dot.y < 0 || dot.y > canvas.height) dot.vy *= -1
+
+        // Mouse interaction - push dots away gently
+        const dx = dot.x - mouseRef.current.x
+        const dy = dot.y - mouseRef.current.y
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist < 150) {
+          const force = (150 - dist) / 150
+          dot.x += (dx / dist) * force * 0.8
+          dot.y += (dy / dist) * force * 0.8
+        }
+
+        ctx.beginPath()
+        ctx.arc(dot.x, dot.y, dot.size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, 255, 255, ${dot.opacity})`
+        ctx.fill()
+      })
+
+      // Draw cursor trail
+      trailRef.current.forEach((point, i) => {
+        point.opacity *= 0.92
+        if (point.opacity < 0.01) return
+
+        const size = 4 - i * 0.15
+        ctx.beginPath()
+        ctx.arc(point.x, point.y, size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, 255, 255, ${point.opacity * 0.3})`
+        ctx.fill()
+      })
+      trailRef.current = trailRef.current.filter(p => p.opacity > 0.01)
+
+      // Draw ripples
+      const now = Date.now()
+      ripplesRef.current = ripplesRef.current.filter((ripple) => {
+        const age = now - ripple.timestamp
+        if (age > 1000) return false
+
+        const progress = age / 1000
+        const radius = progress * 100
+        const opacity = (1 - progress) * 0.4
+
+        ctx.beginPath()
+        ctx.arc(ripple.x, ripple.y, radius, 0, Math.PI * 2)
+        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`
+        ctx.lineWidth = 2
+        ctx.stroke()
+
+        return true
+      })
+
+      frameRef.current = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('click', handleClick)
+      if (frameRef.current) cancelAnimationFrame(frameRef.current)
+    }
   }, [])
 
   return (
-    <div
+    <canvas
+      ref={canvasRef}
       style={{
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
         zIndex: 0,
-        overflow: 'hidden',
+        opacity: 0.8,
       }}
-    >
-      {stars.map((star, i) => (
-        <div
-          key={i}
-          style={{
-            position: 'absolute',
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            background: 'white',
-            borderRadius: '50%',
-            animation: `twinkle ${2 + Math.random() * 2}s infinite`,
-            animationDelay: `${star.delay}s`,
-            opacity: 0.8,
-          }}
-        />
-      ))}
-      <style jsx>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-      `}</style>
-    </div>
+    />
   )
 }

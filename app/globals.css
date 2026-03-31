@@ -26,10 +26,10 @@
   --warning: #fbbf24;
   --online:  #4ade80;
 
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 20px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
   --r-full: 9999px;
 
   --ease: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -126,7 +126,7 @@ code {
   border-radius: var(--r-full);
   background: rgba(40, 40, 40, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
 }
 .nav-pill a {
   padding: 0.35rem 0.9rem;
@@ -589,8 +589,8 @@ body.nav-open { overflow: hidden; }
 .cmd-modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(40px) saturate(0.7) brightness(0.7);
-  -webkit-backdrop-filter: blur(40px) saturate(0.7) brightness(0.7);
+  backdrop-filter: blur(60px) saturate(0.7) brightness(0.7);
+  -webkit-backdrop-filter: blur(60px) saturate(0.7) brightness(0.7);
   z-index: 1000;
   display: flex; align-items: center; justify-content: center;
   opacity: 0;
@@ -603,8 +603,8 @@ body.nav-open { overflow: hidden; }
 .cmd-modal {
   width: 100%; max-width: 340px;
   background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(60px) saturate(1.3);
-  -webkit-backdrop-filter: blur(60px) saturate(1.3);
+  backdrop-filter: blur(80px) saturate(1.3);
+  -webkit-backdrop-filter: blur(80px) saturate(1.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-top-color: rgba(255, 255, 255, 0.14);
   border-radius: 20px;
@@ -1333,8 +1333,8 @@ body.nav-open { overflow: hidden; }
     flex-direction: column;
     position: absolute;
     top: 56px; left: 12px; right: 12px;
-    background: rgba(16, 20, 30, 0.92);
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    background: rgba(16, 20, 30, 0.88);
+    backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--r-lg);
     padding: 0.6rem 0;
@@ -1448,7 +1448,6 @@ body.nav-open { overflow: hidden; }
   .st-header-stats { gap: 1.25rem; }
   .hero-buttons { flex-direction: column; }
   .hero-buttons .btn { width: 100%; justify-content: center; }
-  .upd-wrap { padding: 3rem 0 3rem; }
   .upd-title { font-size: 1.5rem; }
 
   .commands-toolbar { flex-direction: column; align-items: stretch; gap: 0.6rem; }
