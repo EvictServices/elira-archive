@@ -246,7 +246,7 @@ export default function TicketView({ ticketData, ticketId }: Props) {
           </div>
 
           {/* Messages Container */}
-          <div style={{ padding: '1rem 0' }}>
+          <div style={{ padding: '1rem 0', maxHeight: '70vh', overflowY: 'auto' }}>
             {messages.map((msg) => {
               const author = userMap.get(msg.author_id)
               if (!author) return null
@@ -361,7 +361,7 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                                     maxHeight: '400px',
                                   }}
                                   loading="lazy"
-                                  crossOrigin="anonymous"
+                                  referrerPolicy="no-referrer"
                                 />
                               </div>
                             )
