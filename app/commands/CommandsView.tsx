@@ -20,8 +20,21 @@ function fmtPermissions(permissions: unknown): string {
   if (!permissions) return 'none'
   if (Array.isArray(permissions)) {
     if (permissions.length === 0) return 'none'
-    if (typeof permissions[0] === 'object') return Object.keys(permissions[0] as object).join(', ')
+    if (typeof permissions[0] === 'object' && permissions[0] !== null) {
+      const obj = permissions[0] as Record<string, unknown>
+      const perms = Object.entries(obj)
+        .filter(([_, value]) => value)
+        .map(([key, _]) => key)
+      return perms.length > 0 ? perms.join(', ') : 'none'
+    }
     return (permissions as string[]).join(', ')
+  }
+  if (typeof permissions === 'object' && permissions !== null) {
+    const obj = permissions as Record<string, unknown>
+    const perms = Object.entries(obj)
+      .filter(([_, value]) => value)
+      .map(([key, _]) => key)
+    return perms.length > 0 ? perms.join(', ') : 'none'
   }
   if (typeof permissions === 'string') return permissions
   return 'none'
@@ -43,7 +56,6 @@ export default function CommandsView({ commands }: Props) {
   const [displayedTotal, setDisplayedTotal] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  // Animate command count on mount
   useEffect(() => {
     const total = commands.length
     const duration = 800
