@@ -86,6 +86,24 @@ async function fetchTicket(ticketId: string): Promise<TicketData | null> {
   }
 }
 
+async function fetchUserInfo(userId: string): Promise<{ username?: string; avatar?: string } | null> {
+  try {
+    const response = await fetch('http://127.0.0.1:6978/user/find', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: `{"user_id": ${userId}}`,
+      next: { revalidate: 60 },
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    return data || null
+  } catch {
+    return null
+  }
+}
+
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
@@ -98,6 +116,21 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   if (!ticketData || !ticketData.ticket) {
     notFound()
   }
+
+  const userIds = ticketData.ticket.users.map((u) => u.id)
+  const freshUsers = await Promise.all(userIds.map((uid) => fetchUserInfo(uid)))
+
+  ticketData.ticket.users = ticketData.ticket.users.map((user, i) => {
+    const fresh = freshUsers[i]
+    if (fresh) {
+      return {
+        ...user,
+        username: fresh.username || user.username,
+        avatar: fresh.avatar || user.avatar,
+      }
+    }
+    return user
+  })
 
   return <TicketView ticketData={ticketData} ticketId={id} />
 }
