@@ -21,6 +21,12 @@ interface ClusterData {
   uptime: number
 }
 
+interface TopCmd {
+  command_name: string
+  category: string
+  count: number
+}
+
 interface History {
   latency: number[]
   cpu: number[]
@@ -165,6 +171,7 @@ export default function StatusView() {
   const [netVal, setNetVal] = useState('—')
   const [clusters, setClusters] = useState<Record<string, ClusterData>>({})
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [topCmds, setTopCmds] = useState<TopCmd[]>([])
 
   const histRef = useRef<History>({ latency: [], cpu: [], memory: [], network: [] })
   const lastRxRef = useRef<number | null>(null)
@@ -187,7 +194,7 @@ export default function StatusView() {
   }, [])
 
   const load = useCallback(async () => {
-    const [healthRes, sysRes] = await Promise.allSettled([
+    const [healthRes, sysRes, cmdRes] = await Promise.allSettled([
       fetch('/api/health').then((r) => {
         if (!r.ok) throw 0
         return r.json()
@@ -196,7 +203,15 @@ export default function StatusView() {
         if (!r.ok) throw 0
         return r.json()
       }),
+      fetch('/api/top-commands').then((r) => {
+        if (!r.ok) throw 0
+        return r.json()
+      }),
     ])
+
+    if (cmdRes.status === 'fulfilled') {
+      setTopCmds(cmdRes.value)
+    }
 
     if (healthRes.status === 'fulfilled') {
       const d = healthRes.value
@@ -399,7 +414,17 @@ export default function StatusView() {
           <div className="st-panel">
             <div className="st-panel-title">Top Commands</div>
             <div className="top-commands-grid">
-              <div className="top-cmd-empty">No data yet</div>
+              {topCmds.length === 0 ? (
+                <div className="top-cmd-empty">No data yet</div>
+              ) : (
+                topCmds.map((cmd, i) => (
+                  <div key={cmd.command_name} className="top-cmd-item">
+                    <span className={`top-cmd-item-rank ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>#{i + 1}</span>
+                    <span className="top-cmd-item-name">{cmd.command_name}</span>
+                    <span className="top-cmd-item-uses">{cmd.count.toLocaleString()} uses</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
