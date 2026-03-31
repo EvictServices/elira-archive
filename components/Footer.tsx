@@ -1,6 +1,14 @@
 import { INVITE_URL, SUPPORT_URL } from '@/lib/constants'
+import pool from '@/lib/db'
 
-export default function Footer() {
+export default async function Footer() {
+  let cmdCount = 0
+  try {
+    const { rows } = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM invoke_history.commands WHERE "timestamp" >= NOW() - INTERVAL '24 hours'`
+    )
+    cmdCount = rows[0]?.count ?? 0
+  } catch {}
   return (
     <footer className="footer">
       <div className="container">
@@ -18,9 +26,12 @@ export default function Footer() {
             <a href="https://docs.evict.bot" target="_blank" rel="noopener" className="footer-link">Docs</a>
           </div>
         </div>
-        <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} evict &mdash; Not affiliated with Discord Inc.</p>
-          <p>Owned and operated by <a href="https://azron.net" target="_blank" rel="noopener" className="footer-link">Azron, LLC</a> (1480587)</p>
+        <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <p>&copy; {new Date().getFullYear()} evict &mdash; Not affiliated with Discord Inc.</p>
+            <p>Owned and operated by <a href="https://azron.net" target="_blank" rel="noopener" className="footer-link">Azron, LLC</a> (1480587)</p>
+          </div>
+          <p style={{ whiteSpace: 'nowrap' }}>{cmdCount.toLocaleString()} commands ran today</p>
         </div>
       </div>
     </footer>

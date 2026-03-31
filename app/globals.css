@@ -1306,7 +1306,6 @@ body.nav-open { overflow: hidden; }
 .footer-bottom p {
   font-size: 0.75rem;
   color: var(--text-muted);
-  text-align: center;
 }
 
 [data-reveal] {
