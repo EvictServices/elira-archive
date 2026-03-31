@@ -1,8 +1,8 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
 import { INVITE_URL, SUPPORT_URL } from '@/lib/constants'
 
 export default function Navbar() {

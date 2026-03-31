@@ -17,27 +17,8 @@ function esc(s: string): string {
 }
 
 function fmtPermissions(permissions: unknown): string {
-  if (!permissions) return 'none'
-  if (Array.isArray(permissions)) {
-    if (permissions.length === 0) return 'none'
-    if (typeof permissions[0] === 'object' && permissions[0] !== null) {
-      const obj = permissions[0] as Record<string, unknown>
-      const perms = Object.entries(obj)
-        .filter(([_, value]) => value)
-        .map(([key, _]) => key)
-      return perms.length > 0 ? perms.join(', ') : 'none'
-    }
-    return (permissions as string[]).join(', ')
-  }
-  if (typeof permissions === 'object' && permissions !== null) {
-    const obj = permissions as Record<string, unknown>
-    const perms = Object.entries(obj)
-      .filter(([_, value]) => value)
-      .map(([key, _]) => key)
-    return perms.length > 0 ? perms.join(', ') : 'none'
-  }
-  if (typeof permissions === 'string') return permissions
-  return 'none'
+  if (!permissions || !Array.isArray(permissions) || permissions.length === 0) return 'none'
+  return permissions.join(', ')
 }
 
 interface Props {
