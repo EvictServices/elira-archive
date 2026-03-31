@@ -1,5 +1,5 @@
 import https from 'https'
-import type { Command } from '@/app/commands/CommandsView'
+import type { Command } from '@/app/(home)/commands/CommandsView'
 
 export async function fetchCommands(): Promise<Command[]> {
   return new Promise((resolve) => {
