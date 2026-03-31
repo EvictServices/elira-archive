@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   description:
     'The all-in-one solution for seamless server management — powerful, polished, and visually refined.',
   icons: { icon: '/img/evict.webp' },
+  openGraph: {
+    images: ['/img/evict.webp'],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['/img/evict.webp'],
+  },
 }
 
 export const viewport: Viewport = {
