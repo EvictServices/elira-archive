@@ -57,11 +57,18 @@ interface TicketData {
     users: User[]
     attachments: Attachment[]
     embeds: Embed[]
+    ticket: {
+      reason: string | null
+      closed_by_id: string | null
+      opened_by_id: string | null
+      closed_at: string | null
+    }
     channel: {
       name: string
       created_at: string
     }
   }
+  people: string[]
 }
 
 async function fetchTicket(ticketId: string): Promise<TicketData | null> {
@@ -118,10 +125,19 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   }
 
   const userIds = ticketData.ticket.users.map((u) => u.id)
-  const freshUsers = await Promise.all(userIds.map((uid) => fetchUserInfo(uid)))
+  const people = ticketData.people || []
 
-  ticketData.ticket.users = ticketData.ticket.users.map((user, i) => {
-    const fresh = freshUsers[i]
+  // Collect all unique user IDs (from users + people)
+  const allUserIds = [...new Set([...userIds, ...people])]
+  const freshUsersMap = new Map<string, { username?: string; avatar?: string; bot?: boolean; discriminator?: string; id?: string }>();
+  const freshResults = await Promise.all(allUserIds.map((uid) => fetchUserInfo(uid)))
+  allUserIds.forEach((uid, i) => {
+    if (freshResults[i]) freshUsersMap.set(uid, freshResults[i]!)
+  })
+
+  // Merge fresh data into existing ticket users
+  ticketData.ticket.users = ticketData.ticket.users.map((user) => {
+    const fresh = freshUsersMap.get(user.id)
     if (fresh) {
       return {
         ...user,
@@ -131,6 +147,24 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     }
     return user
   })
+
+  // Add any people not already in users array
+  const existingIds = new Set(userIds)
+  for (const pid of people) {
+    if (!existingIds.has(pid)) {
+      const fresh = freshUsersMap.get(pid)
+      if (fresh) {
+        ticketData.ticket.users.push({
+          id: pid,
+          username: fresh.username || 'Unknown',
+          global_name: null,
+          discriminator: fresh.discriminator || '0',
+          avatar: fresh.avatar || '',
+          bot: fresh.bot || false,
+        })
+      }
+    }
+  }
 
   return <TicketView ticketData={ticketData} ticketId={id} />
 }
