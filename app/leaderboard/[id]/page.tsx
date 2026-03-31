@@ -3,10 +3,6 @@ import { notFound } from 'next/navigation'
 import pool from '@/lib/db'
 import LeaderboardView from './LeaderboardView'
 
-export const metadata: Metadata = {
-  title: 'Leaderboard',
-}
-
 interface LevelRow {
   user_id: string
   xp: number
@@ -36,6 +32,14 @@ async function fetchGuildInfo(guildId: string): Promise<GuildInfo | null> {
     return data || null
   } catch {
     return null
+  }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const guild = await fetchGuildInfo(id)
+  return {
+    title: guild?.name ? `${guild.name} - Leaderboard` : 'Leaderboard',
   }
 }
 

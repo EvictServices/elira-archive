@@ -7,8 +7,8 @@ import CursorEffects from '@/components/CursorEffects'
 
 export const metadata: Metadata = {
   title: {
-    default: 'evict',
-    template: '%s | evict',
+    default: 'Evict',
+    template: '%s | Evict',
   },
   description:
     'Advanced Discord bot with comprehensive moderation, robust antinuke protection, and versatile utility tools.',
