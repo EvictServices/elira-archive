@@ -3,6 +3,7 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ScrollRevealInit from '@/components/ScrollRevealInit'
+import CursorEffects from '@/components/CursorEffects'
 
 export const metadata: Metadata = {
   title: {
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="page">{children}</div>
         <Footer />
         <ScrollRevealInit />
+        <CursorEffects />
       </body>
     </html>
   )
