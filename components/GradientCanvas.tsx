@@ -1,11 +1,16 @@
 'use client'
 
 import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 type GradientWindow = Window & { Gradient?: new () => { initGradient: (s: string) => void } }
 
 export default function GradientCanvas() {
+  const pathname = usePathname()
+
   useEffect(() => {
+    if (pathname !== '/') return
+
     const w = window as GradientWindow
 
     const init = () => {
@@ -22,7 +27,9 @@ export default function GradientCanvas() {
       }, 50)
       return () => clearInterval(timer)
     }
-  }, [])
+  }, [pathname])
+
+  if (pathname !== '/') return null
 
   return <canvas id="gradient-canvas" data-transition-in="" />
 }

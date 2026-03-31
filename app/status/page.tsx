@@ -16,10 +16,10 @@ interface History {
 }
 
 const COLORS: Record<string, { stroke: string; fill: string }> = {
-  accent: { stroke: '#6b72cc', fill: 'rgba(107,114,204,0.15)' },
-  green:  { stroke: '#5b9bd4', fill: 'rgba(91,155,212,0.12)' },
-  orange: { stroke: '#9b7de0', fill: 'rgba(155,125,224,0.12)' },
-  purple: { stroke: '#4a6ee0', fill: 'rgba(74,110,224,0.12)' },
+  accent: { stroke: '#4a5568', fill: 'rgba(74,85,104,0.08)' },
+  green:  { stroke: '#2d3748', fill: 'rgba(45,55,72,0.08)' },
+  orange: { stroke: '#1a202c', fill: 'rgba(26,32,44,0.08)' },
+  purple: { stroke: '#2d3748', fill: 'rgba(45,55,72,0.08)' },
 }
 
 function renderChartToEl(
@@ -235,7 +235,7 @@ export default function StatusPage() {
   }
 
   return (
-    <div className="st-wrap">
+    <div className="st-wrap" style={{ background: '#1a1a1a', minHeight: '100vh' }}>
       <div className="container">
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
           <h2 className="section-title">Status</h2>

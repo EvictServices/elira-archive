@@ -24,7 +24,7 @@ export default function UpdatesView({ updates }: Props) {
   const u = updates[activeIndex]
 
   return (
-    <div className="upd-wrap">
+    <div className="upd-wrap" style={{ background: '#1a1a1a', minHeight: '100vh' }}>
       <div className="container">
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
           <h2 className="section-title">Updates</h2>

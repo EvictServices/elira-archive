@@ -138,7 +138,7 @@ export default function CommandsPage() {
 
   return (
     <>
-      <div className="commands-wrap">
+      <div className="commands-wrap" style={{ background: '#1a1a1a', minHeight: '100vh' }}>
         <div className="container">
           <div className="commands-page-header" data-reveal>
             <div className="section-header" style={{ textAlign: 'left', marginBottom: 0 }}>
@@ -169,17 +169,20 @@ export default function CommandsPage() {
                 className={`filter-btn${activeCategory === 'all' ? ' active' : ''}`}
                 onClick={() => switchCategory('all')}
               >
-                All
+                All <span className="filter-count">({allCommands.length})</span>
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  className={`filter-btn${activeCategory === cat ? ' active' : ''}`}
-                  onClick={() => switchCategory(cat)}
-                >
-                  {cat[0].toUpperCase() + cat.slice(1)}
-                </button>
-              ))}
+              {categories.map((cat) => {
+                const count = allCommands.filter((c) => c.category === cat).length
+                return (
+                  <button
+                    key={cat}
+                    className={`filter-btn${activeCategory === cat ? ' active' : ''}`}
+                    onClick={() => switchCategory(cat)}
+                  >
+                    {cat[0].toUpperCase() + cat.slice(1)} <span className="filter-count">({count})</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
