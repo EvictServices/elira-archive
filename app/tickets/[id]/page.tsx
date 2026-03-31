@@ -1,114 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import TicketView from './TicketView'
+import { fetchTicket, fetchUserInfo } from './fetchTicket'
 
 export const metadata: Metadata = {
   title: 'Ticket Transcript',
-}
-
-interface Message {
-  id: string
-  author_id: string
-  content: string
-  timestamp: string
-  edited_timestamp: string | null
-  pinned: boolean
-}
-
-interface User {
-  id: string
-  username: string
-  global_name: string | null
-  discriminator: string
-  avatar: string
-  bot: boolean
-}
-
-interface Attachment {
-  filename: string
-  url: string
-  file_size: number
-  message_id: string
-}
-
-interface EmbedField {
-  name: string
-  value: string
-  inline: boolean
-}
-
-interface Embed {
-  author: { icon_url: string | null; name: string | null; url: string | null } | null
-  color: string | null
-  description: string | null
-  fields: EmbedField[]
-  footer: { icon_url: string | null; text: string | null } | null
-  image: { url: string | null } | null
-  message_id: string
-  thumbnail: { url: string | null } | null
-  timestamp: string | null
-  title: string | null
-  url: string | null
-}
-
-interface TicketData {
-  ticket: {
-    messages: Message[]
-    users: User[]
-    attachments: Attachment[]
-    embeds: Embed[]
-    ticket: {
-      reason: string | null
-      closed_by_id: string | null
-      opened_by_id: string | null
-      closed_at: string | null
-    }
-    channel: {
-      name: string
-      created_at: string
-    }
-  }
-  people: string[]
-}
-
-async function fetchTicket(ticketId: string): Promise<TicketData | null> {
-  try {
-    const response = await fetch('http://cdn.azron.net/api/tickets/fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer cdn_9a4e7b1d0f2c4e6a8d3b5c7f1e2a9b4c',
-      },
-      body: JSON.stringify({ id: ticketId, bot: 'evict' }),
-      next: { revalidate: 300 },
-    })
-
-    if (!response.ok) return null
-
-    const data: TicketData = await response.json()
-    return data
-  } catch (error) {
-    console.error('Error fetching ticket:', error)
-    return null
-  }
-}
-
-async function fetchUserInfo(userId: string): Promise<{ username?: string; avatar?: string } | null> {
-  try {
-    const response = await fetch('http://127.0.0.1:6978/user/find', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: `{"user_id": ${userId}}`,
-      next: { revalidate: 60 },
-    })
-
-    if (!response.ok) return null
-
-    const data = await response.json()
-    return data || null
-  } catch {
-    return null
-  }
 }
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
@@ -126,16 +22,14 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
 
   const userIds = ticketData.ticket.users.map((u) => u.id)
   const people = ticketData.people || []
-
-  // Collect all unique user IDs (from users + people)
   const allUserIds = [...new Set([...userIds, ...people])]
-  const freshUsersMap = new Map<string, { username?: string; avatar?: string; bot?: boolean; discriminator?: string; id?: string }>();
+
   const freshResults = await Promise.all(allUserIds.map((uid) => fetchUserInfo(uid)))
+  const freshUsersMap = new Map<string, { username?: string; avatar?: string; bot?: boolean; discriminator?: string }>()
   allUserIds.forEach((uid, i) => {
     if (freshResults[i]) freshUsersMap.set(uid, freshResults[i]!)
   })
 
-  // Merge fresh data into existing ticket users
   ticketData.ticket.users = ticketData.ticket.users.map((user) => {
     const fresh = freshUsersMap.get(user.id)
     if (fresh) {
@@ -148,7 +42,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     return user
   })
 
-  // Add any people not already in users array
   const existingIds = new Set(userIds)
   for (const pid of people) {
     if (!existingIds.has(pid)) {
