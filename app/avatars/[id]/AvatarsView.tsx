@@ -39,7 +39,7 @@ function formatFullDate(timestamp: number): string {
 export default function AvatarsView({ avatars, userId, username }: AvatarsViewProps) {
   return (
     <div style={{ background: '#1a1a1a', minHeight: '100vh' }}>
-      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
+      <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
           <h2 className="section-title">
             {username ? `${username}'s Avatar History` : 'Avatar History'}
