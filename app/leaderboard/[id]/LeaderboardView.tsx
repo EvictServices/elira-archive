@@ -19,8 +19,7 @@ function getDefaultAvatar(userId: string) {
 
 function getAvatarUrl(userId: string, avatar: string | null) {
   if (!avatar) return getDefaultAvatar(userId)
-  const ext = avatar.startsWith('a_') ? 'gif' : 'png'
-  return `https://cdn.discordapp.com/avatars/${userId}/${avatar}.${ext}?size=64`
+  return avatar
 }
 
 function getGuildIconUrl(guildId: string, icon: string | null) {
@@ -100,7 +99,7 @@ export default function LeaderboardView({
             </span>
           </div>
 
-          <div style={{ padding: '1rem 1.5rem' }}>
+          <div style={{ padding: '1rem 1.5rem', maxHeight: '70vh', overflowY: 'auto' }}>
 
         {members.length === 0 ? (
           <div
