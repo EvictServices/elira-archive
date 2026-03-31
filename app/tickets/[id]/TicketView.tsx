@@ -16,7 +16,7 @@ interface User {
   username: string
   global_name: string | null
   discriminator: string
-  avatar: string
+  avatar: string | null
   bot: boolean
 }
 
@@ -64,6 +64,143 @@ function formatFileSize(bytes: number): string {
   return (bytes / 1048576).toFixed(2) + ' MB'
 }
 
+function getFallbackAvatar(discriminator?: string): string {
+  const disc = Number(discriminator || '0')
+  const index = Number.isFinite(disc) ? Math.abs(disc) % 5 : 0
+  return `https://cdn.discordapp.com/embed/avatars/${index}.png`
+}
+
+function getAvatarUrl(user: User): string {
+  return user.avatar || getFallbackAvatar(user.discriminator)
+}
+
+function parseContent(content: string, userMap: Map<string, User>): React.ReactNode[] {
+  const mentionStyle: React.CSSProperties = {
+    background: 'rgba(88, 101, 242, 0.3)',
+    color: '#dee0fc',
+    borderRadius: '3px',
+    padding: '0 2px',
+    fontWeight: 500,
+    cursor: 'default',
+  }
+  const codeBlockStyle: React.CSSProperties = {
+    background: 'rgba(0,0,0,0.3)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: '4px',
+    padding: '0.5rem',
+    fontFamily: 'Consolas, Monaco, monospace',
+    fontSize: '0.875rem',
+    display: 'block',
+    whiteSpace: 'pre',
+    overflowX: 'auto',
+    margin: '0.25rem 0',
+  }
+  const inlineCodeStyle: React.CSSProperties = {
+    background: 'rgba(0,0,0,0.3)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: '3px',
+    padding: '0.1rem 0.3rem',
+    fontFamily: 'Consolas, Monaco, monospace',
+    fontSize: '0.85em',
+  }
+
+  // Split by code blocks first
+  const codeBlockRegex = /```(?:\w+)?\n?([\s\S]*?)```/g
+  const parts: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  const processInline = (text: string, keyPrefix: string): React.ReactNode[] => {
+    const nodes: React.ReactNode[] = []
+    // Combined regex for all inline patterns
+    const inlineRegex = /(<@!?(\d+)>)|(<#(\d+)>)|(<@&(\d+)>)|(`([^`]+)`)|(\_\_(.+?)\_\_)|(\.{2}(.+?)\.{2})|(\*\*\*(.+?)\*\*\*)|(\*\*(.+?)\*\*)|(\*(.+?)\*)|(~~(.+?)~~)|(\|\|(.+?)\|\|)/g
+    let inlineLastIndex = 0
+    let inlineMatch: RegExpExecArray | null
+
+    while ((inlineMatch = inlineRegex.exec(text)) !== null) {
+      // Add text before match
+      if (inlineMatch.index > inlineLastIndex) {
+        nodes.push(text.slice(inlineLastIndex, inlineMatch.index))
+      }
+
+      const key = `${keyPrefix}-${inlineMatch.index}`
+
+      if (inlineMatch[1]) {
+        // User mention <@id> or <@!id>
+        const userId = inlineMatch[2]
+        const user = userMap.get(userId)
+        const name = user ? (user.global_name || user.username) : `Unknown User`
+        nodes.push(<span key={key} style={mentionStyle}>@{name}</span>)
+      } else if (inlineMatch[3]) {
+        // Channel mention <#id>
+        nodes.push(<span key={key} style={mentionStyle}>#channel</span>)
+      } else if (inlineMatch[5]) {
+        // Role mention <@&id>
+        nodes.push(<span key={key} style={mentionStyle}>@role</span>)
+      } else if (inlineMatch[7]) {
+        // Inline code `code`
+        nodes.push(<code key={key} style={inlineCodeStyle}>{inlineMatch[8]}</code>)
+      } else if (inlineMatch[9]) {
+        // Underline __text__
+        nodes.push(<u key={key}>{inlineMatch[10]}</u>)
+      } else if (inlineMatch[13]) {
+        // Bold italic ***text***
+        nodes.push(<strong key={key}><em>{inlineMatch[14]}</em></strong>)
+      } else if (inlineMatch[15]) {
+        // Bold **text**
+        nodes.push(<strong key={key}>{inlineMatch[16]}</strong>)
+      } else if (inlineMatch[17]) {
+        // Italic *text*
+        nodes.push(<em key={key}>{inlineMatch[18]}</em>)
+      } else if (inlineMatch[19]) {
+        // Strikethrough ~~text~~
+        nodes.push(<s key={key}>{inlineMatch[20]}</s>)
+      } else if (inlineMatch[21]) {
+        // Spoiler ||text||
+        nodes.push(
+          <span
+            key={key}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: '3px',
+              padding: '0 2px',
+              cursor: 'pointer',
+            }}
+          >
+            {inlineMatch[22]}
+          </span>
+        )
+      }
+
+      inlineLastIndex = inlineMatch.index + inlineMatch[0].length
+    }
+
+    if (inlineLastIndex < text.length) {
+      nodes.push(text.slice(inlineLastIndex))
+    }
+
+    return nodes.length > 0 ? nodes : [text]
+  }
+
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(...processInline(content.slice(lastIndex, match.index), `pre-${lastIndex}`))
+    }
+    parts.push(
+      <code key={`cb-${match.index}`} style={codeBlockStyle}>
+        {match[1]}
+      </code>
+    )
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < content.length) {
+    parts.push(...processInline(content.slice(lastIndex), `post-${lastIndex}`))
+  }
+
+  return parts
+}
+
 export default function TicketView({ ticketData, ticketId }: Props) {
   const { messages, users, attachments, channel } = ticketData.ticket
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -82,7 +219,15 @@ export default function TicketView({ ticketData, ticketId }: Props) {
   return (
     <>
       <div style={{ background: '#1a1a1a', minHeight: '100vh', color: '#dbdee1' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '6rem' }}>
+        <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+            }}
+          >
           {/* Channel Header */}
           <div
             style={{
@@ -122,13 +267,19 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                 >
                   {/* Avatar */}
                   <img
-                    src={author.avatar}
+                    src={getAvatarUrl(author)}
                     alt={author.username}
+                    referrerPolicy="no-referrer"
                     style={{
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
                       flexShrink: 0,
+                    }}
+                    onError={(e) => {
+                      const img = e.currentTarget
+                      const fallback = getFallbackAvatar(author.discriminator)
+                      if (img.src !== fallback) img.src = fallback
                     }}
                   />
 
@@ -176,7 +327,7 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                           whiteSpace: 'pre-wrap',
                         }}
                       >
-                        {msg.content}
+                        {parseContent(msg.content, userMap)}
                       </div>
                     )}
 
@@ -256,11 +407,11 @@ export default function TicketView({ ticketData, ticketId }: Props) {
               )
             })}
           </div>
+          </div>
         </div>
       </div>
 
-      {/* Image Preview Modal */}
-      {imagePreview && (
+      {/* Image Preview Modal */}      {imagePreview && (
         <div
           style={{
             position: 'fixed',
