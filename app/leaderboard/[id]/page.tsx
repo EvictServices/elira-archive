@@ -19,6 +19,29 @@ interface UserInfo {
   avatar?: string | null
 }
 
+interface GuildInfo {
+  name?: string
+  icon?: string | null
+}
+
+async function fetchGuildInfo(guildId: string): Promise<GuildInfo | null> {
+  try {
+    const response = await fetch('http://127.0.0.1:6978/guild/find', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: `{"guild_id": ${guildId}}`,
+      next: { revalidate: 60 },
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    return data || null
+  } catch {
+    return null
+  }
+}
+
 async function fetchUserInfo(userId: string): Promise<UserInfo | null> {
   try {
     const response = await fetch('http://127.0.0.1:6978/user/find', {
@@ -63,9 +86,10 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ id
     notFound()
   }
 
-  const userInfos = await Promise.all(
-    rows.map((r) => fetchUserInfo(r.user_id))
-  )
+  const [guildInfo, ...userInfos] = await Promise.all([
+    fetchGuildInfo(id),
+    ...rows.map((r) => fetchUserInfo(r.user_id)),
+  ])
 
   const members = rows.map((r, i) => ({
     user_id: r.user_id,
@@ -76,5 +100,12 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ id
     avatar: userInfos[i]?.avatar || null,
   }))
 
-  return <LeaderboardView members={members} guildId={id} />
+  return (
+    <LeaderboardView
+      members={members}
+      guildId={id}
+      guildName={(guildInfo as GuildInfo | null)?.name || null}
+      guildIcon={(guildInfo as GuildInfo | null)?.icon || null}
+    />
+  )
 }

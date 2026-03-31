@@ -23,42 +23,84 @@ function getAvatarUrl(userId: string, avatar: string | null) {
   return `https://cdn.discordapp.com/avatars/${userId}/${avatar}.${ext}?size=64`
 }
 
+function getGuildIconUrl(guildId: string, icon: string | null) {
+  if (!icon) return null
+  const ext = icon.startsWith('a_') ? 'gif' : 'png'
+  return `https://cdn.discordapp.com/icons/${guildId}/${icon}.${ext}?size=64`
+}
+
 export default function LeaderboardView({
   members,
   guildId,
+  guildName,
+  guildIcon,
 }: {
   members: LeaderboardMember[]
   guildId: string
+  guildName: string | null
+  guildIcon: string | null
 }) {
   const [failedAvatars, setFailedAvatars] = useState<Set<string>>(new Set())
+  const [iconFailed, setIconFailed] = useState(false)
+  const iconUrl = getGuildIconUrl(guildId, guildIcon)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#1a1a1a', color: '#fff' }}>
-      <div
-        style={{
-          maxWidth: 700,
-          margin: '0 auto',
-          padding: '6rem 1rem 2rem',
-        }}
-      >
-        <h1
+    <div style={{ background: '#1a1a1a', minHeight: '100vh', color: '#dbdee1' }}>
+      <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
+        <div
           style={{
-            fontSize: '1.6rem',
-            fontWeight: 700,
-            marginBottom: '0.5rem',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '12px',
+            overflow: 'hidden',
           }}
         >
-          Leaderboard
-        </h1>
-        <p
-          style={{
-            color: '#888',
-            fontSize: '0.85rem',
-            marginBottom: '1.5rem',
-          }}
-        >
-          Guild {guildId}
-        </p>
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              padding: '1rem 1.5rem',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+            }}
+          >
+            {iconUrl && !iconFailed ? (
+              <img
+                src={iconUrl}
+                alt=""
+                width={28}
+                height={28}
+                style={{ borderRadius: '50%' }}
+                onError={() => setIconFailed(true)}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  color: '#fff',
+                }}
+              >
+                {(guildName || '?').charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span style={{ fontWeight: 600, fontSize: '1rem', color: '#fff' }}>
+              {guildName || `Guild ${guildId}`}
+            </span>
+            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#949ba4' }}>
+              {members.length} members
+            </span>
+          </div>
+
+          <div style={{ padding: '1rem 1.5rem' }}>
 
         {members.length === 0 ? (
           <div
@@ -72,7 +114,7 @@ export default function LeaderboardView({
             No leveling data found for this server.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {members.map((m, i) => {
               const rank = i + 1
               const avatarSrc = failedAvatars.has(m.user_id)
@@ -185,6 +227,8 @@ export default function LeaderboardView({
             })}
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   )
