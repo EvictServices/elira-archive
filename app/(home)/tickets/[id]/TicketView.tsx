@@ -11,7 +11,12 @@ interface Props {
 
 export default function TicketView({ ticketData, ticketId }: Props) {
   const { messages, users, attachments, embeds, channel, ticket: ticketMeta } = ticketData.ticket
-  const people = ticketData.people || []
+
+  const messageAuthorIds = new Set(messages.map((m) => m.author_id))
+  const involvedIds = new Set<string>(messageAuthorIds)
+  if (ticketMeta?.opened_by_id) involvedIds.add(ticketMeta.opened_by_id)
+  if (ticketMeta?.closed_by_id) involvedIds.add(ticketMeta.closed_by_id)
+  const people = [...involvedIds]
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 

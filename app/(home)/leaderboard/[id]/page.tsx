@@ -22,7 +22,7 @@ interface GuildInfo {
 
 async function fetchGuildInfo(guildId: string): Promise<GuildInfo | null> {
   try {
-    const response = await fetch(`http://127.0.0.1:6978/guild?idx=${guildId}`, {
+    const response = await fetch(`http://127.0.0.1:8000/guild/find?idx=${guildId}`, {
       next: { revalidate: 60 },
     })
 
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 async function fetchUserInfo(userId: string): Promise<UserInfo | null> {
   try {
-    const response = await fetch('http://127.0.0.1:6978/user/find', {
+    const response = await fetch('http://127.0.0.1:8000/user/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: `{"user_id": ${userId}}`,

@@ -21,7 +21,13 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   }
 
   const userIds = ticketData.ticket.users.map((u) => u.id)
-  const people = ticketData.people || []
+
+  const messageAuthorIds = new Set(ticketData.ticket.messages.map((m) => m.author_id))
+  const involvedIds = new Set<string>(messageAuthorIds)
+  if (ticketData.ticket.ticket.opened_by_id) involvedIds.add(ticketData.ticket.ticket.opened_by_id)
+  if (ticketData.ticket.ticket.closed_by_id) involvedIds.add(ticketData.ticket.ticket.closed_by_id)
+  const people = [...involvedIds]
+
   const allUserIds = [...new Set([...userIds, ...people])]
 
   const freshResults = await Promise.all(allUserIds.map((uid) => fetchUserInfo(uid)))

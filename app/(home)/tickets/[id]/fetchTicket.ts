@@ -23,7 +23,7 @@ export async function fetchTicket(ticketId: string): Promise<TicketData | null> 
 
 export async function fetchUserInfo(userId: string): Promise<{ username?: string; avatar?: string; bot?: boolean; discriminator?: string } | null> {
   try {
-    const response = await fetch('http://127.0.0.1:6978/user/find', {
+    const response = await fetch('http://127.0.0.1:8000/user/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: `{"user_id": ${userId}}`,

@@ -18,7 +18,7 @@ interface UserInfo {
 
 async function fetchUserInfoForMeta(userId: string): Promise<string | null> {
   try {
-    const response = await fetch('http://127.0.0.1:6978/user/find', {
+    const response = await fetch('http://127.0.0.1:8000/user/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: `{"user_id": ${userId}}`,
@@ -57,7 +57,7 @@ async function fetchAvatars(userId: string): Promise<Avatar[]> {
 
 async function fetchUserInfo(userId: string): Promise<UserInfo | null> {
   try {
-    const response = await fetch('http://127.0.0.1:6978/user/find', {
+    const response = await fetch('http://127.0.0.1:8000/user/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: `{"user_id": ${userId}}`,
