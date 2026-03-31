@@ -81,14 +81,14 @@ export default function TicketView({ ticketData, ticketId }: Props) {
 
   return (
     <>
-      <div style={{ background: '#313338', minHeight: '100vh', color: '#dbdee1' }}>
+      <div style={{ background: '#1a1a1a', minHeight: '100vh', color: '#dbdee1' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '6rem' }}>
           {/* Channel Header */}
           <div
             style={{
-              background: '#2b2d31',
+              background: 'rgba(255,255,255,0.03)',
               padding: '1rem 1.5rem',
-              borderBottom: '1px solid #1e1f22',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
               display: 'flex',
               alignItems: 'center',
               gap: '0.75rem',
@@ -117,7 +117,7 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                     gap: '1rem',
                     transition: 'background 0.1s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#2e3035')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
                   {/* Avatar */}
@@ -194,13 +194,23 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                                   borderRadius: '8px',
                                   overflow: 'hidden',
                                   cursor: 'pointer',
+                                  border: '1px solid rgba(255,255,255,0.08)',
+                                  background: 'rgba(0,0,0,0.2)',
                                 }}
                                 onClick={() => setImagePreview(att.url)}
                               >
                                 <img
                                   src={att.url}
                                   alt={att.filename}
-                                  style={{ width: '100%', display: 'block', borderRadius: '8px' }}
+                                  style={{
+                                    width: '100%',
+                                    display: 'block',
+                                    borderRadius: '8px',
+                                    objectFit: 'contain',
+                                    maxHeight: '400px',
+                                  }}
+                                  loading="lazy"
+                                  crossOrigin="anonymous"
                                 />
                               </div>
                             )
@@ -212,8 +222,8 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
-                                  background: '#2b2d31',
-                                  border: '1px solid #1e1f22',
+                                  background: 'rgba(255,255,255,0.03)',
+                                  border: '1px solid rgba(255,255,255,0.08)',
                                   borderRadius: '8px',
                                   padding: '0.75rem',
                                   display: 'flex',
@@ -223,8 +233,8 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                                   color: '#00a8fc',
                                   transition: 'background 0.1s',
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#232428')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = '#2b2d31')}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
                               >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#80848e">
                                   <path d="M6 2C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2H6ZM13 9V3.5L18.5 9H13Z" />
