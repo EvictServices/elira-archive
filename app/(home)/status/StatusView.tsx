@@ -217,9 +217,10 @@ export default function StatusView() {
 
     if (healthRes.status === 'fulfilled') {
       const d = healthRes.value
-      const rawClusters: { id: number; shards?: Shard[]; last_heartbeat?: number }[] = d.clusters || []
+      const rawClusters: Record<string, { alive?: boolean; last_heartbeat?: number; uptime?: number; users?: number; guilds?: number; average_latency?: number; shards?: Shard[] }> = d.clusters || {}
+      const clusterEntries = Object.entries(rawClusters)
 
-      if (!rawClusters.length) {
+      if (!clusterEntries.length) {
         histRef.current.latency.push(0)
         histRef.current.cpu.push(0)
         histRef.current.memory.push(0)
@@ -238,28 +239,27 @@ export default function StatusView() {
       let totalGuilds = 0,
         totalShards = 0
       const allLats: number[] = []
-      const nowSec = Date.now() / 1000
       const newClusters: Record<string, ClusterData> = {}
 
-      for (const c of rawClusters) {
+      for (const [cId, c] of clusterEntries) {
         const shardList = c.shards || []
-        const cGuilds = shardList.reduce((a, s) => a + (s.guilds || 0), 0)
-        const cUsers = shardList.reduce((a, s) => a + (s.users || 0), 0)
+        const cGuilds = c.guilds || shardList.reduce((a, s) => a + (s.guilds || 0), 0)
+        const cUsers = c.users || shardList.reduce((a, s) => a + (s.users || 0), 0)
         totalGuilds += cGuilds
         totalShards += shardList.length
         shardList.forEach((s) => {
           if (s.latency > 0) allLats.push(s.latency)
         })
-        newClusters[String(c.id)] = {
-          alive: nowSec - (c.last_heartbeat || 0) < 30,
+        newClusters[cId] = {
+          alive: c.alive ?? false,
           guilds: cGuilds,
           users: cUsers,
           shards: shardList,
-          uptime: shardList[0]?.uptime || 0,
+          uptime: c.uptime || shardList[0]?.uptime || 0,
         }
       }
 
-      animateNum(setGuilds, totalGuilds)
+      animateNum(setGuilds, d.guilds || totalGuilds)
       animateNum(setUsers, d.users || 0)
       setShards(String(totalShards))
       setClusters(newClusters)

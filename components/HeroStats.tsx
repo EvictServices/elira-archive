@@ -34,9 +34,11 @@ export default function HeroStats() {
         setOnline(isOnline)
 
         if (isOnline) {
-          const guilds = (d.clusters || []).reduce(
-            (sum: number, c: { shards?: { guilds?: number }[] }) =>
-              sum + (c.shards || []).reduce((s2: number, sh) => s2 + (sh.guilds || 0), 0),
+          const guilds = d.guilds || Object.values(d.clusters || {}).reduce(
+            (sum: number, c: unknown) => {
+              const cluster = c as { guilds?: number; shards?: { guilds?: number }[] }
+              return sum + (cluster.guilds || (cluster.shards || []).reduce((s2: number, sh) => s2 + (sh.guilds || 0), 0))
+            },
             0
           )
           animateCounter(setServers, guilds)
