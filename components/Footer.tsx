@@ -20,6 +20,7 @@ export default function Footer() {
         </div>
         <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} evict &mdash; Not affiliated with Discord Inc.</p>
+          <p>Owned and operated by <a href="https://azron.net" target="_blank" rel="noopener" className="footer-link">Azron, LLC</a> (1480587)</p>
         </div>
       </div>
     </footer>

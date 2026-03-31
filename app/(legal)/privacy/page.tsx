@@ -26,7 +26,7 @@ export default function Privacy() {
               Privacy Policy
             </span>
             <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>
-              Last updated: 2025-11-11
+              Last updated: 2026-03-30
             </span>
           </div>
 
@@ -128,7 +128,7 @@ export default function Privacy() {
             <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
               Our primary data storage is located in Ashburn, Virginia. For redundancy
               and disaster recovery, we maintain replicated backups across data
-              centers in New York, USA and Falkenstein, Germany.
+              centers in Secaucus, New Jersey.
             </p>
 
             <h2 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#fff', marginTop: '1.5rem', marginBottom: '0.5rem' }}>

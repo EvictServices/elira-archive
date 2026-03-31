@@ -26,7 +26,7 @@ export default function Terms() {
               Terms of Service
             </span>
             <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>
-              Last updated: 2025-11-11
+              Last updated: 2026-03-30
             </span>
           </div>
 
