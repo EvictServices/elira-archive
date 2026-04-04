@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import type { TicketData, Attachment, Embed, User } from './types'
 import { formatTimestamp, formatFileSize, getFallbackAvatar, getAvatarUrl, parseContent } from './helpers'
+
+const INITIAL_BATCH = 50
+const LOAD_MORE_BATCH = 100
 
 interface Props {
   ticketData: TicketData
@@ -19,6 +22,39 @@ export default function TicketView({ ticketData, ticketId }: Props) {
   const people = [...involvedIds]
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    const onScroll = () => setShowScrollTop(container.scrollTop > 400)
+    container.addEventListener('scroll', onScroll, { passive: true })
+    return () => container.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (visibleCount >= messages.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_BATCH, messages.length))
+        }
+      },
+      { root: scrollContainerRef.current, rootMargin: '600px' }
+    )
+
+    const el = sentinelRef.current
+    if (el) observer.observe(el)
+    return () => { if (el) observer.unobserve(el) }
+  }, [visibleCount, messages.length])
+
+  const visibleMessages = useMemo(() => messages.slice(0, visibleCount), [messages, visibleCount])
 
   const userMap = new Map(users.map((u) => [u.id, u]))
 
@@ -62,22 +98,29 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                 <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41045 9L8.35045 15H14.3504L15.4104 9H9.41045Z" />
               </svg>
               <span style={{ fontWeight: 600, fontSize: '1rem' }}>{channel.name}</span>
-              <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#949ba4' }}>{formatTimestamp(channel.created_at)}</span>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>{messages.length} messages</span>
+                <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>{formatTimestamp(channel.created_at)}</span>
+              </div>
             </div>
 
-            <div style={{ padding: '1rem 0', maxHeight: '70vh', overflowY: 'auto' }}>
-              {messages.map((msg) => {
+            <div ref={scrollContainerRef} style={{ padding: '1rem 0', maxHeight: 'calc(100vh - 14rem)', overflowY: 'auto', position: 'relative' }}>
+              <div ref={topRef} />
+              {visibleMessages.map((msg, msgIndex) => {
                 const author = userMap.get(msg.author_id)
                 if (!author) return null
 
                 const msgAttachments = attachmentMap.get(msg.id) || []
                 const msgEmbeds = embedMap.get(msg.id) || []
+                const prevMsg = msgIndex > 0 ? visibleMessages[msgIndex - 1] : null
+                const isGrouped = prevMsg && prevMsg.author_id === msg.author_id && (new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime()) < 420000
 
                 return (
                   <div
                     key={msg.id}
                     style={{
-                      padding: '0.5rem 1rem',
+                      padding: isGrouped ? '0.125rem 1rem 0.125rem 4.5rem' : '0.5rem 1rem',
+                      paddingTop: isGrouped ? '0.125rem' : (msgIndex === 0 ? '0.5rem' : '1rem'),
                       display: 'flex',
                       gap: '1rem',
                       transition: 'background 0.1s',
@@ -85,48 +128,52 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                     onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <img
-                      src={getAvatarUrl(author)}
-                      alt={author.username}
-                      referrerPolicy="no-referrer"
-                      style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0 }}
-                      onError={(e) => {
-                        const img = e.currentTarget
-                        const fallback = getFallbackAvatar(author.discriminator)
-                        if (img.src !== fallback) img.src = fallback
-                      }}
-                    />
+                    {!isGrouped && (
+                      <img
+                        src={getAvatarUrl(author)}
+                        alt={author.username}
+                        referrerPolicy="no-referrer"
+                        style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0 }}
+                        onError={(e) => {
+                          const img = e.currentTarget
+                          const fallback = getFallbackAvatar(author.discriminator)
+                          if (img.src !== fallback) img.src = fallback
+                        }}
+                      />
+                    )}
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                        <span style={{ fontWeight: 600, color: author.bot ? '#5865f2' : '#f2f3f5', fontSize: '1rem' }}>
-                          {author.global_name || author.username}
-                        </span>
-                        {author.bot && (
-                          <span
-                            style={{
-                              background: '#5865f2',
-                              color: '#fff',
-                              fontSize: '0.625rem',
-                              fontWeight: 600,
-                              padding: '0.125rem 0.275rem',
-                              borderRadius: '3px',
-                              textTransform: 'uppercase',
-                            }}
-                          >
-                            BOT
+                      {!isGrouped && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                          <span style={{ fontWeight: 600, color: author.bot ? '#5865f2' : '#f2f3f5', fontSize: '1rem' }}>
+                            {author.global_name || author.username}
                           </span>
-                        )}
-                        <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>{formatTimestamp(msg.timestamp)}</span>
-                        {msg.edited_timestamp && (
-                          <span
-                            style={{ fontSize: '0.625rem', color: '#949ba4' }}
-                            title={`Edited at ${formatTimestamp(msg.edited_timestamp)}`}
-                          >
-                            (edited)
-                          </span>
-                        )}
-                      </div>
+                          {author.bot && (
+                            <span
+                              style={{
+                                background: '#5865f2',
+                                color: '#fff',
+                                fontSize: '0.625rem',
+                                fontWeight: 600,
+                                padding: '0.125rem 0.275rem',
+                                borderRadius: '3px',
+                                textTransform: 'uppercase',
+                              }}
+                            >
+                              BOT
+                            </span>
+                          )}
+                          <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>{formatTimestamp(msg.timestamp)}</span>
+                          {msg.edited_timestamp && (
+                            <span
+                              style={{ fontSize: '0.625rem', color: '#949ba4' }}
+                              title={`Edited at ${formatTimestamp(msg.edited_timestamp)}`}
+                            >
+                              (edited)
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       {msg.content && (
                         <div
@@ -308,6 +355,12 @@ export default function TicketView({ ticketData, ticketId }: Props) {
                   </div>
                 )
               })}
+              {visibleCount < messages.length && (
+                <div ref={sentinelRef} style={{ padding: '1.5rem', textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#949ba4' }}>Loading more messages…</span>
+                </div>
+              )}
+              <div ref={bottomRef} />
             </div>
           </div>
 
@@ -359,6 +412,35 @@ export default function TicketView({ ticketData, ticketId }: Props) {
           </div>
         </div>
       </div>
+
+      {showScrollTop && (
+        <button
+          onClick={() => scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            right: '2rem',
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            background: 'rgba(88, 101, 242, 0.9)',
+            border: 'none',
+            color: '#fff',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.4)',
+            zIndex: 100,
+            transition: 'opacity 0.2s',
+          }}
+          aria-label="Scroll to top"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 5l-7 7h4v4h6v-4h4l-7-7z" />
+          </svg>
+        </button>
+      )}
 
       {imagePreview && (
         <div

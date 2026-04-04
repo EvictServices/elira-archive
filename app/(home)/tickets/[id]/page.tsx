@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import TicketView from './TicketView'
-import { fetchTicket, fetchUserInfo } from './fetchTicket'
+import { fetchTicket, fetchUserInfoBatch } from './fetchTicket'
 
 export const metadata: Metadata = {
   title: 'Ticket Transcript',
@@ -30,11 +30,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
 
   const allUserIds = [...new Set([...userIds, ...people])]
 
-  const freshResults = await Promise.all(allUserIds.map((uid) => fetchUserInfo(uid)))
-  const freshUsersMap = new Map<string, { username?: string; avatar?: string; bot?: boolean; discriminator?: string }>()
-  allUserIds.forEach((uid, i) => {
-    if (freshResults[i]) freshUsersMap.set(uid, freshResults[i]!)
-  })
+  const freshUsersMap = await fetchUserInfoBatch(allUserIds)
 
   ticketData.ticket.users = ticketData.ticket.users.map((user) => {
     const fresh = freshUsersMap.get(user.id)
