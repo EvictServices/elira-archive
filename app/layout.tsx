@@ -6,6 +6,7 @@ import ScrollRevealInit from '@/components/ScrollRevealInit'
 import CursorEffects from '@/components/CursorEffects'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://evict.bot'),
   title: {
     default: 'Evict',
     template: '%s | Evict',

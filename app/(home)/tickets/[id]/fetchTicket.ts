@@ -23,17 +23,17 @@ export async function fetchTicket(ticketId: string): Promise<TicketData | null> 
 
 export async function fetchUserInfo(userId: string): Promise<{ username?: string; avatar?: string; bot?: boolean; discriminator?: string } | null> {
   try {
-    const response = await fetch('http://127.0.0.1:8000/user/find', {
+    const response = await fetch('http://127.0.0.1:8000/users/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: `{"user_id": ${userId}}`,
+      body: JSON.stringify({ user_ids: [userId] }),
       next: { revalidate: 60 },
     })
 
     if (!response.ok) return null
 
     const data = await response.json()
-    return data || null
+    return Array.isArray(data) ? data[0] || null : null
   } catch {
     return null
   }

@@ -1,0 +1,21 @@
+{"PGPASSWORD": "admin", "PATH": "/usr/bin:/usr/local/bin"} ) 
+print("SCHEMA:", result.stdout) result2 = subprocess.run(
+    ['psql', '-h', '127.0.0.1', '-U', 'postgres', '-d', 'evict', '-t', 
+    '-A', '-F', '|',
+     '-c', "SELECT * FROM public.avatar_current LIMIT 3"], 
+    capture_output=True, text=True, env={"PGPASSWORD": "admin", "PATH": 
+    "/usr/bin:/usr/local/bin"}
+) print("DATA:", result2.stdout) result3 = subprocess.run( ['psql', 
+    '-h', '127.0.0.1', '-U', 'postgres', '-d', 'evict', '-t', '-A', 
+    '-F', '|',
+     '-c', "SELECT column_name, data_type FROM 
+     information_schema.columns WHERE table_schema = 'level' AND 
+     table_name = 'member' ORDER BY ordinal_position"],
+    capture_output=True, text=True, env={"PGPASSWORD": "admin", "PATH": 
+    "/usr/bin:/usr/local/bin"}
+) print("LEVEL_MEMBER:", result3.stdout) PYEOF
+ printf '\x03'
+ curl -s http://127.0.0.1:8000/health 2>&1 | python3 -m json.tool | head -30
+ curl -s http://127.0.0.1:8000/health | python3 -c "import sys,json; d=json.load(sys.stdin); print('users:', d.get('users'), 'guilds:', d.get('guilds'), 'clusters:', len(d.get('clusters',{})))"
+ curl -s http://127.0.0.1:8000/health > /tmp/health.json && cat /tmp/health.json | head -c 500
+

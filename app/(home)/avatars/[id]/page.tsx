@@ -21,12 +21,12 @@ async function fetchUserInfoForMeta(userId: string): Promise<string | null> {
     const response = await fetch('http://127.0.0.1:8000/user/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: `{"user_id": ${userId}}`,
+      body: JSON.stringify({ user_id: userId }),
       next: { revalidate: 60 },
     })
     if (!response.ok) return null
     const data = await response.json()
-    return data?.username || null
+    return data?.display_name || data?.username || null
   } catch {
     return null
   }
@@ -60,16 +60,15 @@ async function fetchUserInfo(userId: string): Promise<UserInfo | null> {
     const response = await fetch('http://127.0.0.1:8000/user/find', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: `{"user_id": ${userId}}`,
+      body: JSON.stringify({ user_id: userId }),
       next: { revalidate: 60 },
     })
 
-    if (!response.ok) throw new Error('Failed to find user')
+    if (!response.ok) return null
 
     const data = await response.json()
     return data || null
-  } catch (error) {
-    console.error('Error finding user:', error)
+  } catch {
     return null
   }
 }
@@ -91,7 +90,7 @@ export default async function AvatarsPage({ params }: { params: Promise<{ id: st
   }
 
   const sortedAvatars = avatars.sort((a, b) => b.created_at - a.created_at)
-  const username = userInfo?.username || null
+  const username = userInfo?.display_name || userInfo?.username || null
 
   return <AvatarsView avatars={sortedAvatars} userId={id} username={username} />
 }
