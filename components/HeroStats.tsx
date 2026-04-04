@@ -26,7 +26,11 @@ export default function HeroStats() {
 
     async function load() {
       try {
-        const res = await fetch('/api/health')
+        const [res, cmdRes] = await Promise.all([
+          fetch('/api/health'),
+          fetch('/api/commands'),
+        ])
+
         if (!res.ok) throw new Error()
         const d = await res.json()
 
@@ -45,7 +49,6 @@ export default function HeroStats() {
           animateCounter(setUsers, d.users)
 
           try {
-            const cmdRes = await fetch('/api/commands')
             if (cmdRes.ok) {
               const cmdData = await cmdRes.json()
               const cmdMap: Record<string, unknown[]> = cmdData?.data?.commands ?? {}
