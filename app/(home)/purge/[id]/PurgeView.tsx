@@ -375,32 +375,27 @@ export default function PurgeView({ purgeData, purgeId }: Props) {
           >
             <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#f2f3f5', margin: '0 0 1rem 0' }}>Purge Information</h3>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#949ba4', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Messages Purged</div>
-              <div style={{ fontSize: '0.875rem', color: '#dbdee1' }}>{message_count}</div>
-            </div>
-
             <div>
               <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#949ba4', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Users Involved</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {people.map((pid) => {
-                  const user = userMap.get(pid)
+                {people.filter((pid) => userMap.has(pid)).map((pid) => {
+                  const user = userMap.get(pid)!
                   return (
                     <div key={pid} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <img
-                        src={user ? getAvatarUrl(user) : getFallbackAvatar('0')}
+                        src={getAvatarUrl(user)}
                         alt=""
                         referrerPolicy="no-referrer"
                         style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0 }}
                         onError={(e) => {
                           const img = e.currentTarget
-                          const fallback = getFallbackAvatar('0')
+                          const fallback = getFallbackAvatar(user.discriminator)
                           if (img.src !== fallback) img.src = fallback
                         }}
                       />
                       <div>
                         <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#f2f3f5' }}>
-                          {user ? (user.global_name || user.username) : 'Unknown User'}
+                          {user.global_name || user.username}
                         </span>
                         <span style={{ fontSize: '0.75rem', color: '#949ba4', marginLeft: '0.5rem' }}>{pid}</span>
                         {pid === String(moderator_id) && (
