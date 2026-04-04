@@ -24,7 +24,7 @@ export default async function PurgePage({ params }: { params: Promise<{ id: stri
 
   const messageAuthorIds = new Set(purgeData.purge.messages.map((m) => m.author_id))
   const involvedIds = new Set<string>(messageAuthorIds)
-  if (purgeData.purge.purge.purged_by_id) involvedIds.add(purgeData.purge.purge.purged_by_id)
+  if (purgeData.purge.moderator_id) involvedIds.add(String(purgeData.purge.moderator_id))
   const people = [...involvedIds]
 
   const allUserIds = [...new Set([...userIds, ...people])]

@@ -14,11 +14,11 @@ interface Props {
 }
 
 export default function PurgeView({ purgeData, purgeId }: Props) {
-  const { messages, users, attachments, embeds, channel, purge: purgeMeta } = purgeData.purge
+  const { messages, users, attachments, embeds, channel, moderator_id, message_count } = purgeData.purge
 
   const messageAuthorIds = new Set(messages.map((m) => m.author_id))
   const involvedIds = new Set<string>(messageAuthorIds)
-  if (purgeMeta?.purged_by_id) involvedIds.add(purgeMeta.purged_by_id)
+  if (moderator_id) involvedIds.add(String(moderator_id))
   const people = [...involvedIds]
 
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -100,10 +100,7 @@ export default function PurgeView({ purgeData, purgeId }: Props) {
               </svg>
               <span style={{ fontWeight: 600, fontSize: '1rem' }}>{channel.name}</span>
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>{messages.length} messages purged</span>
-                {purgeMeta?.purged_at && (
-                  <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>{formatTimestamp(purgeMeta.purged_at)}</span>
-                )}
+                <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>{message_count} messages purged</span>
               </div>
             </div>
 
@@ -380,7 +377,7 @@ export default function PurgeView({ purgeData, purgeId }: Props) {
 
             <div style={{ marginBottom: '1rem' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#949ba4', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Messages Purged</div>
-              <div style={{ fontSize: '0.875rem', color: '#dbdee1' }}>{purgeMeta?.amount ?? messages.length}</div>
+              <div style={{ fontSize: '0.875rem', color: '#dbdee1' }}>{message_count}</div>
             </div>
 
             <div>
@@ -406,7 +403,7 @@ export default function PurgeView({ purgeData, purgeId }: Props) {
                           {user ? (user.global_name || user.username) : 'Unknown User'}
                         </span>
                         <span style={{ fontSize: '0.75rem', color: '#949ba4', marginLeft: '0.5rem' }}>{pid}</span>
-                        {pid === purgeMeta?.purged_by_id && (
+                        {pid === String(moderator_id) && (
                           <span
                             style={{
                               background: 'rgba(237, 66, 69, 0.2)',

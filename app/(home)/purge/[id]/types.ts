@@ -6,14 +6,17 @@ export interface PurgeData {
     users: import('../../tickets/[id]/types').User[]
     attachments: import('../../tickets/[id]/types').Attachment[]
     embeds: import('../../tickets/[id]/types').Embed[]
-    purge: {
-      purged_by_id: string | null
-      amount: number
-      purged_at: string | null
-    }
+    moderator_id: string | null
+    message_count: number
     channel: {
+      id: string
       name: string
-      created_at: string
+      type: string
+    }
+    guild: {
+      id: string
+      name: string
     }
   }
+  people: string[]
 }
