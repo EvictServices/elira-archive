@@ -35,30 +35,39 @@ export default function CommandsView({ commands }: Props) {
   const [modalCmd, setModalCmd] = useState<Command | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [displayedTotal, setDisplayedTotal] = useState(0)
+  const [displayedCounts, setDisplayedCounts] = useState<Record<string, number>>({})
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const total = commands.length
+    const cats = [...new Set(commands.map((c) => c.category))]
+    const catTotals: Record<string, number> = {}
+    cats.forEach((cat) => { catTotals[cat] = commands.filter((c) => c.category === cat).length })
+
     const duration = 800
     const steps = 50
-    const increment = total / steps
-    let current = 0
     let step = 0
 
     setDisplayedTotal(0)
+    setDisplayedCounts(Object.fromEntries(cats.map((c) => [c, 0])))
+
     const timer = setInterval(() => {
       step++
-      current = Math.min(Math.floor(step * increment), total)
-      setDisplayedTotal(current)
-      
-      if (current >= total) {
+      const progress = Math.min(step / steps, 1)
+      setDisplayedTotal(Math.min(Math.floor(progress * total), total))
+      setDisplayedCounts(
+        Object.fromEntries(cats.map((cat) => [cat, Math.min(Math.floor(progress * catTotals[cat]), catTotals[cat])]))
+      )
+
+      if (step >= steps) {
         clearInterval(timer)
         setDisplayedTotal(total)
+        setDisplayedCounts(catTotals)
       }
     }, duration / steps)
 
     return () => clearInterval(timer)
-  }, [commands.length])
+  }, [commands])
 
   const applyFilter = useCallback(
     (q: string, cat: string, cmds: Command[]) => {
@@ -149,14 +158,13 @@ export default function CommandsView({ commands }: Props) {
                 All <span className="filter-count">({displayedTotal})</span>
               </button>
               {categories.map((cat) => {
-                const count = allCommands.filter((c) => c.category === cat).length
                 return (
                   <button
                     key={cat}
                     className={`filter-btn${activeCategory === cat ? ' active' : ''}`}
                     onClick={() => switchCategory(cat)}
                   >
-                    {cat[0].toUpperCase() + cat.slice(1)} <span className="filter-count">({count})</span>
+                    {cat[0].toUpperCase() + cat.slice(1)} <span className="filter-count">({displayedCounts[cat] ?? 0})</span>
                   </button>
                 )
               })}
