@@ -72,6 +72,14 @@ code {
   background: #1a1a1a;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.navbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(88,101,242,0.5) 50%, transparent 100%);
+  box-shadow: 0 1px 8px rgba(88,101,242,0.25);
+}
 .navbar.nav-hidden {
   transform: translateY(-100%);
 }
