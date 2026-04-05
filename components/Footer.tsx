@@ -16,6 +16,10 @@ export default function Footer() {
             <a href={SUPPORT_URL} target="_blank" rel="noopener" className="footer-link">Support</a>
             <span className="footer-sep">&middot;</span>
             <a href="https://docs.evict.bot" target="_blank" rel="noopener" className="footer-link">Docs</a>
+            <span className="footer-sep">&middot;</span>
+            <a href="/terms" className="footer-link">Terms</a>
+            <span className="footer-sep">&middot;</span>
+            <a href="/privacy" className="footer-link">Privacy</a>
           </div>
         </div>
         <div className="footer-bottom">

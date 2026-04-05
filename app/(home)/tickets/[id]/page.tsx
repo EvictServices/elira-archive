@@ -3,8 +3,11 @@ import { notFound } from 'next/navigation'
 import TicketView from './TicketView'
 import { fetchTicket, fetchUserInfoBatch } from './fetchTicket'
 
-export const metadata: Metadata = {
-  title: 'Ticket Transcript',
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  return {
+    title: id ? `Ticket #${id}` : 'Ticket Transcript',
+  }
 }
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
