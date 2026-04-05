@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import AvatarsView from './AvatarsView'
 
 interface Avatar {
+  id: number
   url: string
   created_at: number
 }
