@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { EmbedData, EmbedAuthor, EmbedFooter, EmbedField, EmbedButton } from './types'
-import { BUTTON_STYLES } from './constants'
+import type { EmbedData, EmbedAuthor, EmbedFooter, EmbedField, EmbedButton } from '../lib/types'
+import { BUTTON_STYLES } from '../lib/constants'
 
 function InputField({ label, value, onChange, placeholder, multiline }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean

@@ -1,7 +1,8 @@
 'use client'
 
-import type { EmbedData } from './types'
-import { BUTTON_STYLE_COLORS } from './constants'
+import type { EmbedData } from '../lib/types'
+import { BUTTON_STYLE_COLORS } from '../lib/constants'
+import DiscordMarkdown from './DiscordMarkdown'
 
 export default function EmbedPreview({ data }: { data: EmbedData }) {
   const hasEmbed = data.title || data.description || data.thumbnail || data.image ||
@@ -11,7 +12,7 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
     <div style={{ fontFamily: "'Outfit', sans-serif" }}>
       {data.content && (
         <div style={{ color: '#dcddde', fontSize: '0.9rem', marginBottom: hasEmbed ? '0.5rem' : 0, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-          {data.content}
+          <DiscordMarkdown text={data.content} />
         </div>
       )}
 
@@ -26,19 +27,21 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
                 {data.author.icon_url && (
                   <img src={data.author.icon_url} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
                 )}
-                <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>{data.author.name}</span>
+                <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>
+                  <DiscordMarkdown text={data.author.name} />
+                </span>
               </div>
             )}
 
             {data.title && (
               <div style={{ color: data.url ? '#00aff4' : '#fff', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.35rem', cursor: data.url ? 'pointer' : 'default' }}>
-                {data.title}
+                <DiscordMarkdown text={data.title} />
               </div>
             )}
 
             {data.description && (
               <div style={{ color: '#dcddde', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.5rem', whiteSpace: 'pre-wrap' }}>
-                {data.description}
+                <DiscordMarkdown text={data.description} />
               </div>
             )}
 
@@ -46,8 +49,12 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 {data.fields.map((field, i) => (
                   <div key={i} style={{ gridColumn: field.inline ? 'span 1' : 'span 3' }}>
-                    <div style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.15rem' }}>{field.name}</div>
-                    <div style={{ color: '#dcddde', fontSize: '0.8rem', lineHeight: 1.4 }}>{field.value}</div>
+                    <div style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.15rem' }}>
+                      <DiscordMarkdown text={field.name} />
+                    </div>
+                    <div style={{ color: '#dcddde', fontSize: '0.8rem', lineHeight: 1.4 }}>
+                      <DiscordMarkdown text={field.value} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -63,7 +70,7 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
                   <img src={data.footer.icon_url} alt="" style={{ width: 20, height: 20, borderRadius: '50%' }} />
                 )}
                 <span style={{ color: '#a3a6aa', fontSize: '0.75rem' }}>
-                  {data.footer.text}
+                  <DiscordMarkdown text={data.footer.text} />
                   {data.footer.text && data.timestamp && ' • '}
                   {data.timestamp && new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>

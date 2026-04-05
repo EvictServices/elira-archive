@@ -44,9 +44,8 @@ export const VARIABLES = [
   { category: 'Moderator', vars: [
     '{moderator}', '{moderator.mention}', '{moderator.name}',
     '{moderator.display_name}', '{moderator.id}', '{moderator.avatar}',
-    '{moderator.display_avatar}',
-  ]},
-  { category: 'Invoke', vars: [
-    '{reason}',
+    '{moderator.display_avatar}', '{moderator.discriminator}', '{moderator.created_at}',
+    '{moderator.created_at_timestamp}',
+    '{reason}'
   ]},
 ]

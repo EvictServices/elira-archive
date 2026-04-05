@@ -1,15 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { VARIABLES } from './constants'
+import { VARIABLES } from '../lib/constants'
 
-export default function VariablesPaginator() {
+export default function VariablesPaginator({ onInsert }: { onInsert?: (variable: string) => void }) {
   const [page, setPage] = useState(0)
   const current = VARIABLES[page]
 
   return (
     <div>
-      {/* Tabs */}
       <div style={{
         display: 'flex', gap: '0.25rem', marginBottom: '1rem',
         borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem',
@@ -35,12 +34,11 @@ export default function VariablesPaginator() {
         ))}
       </div>
 
-      {/* Variables Grid */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
         {current.vars.map(v => (
           <span
             key={v}
-            onClick={() => navigator.clipboard.writeText(v)}
+            onClick={() => onInsert ? onInsert(v) : navigator.clipboard.writeText(v)}
             style={{
               padding: '0.25rem 0.6rem',
               background: 'rgba(0,0,0,0.3)',
@@ -60,14 +58,13 @@ export default function VariablesPaginator() {
               e.currentTarget.style.background = 'rgba(0,0,0,0.3)'
               e.currentTarget.style.color = 'rgba(255,255,255,0.6)'
             }}
-            title="Click to copy"
+            title="Click to insert"
           >
             {v}
           </span>
         ))}
       </div>
 
-      {/* Page indicator */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         marginTop: '0.75rem', paddingTop: '0.5rem',

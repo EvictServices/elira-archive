@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { defaultEmbed, generateScript } from './types'
 import type { EmbedData, EmbedAuthor, EmbedFooter, EmbedField, EmbedButton } from './types'
 import EmbedEditor from './EmbedEditor'
@@ -37,6 +37,38 @@ const headerSub = {
 export default function EmbedBuilderView() {
   const [data, setData] = useState<EmbedData>(defaultEmbed)
   const [copied, setCopied] = useState(false)
+  const [timeStr, setTimeStr] = useState('')
+  const lastInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+
+  useEffect(() => {
+    setTimeStr(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }))
+  }, [])
+
+  const handleEditorFocus = useCallback((e: React.FocusEvent) => {
+    const target = e.target as HTMLElement
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      lastInputRef.current = target as HTMLInputElement | HTMLTextAreaElement
+    }
+  }, [])
+
+  const insertVariable = useCallback((variable: string) => {
+    const el = lastInputRef.current
+    if (!el) return
+    const start = el.selectionStart ?? el.value.length
+    const end = el.selectionEnd ?? el.value.length
+    const newValue = el.value.slice(0, start) + variable + el.value.slice(end)
+    const proto = el instanceof HTMLTextAreaElement
+      ? HTMLTextAreaElement.prototype
+      : HTMLInputElement.prototype
+    const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
+    if (setter) {
+      setter.call(el, newValue)
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+    el.focus()
+    const cursor = start + variable.length
+    el.setSelectionRange(cursor, cursor)
+  }, [])
 
   const update = useCallback(<K extends keyof EmbedData>(key: K, value: EmbedData[K]) => {
     setData(prev => ({ ...prev, [key]: value }))
@@ -107,7 +139,7 @@ export default function EmbedBuilderView() {
                 <span style={headerTitle}>Editor</span>
                 <span style={headerSub}>Build your embed</span>
               </div>
-              <div style={{ padding: '1.5rem', maxHeight: 'calc(100vh - 16rem)', overflowY: 'auto' }}>
+              <div style={{ padding: '1.5rem', maxHeight: 'calc(100vh - 16rem)', overflowY: 'auto' }} onFocusCapture={handleEditorFocus}>
                 <EmbedEditor
                   data={data}
                   update={update}
@@ -127,10 +159,10 @@ export default function EmbedBuilderView() {
             <div style={containerStyle}>
               <div style={headerStyle}>
                 <span style={headerTitle}>Variables</span>
-                <span style={headerSub}>Click to copy</span>
+                <span style={headerSub}>Click to insert</span>
               </div>
               <div style={{ padding: '1.5rem' }}>
-                <VariablesPaginator />
+                <VariablesPaginator onInsert={insertVariable} />
               </div>
             </div>
           </div>
@@ -150,7 +182,7 @@ export default function EmbedBuilderView() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                       <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>evict</span>
                       <span style={{ background: '#5865f2', color: '#fff', fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: '3px', fontWeight: 600 }}>BOT</span>
-                      <span style={{ color: '#a3a6aa', fontSize: '0.7rem' }}>Today at {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+                      {timeStr && <span style={{ color: '#a3a6aa', fontSize: '0.7rem' }}>Today at {timeStr}</span>}
                     </div>
                     <EmbedPreview data={data} />
                   </div>
