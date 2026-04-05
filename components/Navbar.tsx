@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { INVITE_URL, SUPPORT_URL } from '@/lib/constants'
+import { INVITE_URL, SUPPORT_URL, DOCS_URL } from '@/lib/constants'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -54,6 +54,7 @@ export default function Navbar() {
               <Link href="/" className={isActive('home') ? 'active' : ''} onClick={closeMenu}>Home</Link>
               <Link href="/commands" className={isActive('commands') ? 'active' : ''} onClick={closeMenu}>Commands</Link>
               <Link href="/embeds" className={isActive('embeds') ? 'active' : ''} onClick={closeMenu}>Embeds</Link>
+              <a href={DOCS_URL} target="_blank" rel="noopener" onClick={closeMenu}>Docs</a>
               <Link href="/updates" className={isActive('updates') ? 'active' : ''} onClick={closeMenu}>Updates</Link>
               <Link href="/status" className={isActive('status') ? 'active' : ''} onClick={closeMenu}>Status</Link>
             </div>
