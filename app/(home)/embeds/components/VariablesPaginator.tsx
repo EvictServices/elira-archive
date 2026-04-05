@@ -20,7 +20,7 @@ export default function VariablesPaginator({ onInsert }: { onInsert?: (variable:
   return (
     <div>
       <div style={{
-        display: 'flex', gap: '0.2rem', marginBottom: '0.75rem',
+        display: 'flex', gap: '0.25rem', marginBottom: '0.75rem',
         borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.4rem',
       }}>
         {VARIABLES.map((cat, i) => (
@@ -28,15 +28,16 @@ export default function VariablesPaginator({ onInsert }: { onInsert?: (variable:
             key={cat.category}
             onClick={() => switchTab(i)}
             style={{
-              padding: '0.3rem 0.65rem',
-              background: i === tab ? 'rgba(255,255,255,0.08)' : 'transparent',
-              border: 'none',
-              borderRadius: '6px',
-              color: i === tab ? '#fff' : 'rgba(255,255,255,0.4)',
-              fontSize: '0.75rem',
+              padding: '0.3rem 0.7rem',
+              background: i === tab ? 'rgba(88,101,242,0.12)' : 'transparent',
+              border: i === tab ? '1px solid rgba(88,101,242,0.25)' : '1px solid transparent',
+              borderRadius: '100px',
+              color: i === tab ? '#8b9eff' : 'rgba(255,255,255,0.35)',
+              fontSize: '0.72rem',
               fontWeight: 600,
               cursor: 'pointer',
-              transition: 'all 0.15s',
+              transition: 'all 0.2s',
+              letterSpacing: '0.02em',
             }}
           >
             {cat.category}
@@ -44,29 +45,32 @@ export default function VariablesPaginator({ onInsert }: { onInsert?: (variable:
         ))}
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', minHeight: '52px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', minHeight: '52px' }}>
         {visible.map(v => (
           <span
             key={v.name}
             onClick={() => onInsert ? onInsert(v.name) : navigator.clipboard.writeText(v.name)}
+            className="embed-var-chip"
             style={{
-              padding: '0.2rem 0.5rem',
+              padding: '0.25rem 0.55rem',
               background: 'rgba(0,0,0,0.3)',
-              borderRadius: '4px',
-              color: 'rgba(255,255,255,0.6)',
+              borderRadius: '6px',
+              color: 'rgba(255,255,255,0.55)',
               fontSize: '0.7rem',
-              fontFamily: 'monospace',
+              fontFamily: '"SF Mono", "Fira Code", monospace',
               cursor: 'pointer',
               border: '1px solid rgba(255,255,255,0.05)',
               transition: 'all 0.15s',
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-              e.currentTarget.style.color = '#fff'
+              e.currentTarget.style.background = 'rgba(88,101,242,0.12)'
+              e.currentTarget.style.color = '#8b9eff'
+              e.currentTarget.style.borderColor = 'rgba(88,101,242,0.25)'
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = 'rgba(0,0,0,0.3)'
-              e.currentTarget.style.color = 'rgba(255,255,255,0.6)'
+              e.currentTarget.style.color = 'rgba(255,255,255,0.55)'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'
             }}
             title={v.desc}
           >

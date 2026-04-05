@@ -11,22 +11,24 @@ function InputField({ label, value, onChange, placeholder, multiline }: {
     value,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value),
     placeholder,
+    className: 'embed-input',
     style: {
       width: '100%',
-      padding: '0.5rem 0.75rem',
-      background: 'rgba(0,0,0,0.3)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: '8px',
+      padding: '0.55rem 0.8rem',
+      background: 'rgba(0,0,0,0.35)',
+      border: '1px solid rgba(255,255,255,0.06)',
+      borderRadius: '10px',
       color: '#fff',
       fontSize: '0.85rem',
       outline: 'none',
       resize: 'vertical' as const,
       fontFamily: 'inherit',
+      transition: 'border-color 0.2s, box-shadow 0.2s',
     },
   }
   return (
     <div style={{ marginBottom: '0.75rem' }}>
-      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>
+      <label style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem' }}>
         {label}
       </label>
       {multiline ? <textarea rows={3} {...shared} /> : <input type="text" {...shared} />}
@@ -39,19 +41,28 @@ function Section({ title, children, defaultOpen }: {
 }) {
   const [open, setOpen] = useState(defaultOpen ?? false)
   return (
-    <div style={{ marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
+    <div style={{ marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', overflow: 'hidden', background: 'rgba(0,0,0,0.1)' }}>
       <button
         onClick={() => setOpen(!open)}
+        className="embed-section-btn"
         style={{
-          width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(255,255,255,0.03)',
+          width: '100%', padding: '0.7rem 0.9rem', background: open ? 'rgba(88,101,242,0.06)' : 'rgba(255,255,255,0.02)',
           border: 'none', color: '#fff', fontSize: '0.85rem', fontWeight: 600,
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          transition: 'background 0.2s',
         }}
       >
-        {title}
-        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {title}
+        </span>
+        <span style={{
+          color: 'rgba(255,255,255,0.3)', fontSize: '0.65rem',
+          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.25s',
+          display: 'inline-block',
+        }}>▼</span>
       </button>
-      {open && <div style={{ padding: '0.85rem' }}>{children}</div>}
+      {open && <div style={{ padding: '0.85rem', borderTop: '1px solid rgba(255,255,255,0.04)' }}>{children}</div>}
     </div>
   )
 }
@@ -134,9 +145,10 @@ export default function EmbedEditor({
             </div>
           </div>
         ))}
-        <button onClick={addField} style={{
-          width: '100%', padding: '0.5rem', background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.1)',
-          borderRadius: '8px', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', cursor: 'pointer',
+        <button onClick={addField} className="embed-add-btn" style={{
+          width: '100%', padding: '0.55rem', background: 'rgba(88,101,242,0.06)', border: '1px dashed rgba(88,101,242,0.25)',
+          borderRadius: '10px', color: '#8b9eff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+          transition: 'all 0.2s',
         }}>
           + Add Field
         </button>
@@ -168,9 +180,10 @@ export default function EmbedEditor({
             </div>
           </div>
         ))}
-        <button onClick={addButton} style={{
-          width: '100%', padding: '0.5rem', background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.1)',
-          borderRadius: '8px', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', cursor: 'pointer',
+        <button onClick={addButton} className="embed-add-btn" style={{
+          width: '100%', padding: '0.55rem', background: 'rgba(88,101,242,0.06)', border: '1px dashed rgba(88,101,242,0.25)',
+          borderRadius: '10px', color: '#8b9eff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+          transition: 'all 0.2s',
         }}>
           + Add Button
         </button>
