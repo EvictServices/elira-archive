@@ -1,10 +1,10 @@
-import https from 'https'
+import http from 'http'
 import type { Command } from '@/app/(home)/commands/CommandsView'
 
 export async function fetchCommands(): Promise<Command[]> {
   return new Promise((resolve) => {
-    https
-      .get('https://api.evict.bot/commands', { headers: { Accept: 'application/json' } }, (upstream) => {
+    http
+      .get('http://127.0.0.1:8000/commands', { headers: { Accept: 'application/json' } }, (upstream) => {
         let data = ''
         upstream.on('data', (chunk: Buffer) => { data += chunk })
         upstream.on('end', () => {

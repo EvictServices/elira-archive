@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import https from 'https'
+import http from 'http'
 
 export async function GET() {
   return new Promise<NextResponse>((resolve) => {
-    https
-      .get('https://api.evict.bot/commands', { headers: { Accept: 'application/json' } }, (upstream) => {
+    http
+      .get('http://127.0.0.1:8000/commands', { headers: { Accept: 'application/json' } }, (upstream) => {
         let data = ''
         upstream.on('data', (chunk: Buffer) => { data += chunk })
         upstream.on('end', () => {

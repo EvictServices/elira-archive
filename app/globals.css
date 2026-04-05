@@ -217,6 +217,7 @@ code {
 .nav-menu-section { display: contents; }
 .nav-menu-label { display: none; }
 .nav-pill a svg { display: none; }
+.mobile-only { display: none; }
 body.nav-open { overflow: hidden; }
 
 .page {
@@ -1415,6 +1416,7 @@ body.nav-open { overflow: hidden; }
   }
   .nav-menu-label { display: none; }
   .nav-pill a svg { display: inline-block; }
+  .mobile-only { display: block; }
 
   .nav-right {
     display: flex;
