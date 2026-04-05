@@ -90,7 +90,7 @@ export default async function AvatarsPage({ params }: { params: Promise<{ id: st
     notFound()
   }
 
-  const sortedAvatars = avatars.sort((a, b) => b.created_at - a.created_at)
+  const sortedAvatars = avatars.sort((a, b) => b.id - a.id)
   const username = userInfo?.display_name || userInfo?.username || null
 
   return <AvatarsView avatars={sortedAvatars} userId={id} username={username} />

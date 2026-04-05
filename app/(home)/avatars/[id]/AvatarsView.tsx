@@ -258,7 +258,7 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
           data-reveal
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gridTemplateColumns: 'repeat(5, 1fr)',
             gap: '1rem',
             marginTop: '2rem',
           }}
