@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { defaultEmbed, generateScript } from './types'
-import type { EmbedData, EmbedAuthor, EmbedFooter, EmbedField, EmbedButton } from './types'
-import EmbedEditor from './EmbedEditor'
-import EmbedPreview from './EmbedPreview'
-import VariablesPaginator from './VariablesPaginator'
+import { defaultEmbed, generateScript } from './lib/types'
+import type { EmbedData, EmbedAuthor, EmbedFooter, EmbedField, EmbedButton } from './lib/types'
+import EmbedEditor from './components/EmbedEditor'
+import EmbedPreview from './components/EmbedPreview'
+import VariablesPaginator from './components/VariablesPaginator'
+import Autocomplete from './components/Autocomplete'
 
 const containerStyle = {
   background: 'rgba(255,255,255,0.03)',
@@ -122,6 +123,7 @@ export default function EmbedBuilderView() {
 
   return (
     <div style={{ background: '#1a1a1a', minHeight: '100vh', color: '#dbdee1' }}>
+      <Autocomplete inputRef={lastInputRef} onInsert={insertVariable} />
       <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2rem' }} data-reveal>
           <h2 className="section-title">Embed Builder</h2>
@@ -130,10 +132,8 @@ export default function EmbedBuilderView() {
           </p>
         </div>
 
-        <div data-reveal style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
-          {/* Left Column */}
+        <div data-reveal className="embed-grid">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Editor Container */}
             <div style={containerStyle}>
               <div style={headerStyle}>
                 <span style={headerTitle}>Editor</span>
@@ -155,21 +155,18 @@ export default function EmbedBuilderView() {
               </div>
             </div>
 
-            {/* Variables Container */}
             <div style={containerStyle}>
               <div style={headerStyle}>
                 <span style={headerTitle}>Variables</span>
                 <span style={headerSub}>Click to insert</span>
               </div>
-              <div style={{ padding: '1.5rem' }}>
+              <div style={{ padding: '1rem' }}>
                 <VariablesPaginator onInsert={insertVariable} />
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div style={{ position: 'sticky', top: '6rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Preview Container */}
+          <div className="embed-grid-right">
             <div style={{ ...containerStyle, background: '#313338' }}>
               <div style={{ ...headerStyle, background: 'rgba(0,0,0,0.15)' }}>
                 <span style={headerTitle}>Preview</span>
@@ -190,7 +187,6 @@ export default function EmbedBuilderView() {
               </div>
             </div>
 
-            {/* Script Output Container */}
             <div style={containerStyle}>
               <div style={headerStyle}>
                 <span style={headerTitle}>Script Output</span>

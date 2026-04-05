@@ -1325,7 +1325,23 @@ body.nav-open { overflow: hidden; }
 [data-reveal][data-delay="4"] { transition-delay: 0.24s; }
 [data-reveal][data-delay="5"] { transition-delay: 0.30s; }
 
+.embed-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+.embed-grid-right {
+  position: sticky;
+  top: 6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 @media (max-width: 768px) {
+  .embed-grid { grid-template-columns: 1fr; }
+  .embed-grid-right { position: static; }
   .navbar { overflow: visible; }
 
   .nav-menu {

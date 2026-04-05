@@ -11,7 +11,7 @@ interface AutocompleteProps {
 }
 
 export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) {
-  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<{ name: string, desc: string }[]>([])
   const [selected, setSelected] = useState(0)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const menuRef = useRef<HTMLDivElement>(null)
@@ -26,7 +26,7 @@ export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) 
 
       if (match) {
         const query = match[1].toLowerCase()
-        const filtered = ALL_VARS.filter(v => v.toLowerCase().includes(query))
+        const filtered = ALL_VARS.filter(v => v.name.toLowerCase().includes(query))
         setSuggestions(filtered.slice(0, 8))
         setSelected(0)
 
@@ -49,7 +49,7 @@ export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) 
       } else if (e.key === 'Tab' || e.key === 'Enter') {
         if (suggestions.length > 0) {
           e.preventDefault()
-          acceptSuggestion(suggestions[selected])
+          acceptSuggestion(suggestions[selected].name)
         }
       } else if (e.key === 'Escape') {
         setSuggestions([])
@@ -110,7 +110,7 @@ export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) 
     >
       {suggestions.map((v, i) => (
         <div
-          key={v}
+          key={v.name}
           onMouseDown={e => {
             e.preventDefault()
             const el = inputRef.current
@@ -120,7 +120,7 @@ export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) 
             const match = text.slice(0, cursor).match(/\{([a-z._]*)$/i)
             if (!match) return
             const start = cursor - match[0].length
-            const newValue = text.slice(0, start) + v + text.slice(cursor)
+            const newValue = text.slice(0, start) + v.name + text.slice(cursor)
             const proto = el instanceof HTMLTextAreaElement
               ? HTMLTextAreaElement.prototype
               : HTMLInputElement.prototype
@@ -130,7 +130,7 @@ export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) 
               el.dispatchEvent(new Event('input', { bubbles: true }))
             }
             el.focus()
-            const newCursor = start + v.length
+            const newCursor = start + v.name.length
             el.setSelectionRange(newCursor, newCursor)
             setSuggestions([])
           }}
@@ -140,13 +140,17 @@ export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) 
             color: i === selected ? '#fff' : 'rgba(255,255,255,0.6)',
             background: i === selected ? 'rgba(88,101,242,0.3)' : 'transparent',
             fontSize: '0.8rem',
-            fontFamily: 'monospace',
             cursor: 'pointer',
             transition: 'background 0.1s',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
           }}
           onMouseEnter={() => setSelected(i)}
         >
-          {v}
+          <span style={{ fontFamily: 'monospace' }}>{v.name}</span>
+          <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>{v.desc}</span>
         </div>
       ))}
     </div>
