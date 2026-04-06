@@ -35,10 +35,10 @@ interface History {
 }
 
 const COLORS: Record<string, { stroke: string; fill: string }> = {
-  accent: { stroke: '#4a5568', fill: 'rgba(74,85,104,0.08)' },
-  green: { stroke: '#2d3748', fill: 'rgba(45,55,72,0.08)' },
-  orange: { stroke: '#1a202c', fill: 'rgba(26,32,44,0.08)' },
-  purple: { stroke: '#2d3748', fill: 'rgba(45,55,72,0.08)' },
+  accent: { stroke: 'rgba(255,255,255,0.7)', fill: 'rgba(255,255,255,0.06)' },
+  green: { stroke: 'rgba(255,255,255,0.7)', fill: 'rgba(255,255,255,0.06)' },
+  orange: { stroke: 'rgba(255,255,255,0.7)', fill: 'rgba(255,255,255,0.06)' },
+  purple: { stroke: 'rgba(255,255,255,0.7)', fill: 'rgba(255,255,255,0.06)' },
 }
 
 function renderChartToEl(
