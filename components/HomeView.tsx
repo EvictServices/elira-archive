@@ -6,6 +6,14 @@ import SocialSection from '@/components/features/SocialSection'
 import VoiceMasterSection from '@/components/features/VoiceMasterSection'
 import AntinukeSection from '@/components/features/AntinukeSection'
 
+function Divider() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+      <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent)' }} />
+    </div>
+  )
+}
+
 export default function HomeView() {
   return (
     <div style={{ background: '#1a1a1a', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
@@ -40,29 +48,66 @@ export default function HomeView() {
         </div>
       </section>
 
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-        <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent)' }} />
-      </div>
-
+      <Divider />
       <MusicSection />
-
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-        <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent)' }} />
-      </div>
-
+      <Divider />
       <SocialSection />
-
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-        <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent)' }} />
-      </div>
-
+      <Divider />
       <VoiceMasterSection />
-
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-        <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent)' }} />
-      </div>
-
+      <Divider />
       <AntinukeSection />
+
+      <Divider />
+
+      <section style={{ padding: '40px 20px 80px' }} data-reveal>
+        <div style={{
+          maxWidth: 900, margin: '0 auto',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 16,
+          padding: '48px 40px',
+          display: 'flex', flexWrap: 'wrap', gap: 32,
+          alignItems: 'center', justifyContent: 'space-between',
+          background: 'rgba(255,255,255,0.02)',
+        }}>
+          <div style={{ flex: '1 1 340px' }}>
+            <h2 style={{ fontFamily: 'var(--font-geist-mono)', color: '#fff', fontSize: '1.6rem', marginBottom: 12 }}>
+              Ready to try evict?
+            </h2>
+            <p style={{ fontFamily: 'var(--font-geist-mono)', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.7 }}>
+              Add evict to your server and explore everything it offers&nbsp;&mdash; moderation, antinuke, music, social feeds, and more, all in one place.
+            </p>
+          </div>
+          <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 12, minWidth: 220 }}>
+            <a href={INVITE_URL} target="_blank" rel="noopener" style={{
+              fontFamily: 'var(--font-geist-mono)', fontSize: '0.9rem',
+              color: '#fff', textDecoration: 'none', textAlign: 'center',
+              padding: '12px 32px', borderRadius: 10,
+              border: '1px solid rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.04)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'background 0.2s',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              Invite evict
+            </a>
+            <a href={SUPPORT_URL} target="_blank" rel="noopener" style={{
+              fontFamily: 'var(--font-geist-mono)', fontSize: '0.9rem',
+              color: '#fff', textDecoration: 'none', textAlign: 'center',
+              padding: '12px 32px', borderRadius: 10,
+              border: '1px solid rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.04)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'background 0.2s',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Join Support
+            </a>
+            <span style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
+              Free to use. Remove anytime.
+            </span>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

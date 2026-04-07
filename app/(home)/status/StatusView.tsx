@@ -148,18 +148,7 @@ function fmtMem(mb: number): string {
   return mb + ' MB'
 }
 
-function animateNum(setter: (v: string) => void, to: number, dur = 900) {
-  const t0 = performance.now()
-  let prev = 0
-  const step = (now: number) => {
-    const t = Math.min((now - t0) / dur, 1)
-    const e = 1 - Math.pow(1 - t, 3)
-    const v = Math.round(prev + (to - prev) * e)
-    setter(v.toLocaleString())
-    if (t < 1) requestAnimationFrame(step)
-  }
-  requestAnimationFrame(step)
-}
+import { animateCounter } from '@/lib/animateCounter'
 
 export default function StatusView() {
   const [guilds, setGuilds] = useState('—')
@@ -259,8 +248,8 @@ export default function StatusView() {
         }
       }
 
-      animateNum(setGuilds, d.guilds || totalGuilds)
-      animateNum(setUsers, d.users || 0)
+      animateCounter(setGuilds, d.guilds || totalGuilds, 900)
+      animateCounter(setUsers, d.users || 0, 900)
       setShards(String(totalShards))
       setClusters(newClusters)
 

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import PurgeView from './PurgeView'
-import { fetchPurge, fetchUserInfoBatch } from './fetchPurge'
+import { fetchPurge } from './fetchPurge'
+import { fetchUserInfoBatch } from '@/lib/fetchUsers'
 
 export const metadata: Metadata = {
   title: 'Purge Log',

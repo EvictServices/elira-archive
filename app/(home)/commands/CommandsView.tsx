@@ -97,7 +97,7 @@ export default function CommandsView({ commands }: Props) {
       await navigator.clipboard.writeText(name)
       setCopied(name)
       setTimeout(() => setCopied(null), 1500)
-    } catch { /* ignore */ }
+    } catch {}
   }
 
   function openModal(c: Command) { setModalCmd(c) }
