@@ -1521,6 +1521,8 @@ body.nav-open { overflow: hidden; }
   border-radius: var(--r-md);
   padding: 1rem 1rem 1rem 4.5rem;
   position: relative;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .discord-message {
@@ -1659,7 +1661,7 @@ body.nav-open { overflow: hidden; }
   height: 100%;
   background: #5865f2;
   border-radius: 3px;
-  transition: width 0.3s ease;
+  transition: width 0.2s linear;
 }
 
 .discord-embed-progress-times {
@@ -1724,14 +1726,6 @@ body.nav-open { overflow: hidden; }
 .music-features-list li svg {
   color: #5865f2;
   flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .music-section,
-  .social-section {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
 }
 
 /* Social Section */
@@ -1838,6 +1832,11 @@ body.nav-open { overflow: hidden; }
   to { transform: rotate(360deg); }
 }
 
+@keyframes vm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .vm-emoji {
   width: 18px;
   height: 18px;
@@ -1856,7 +1855,7 @@ body.nav-open { overflow: hidden; }
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: #2b2d31;
-  border-left: 3px solid #5865f2;
+  border-left: 3px solid #5f828d;
   border-radius: 4px;
   animation: vmFadeIn 0.2s ease;
 }
@@ -1972,4 +1971,62 @@ body.nav-open { overflow: hidden; }
   border-radius: 3px;
   font-size: 0.82rem;
   font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .music-section,
+  .social-section {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .music-section > .music-embed,
+  .social-section > .music-embed {
+    order: 2;
+  }
+
+  .music-section > .music-info,
+  .music-section > .social-info,
+  .social-section > .social-info,
+  .social-section > .music-info {
+    order: 1;
+  }
+
+  .music-embed {
+    padding: 1rem 0.75rem 1rem 3.5rem;
+  }
+
+  .discord-msg-avatar {
+    left: -2.75rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .discord-embed-content {
+    gap: 0.5rem;
+  }
+
+  .discord-embed-thumbnail {
+    width: 50px !important;
+    height: 50px !important;
+    flex-shrink: 0;
+  }
+
+  .discord-embed-fields-grid {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .vm-usage-list {
+    font-size: 0.8rem;
+  }
+
+  .discord-embed-title {
+    font-size: 0.85rem;
+  }
+
+  .discord-embed-author {
+    font-size: 0.75rem;
+  }
 }
