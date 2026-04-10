@@ -26,5 +26,14 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
     redirect('/dashboard')
   }
 
-  return <ServerSettingsView guild={guild} />
+  return (
+    <ServerSettingsView
+      guild={guild}
+      user={{
+        id: session.userId,
+        username: session.username,
+        avatar: session.avatar,
+      }}
+    />
+  )
 }

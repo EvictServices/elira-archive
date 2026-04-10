@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "ioredis": "^5.10.1",
     "jose": "^6.2.2",
     "next": "^15.2.4",
     "pg": "^8.20.0",

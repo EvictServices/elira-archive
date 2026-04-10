@@ -9,7 +9,7 @@ interface DashboardUser {
 }
 
 interface Guild {
-  id: number
+  id: string
   name: string
   icon_url: string | null
   member_count: number

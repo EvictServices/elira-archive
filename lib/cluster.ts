@@ -1,5 +1,14 @@
 const CLUSTER_API = 'http://localhost:8000'
 
+/**
+ * Parse JSON text, converting large numeric IDs (snowflakes) to strings
+ * to avoid JavaScript Number precision loss.
+ */
+function safeParse<T>(text: string): T {
+  const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
+  return JSON.parse(safe) as T
+}
+
 export async function clusterGet<T>(path: string): Promise<T> {
   const res = await fetch(`${CLUSTER_API}${path}`, {
     headers: { Accept: 'application/json' },
@@ -8,7 +17,8 @@ export async function clusterGet<T>(path: string): Promise<T> {
   if (!res.ok) {
     throw new Error(`Cluster API ${path} failed: ${res.status}`)
   }
-  return res.json() as Promise<T>
+  const text = await res.text()
+  return safeParse<T>(text)
 }
 
 export async function clusterPost<T>(path: string, body: unknown): Promise<T> {
@@ -24,11 +34,12 @@ export async function clusterPost<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) {
     throw new Error(`Cluster API ${path} failed: ${res.status}`)
   }
-  return res.json() as Promise<T>
+  const text = await res.text()
+  return safeParse<T>(text)
 }
 
 export interface MutualGuild {
-  id: number
+  id: string
   name: string
   icon_url: string | null
   member_count: number
