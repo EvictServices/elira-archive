@@ -2458,6 +2458,202 @@ body.nav-open { overflow: hidden; }
   opacity: 0.7;
 }
 
+.antinuke-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.an-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.settings-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.settings-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.an-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.an-toggle.on {
+  background: var(--accent);
+}
+
+.an-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.an-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.an-toggle.on .an-toggle-knob {
+  transform: translateX(20px);
+}
+
+.an-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.an-module {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+
+.an-module.enabled {
+  border-color: var(--accent);
+}
+
+.an-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.an-module-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.an-module-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.an-module-desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.an-module-body {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.an-module-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.an-module-summary b {
+  color: var(--text);
+}
+
+.an-edit-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s;
+  margin-left: auto;
+}
+
+.an-edit-btn:hover {
+  border-color: var(--accent);
+}
+
+.an-module-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.an-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.an-edit-field label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.an-edit-field .settings-input {
+  width: 100%;
+}
+
+.an-edit-field select.settings-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+.an-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.an-cancel-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.an-cancel-btn:hover {
+  border-color: var(--accent);
+}
+
+.settings-loading {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .server-layout {
     flex-direction: column;

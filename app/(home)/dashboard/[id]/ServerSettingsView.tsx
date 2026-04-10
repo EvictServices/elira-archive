@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import PrefixSettings from '@/components/settings/PrefixSettings'
+import AntinukeSettings from '@/components/settings/AntinukeSettings'
 
 interface Guild {
   guild_id: string
@@ -261,7 +262,8 @@ export default function ServerSettingsView({ guild, user }: { guild: Guild; user
         </h1>
         <div className="server-content-body">
           {activeItem === 'prefix' && <PrefixSettings guildId={guild.guild_id} />}
-          {activeItem !== 'prefix' && (
+          {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
+          {activeItem !== 'prefix' && activeItem !== 'antinuke' && (
             <p className="server-content-placeholder">Settings for this section coming soon.</p>
           )}
         </div>
