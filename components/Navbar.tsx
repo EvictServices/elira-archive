@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { INVITE_URL, SUPPORT_URL, DOCS_URL } from '@/lib/constants'
+import UserMenu from '@/components/UserMenu'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -75,6 +76,7 @@ export default function Navbar() {
                 </svg>
                 Add to Server
               </a>
+              <UserMenu />
             </div>
           </div>
         </div>
