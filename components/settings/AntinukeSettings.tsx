@@ -141,20 +141,6 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
     <div className="antinuke-settings">
       {error && <p className="settings-error">{error}</p>}
 
-      <div className="an-toggle-row">
-        <div>
-          <span className="settings-label">Anti-Bot</span>
-          <p className="settings-desc">Prevent unauthorized bots from being added to the server.</p>
-        </div>
-        <button
-          className={`an-toggle ${settings.bot ? 'on' : ''}`}
-          onClick={toggleBot}
-          disabled={saving === 'bot'}
-        >
-          <span className="an-toggle-knob" />
-        </button>
-      </div>
-
       <div className="an-modules">
         {MODULE_NAMES.map((name) => {
           const mod = settings[name] as Module | null
@@ -171,6 +157,19 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
             />
           )
         })}
+        <div className={`an-module ${settings.bot ? 'enabled' : ''}`}>
+          <div className="an-module-header">
+            <span className="an-module-name">Anti-Bot</span>
+            <button
+              className={`an-toggle ${settings.bot ? 'on' : ''}`}
+              onClick={toggleBot}
+              disabled={saving === 'bot'}
+            >
+              <span className="an-toggle-knob" />
+            </button>
+          </div>
+          <span className="an-module-desc">Prevent unauthorized bots from being added.</span>
+        </div>
       </div>
     </div>
   )
@@ -214,10 +213,7 @@ function ModuleCard({
   return (
     <div className={`an-module ${config ? 'enabled' : ''}`}>
       <div className="an-module-header">
-        <div className="an-module-info">
-          <span className="an-module-name">{label}</span>
-          <span className="an-module-desc">{description}</span>
-        </div>
+        <span className="an-module-name">{label}</span>
         <button
           className={`an-toggle ${config ? 'on' : ''}`}
           onClick={onToggle}
@@ -226,13 +222,16 @@ function ModuleCard({
           <span className="an-toggle-knob" />
         </button>
       </div>
+      <span className="an-module-desc">{description}</span>
       {config && (
         <div className="an-module-body">
           {!editing ? (
             <div className="an-module-summary">
-              <span>Threshold: <b>{config.threshold}</b></span>
-              <span>Duration: <b>{config.duration}s</b></span>
-              <span>Punishment: <b>{config.punishment}</b></span>
+              <div className="an-summary-stats">
+                <span>Threshold: <b>{config.threshold}</b></span>
+                <span>Duration: <b>{config.duration}s</b></span>
+                <span>Punishment: <b>{config.punishment}</b></span>
+              </div>
               <button className="an-edit-btn" onClick={() => setEditing(true)}>Edit</button>
             </div>
           ) : (

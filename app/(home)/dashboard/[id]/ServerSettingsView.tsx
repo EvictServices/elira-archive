@@ -181,6 +181,20 @@ const sections: SidebarSection[] = [
   },
 ]
 
+const sectionDescriptions: Record<string, string> = {
+  general: 'Manage general server configuration.',
+  prefix: 'Set the command prefix for the bot.',
+  automod: 'Configure automatic moderation rules.',
+  logging: 'Set up event logging channels.',
+  antinuke: 'Protect your server from malicious actions by rogue administrators.',
+  welcome: 'Customize welcome messages for new members.',
+  autorole: 'Automatically assign roles to new members.',
+  starboard: 'Highlight popular messages in a starboard channel.',
+  music: 'Configure music playback settings.',
+  voicemaster: 'Create temporary voice channels on demand.',
+  tickets: 'Set up a support ticket system.',
+}
+
 export default function ServerSettingsView({ guild, user }: { guild: Guild; user: User }) {
   const [activeItem, setActiveItem] = useState('general')
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() =>
@@ -259,6 +273,9 @@ export default function ServerSettingsView({ guild, user }: { guild: Guild; user
       <main className="server-content">
         <h1 className="server-content-title">
           {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
+          {sectionDescriptions[activeItem] && (
+            <p className="server-content-desc">{sectionDescriptions[activeItem]}</p>
+          )}
         </h1>
         <div className="server-content-body">
           {activeItem === 'prefix' && <PrefixSettings guildId={guild.guild_id} />}
