@@ -4,6 +4,7 @@ import {
   getAntinukeSettings,
   updateAntinukeModule,
   updateAntinukeBotToggle,
+  isAntinukeAdmin,
 } from '@/lib/settings/antinuke'
 
 export async function GET(
@@ -16,6 +17,11 @@ export async function GET(
   }
 
   const { id } = await params
+
+  if (!(await isAntinukeAdmin(id, session.userId))) {
+    return NextResponse.json({ error: 'You must be a trusted admin or the server owner to access antinuke settings' }, { status: 403 })
+  }
+
   const settings = await getAntinukeSettings(id)
   return NextResponse.json(settings, {
     headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' },
@@ -32,6 +38,11 @@ export async function PATCH(
   }
 
   const { id } = await params
+
+  if (!(await isAntinukeAdmin(id, session.userId))) {
+    return NextResponse.json({ error: 'You must be a trusted admin or the server owner to modify antinuke settings' }, { status: 403 })
+  }
+
   const body = await req.json()
 
   if (body.module && typeof body.module === 'string') {

@@ -196,8 +196,14 @@ const sectionDescriptions: Record<string, string> = {
   tickets: 'Set up a support ticket system.',
 }
 
-export default function ServerSettingsView({ guild, user, activeTab }: { guild: Guild; user: User; activeTab: string }) {
+export default function ServerSettingsView({ guild, user, activeTab, canAccessAntinuke }: { guild: Guild; user: User; activeTab: string; canAccessAntinuke: boolean }) {
   const activeItem = activeTab
+  const filteredSections = canAccessAntinuke
+    ? sections
+    : sections.map((s) => ({
+        ...s,
+        items: s.items.filter((i) => i.id !== 'antinuke'),
+      }))
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(sections.map((s) => [s.label, true]))
   )

@@ -93,6 +93,19 @@ export async function getAntinukeSettings(guildId: string): Promise<AntinukeSett
   return settings
 }
 
+export async function isAntinukeAdmin(guildId: string, userId: string): Promise<boolean> {
+  const settings = await getAntinukeSettings(guildId)
+  if (settings.trusted_admins.includes(userId)) return true
+
+  try {
+    const { fetchGuild } = await import('@/lib/cluster')
+    const guild = await fetchGuild(guildId)
+    if (guild.owner_id === userId) return true
+  } catch {}
+
+  return false
+}
+
 export async function updateAntinukeModule(
   guildId: string,
   moduleName: string,
