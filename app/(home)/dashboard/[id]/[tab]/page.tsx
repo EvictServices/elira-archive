@@ -13,12 +13,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 }
 
-export default async function ServerSettingsPage({ params }: { params: Promise<{ id: string; tab?: string[] }> }) {
+export default async function ServerSettingsPage({ params }: { params: Promise<{ id: string; tab: string }> }) {
   const session = await getSession()
   if (!session) redirect('/api/auth/login')
 
   const { id, tab } = await params
-  const activeTab = tab?.[0] || 'general'
 
   let guild
   try {
@@ -30,7 +29,7 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
   return (
     <ServerSettingsView
       guild={guild}
-      activeTab={activeTab}
+      activeTab={tab}
       user={{
         id: session.userId,
         username: session.username,
