@@ -15,21 +15,23 @@ export default async function DashboardPage() {
     fetchDiscordGuilds(session.accessToken).catch(() => []),
   ])
 
-  // Build a set of guild IDs the bot knows about from the cluster
-  const clusterIds = new Set(clusterGuilds.map((g) => g.id))
+  const ADMINISTRATOR = BigInt(0x8)
+  const adminGuildIds = new Set(
+    discordGuilds
+      .filter((dg) => dg.owner || (BigInt(dg.permissions) & ADMINISTRATOR) !== BigInt(0))
+      .map((dg) => dg.id)
+  )
 
-  // Discord guilds that are also in the cluster are mutual (bot is in them)
-  // Use cluster data when available (richer), fill in from Discord for missing shards
-  const guilds: MutualGuild[] = [...clusterGuilds]
+  console.log('[dashboard] cluster guilds:', clusterGuilds.length, clusterGuilds.map(g => g.id))
+  console.log('[dashboard] discord guilds:', discordGuilds.length, discordGuilds.map(dg => ({ id: dg.id, owner: dg.owner, perms: dg.permissions })))
+  console.log('[dashboard] admin guild IDs:', [...adminGuildIds])
 
-  // Add any Discord guilds the cluster missed (shards were down)
-  // We can't confirm the bot is in these, but we show what the cluster returned
-  // If cluster returned nothing, fall back to showing Discord guilds with manage permission
+  const guilds: MutualGuild[] = clusterGuilds.filter((g) => adminGuildIds.has(g.id))
+  console.log('[dashboard] filtered guilds:', guilds.length, guilds.map(g => g.id))
+
   if (clusterGuilds.length === 0) {
     for (const dg of discordGuilds) {
-      const perms = BigInt(dg.permissions)
-      const MANAGE_GUILD = BigInt(0x20)
-      if (dg.owner || (perms & MANAGE_GUILD) !== BigInt(0)) {
+      if (adminGuildIds.has(dg.id)) {
         guilds.push({
           id: dg.id,
           name: dg.name,

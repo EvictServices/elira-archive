@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
+import { hasGuildAdmin } from '@/lib/discord'
 import { fetchGuildChannels } from '@/lib/cluster'
 
 export async function GET(
@@ -12,6 +13,10 @@ export async function GET(
   }
 
   const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   try {
     const channels = await fetchGuildChannels(id)

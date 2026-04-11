@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
+import { hasGuildAdmin } from '@/lib/discord'
 import {
   getLoggingSettings,
   setLoggingEvents,
@@ -21,6 +22,11 @@ export async function GET(
   }
 
   const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const settings = await getLoggingSettings(id)
   return NextResponse.json(settings, {
     headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' },
@@ -37,9 +43,12 @@ export async function PATCH(
   }
 
   const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
   const body = await req.json()
 
-  // Set a single event's channel
   if (body.event && typeof body.event === 'string') {
     const channelId = body.channel_id ? String(body.channel_id) : null
     try {
@@ -104,6 +113,11 @@ export async function DELETE(
   }
 
   const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const body = await req.json()
 
   if (!body.channel_id) {

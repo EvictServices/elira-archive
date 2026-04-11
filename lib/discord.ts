@@ -75,3 +75,19 @@ export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGu
 
   return res.json() as Promise<DiscordGuild[]>
 }
+
+const ADMINISTRATOR = BigInt(0x8)
+
+export async function hasGuildAdmin(accessToken: string, guildId: string): Promise<boolean> {
+  const { default: redis } = await import('@/lib/redis')
+  const cacheKey = `dashboard:guild_admin:${guildId}:${accessToken.slice(-8)}`
+  const cached = await redis.get(cacheKey)
+  if (cached !== null) return cached === '1'
+
+  const guilds = await fetchDiscordGuilds(accessToken)
+  const guild = guilds.find((g) => g.id === guildId)
+  const allowed = guild ? guild.owner || (BigInt(guild.permissions) & ADMINISTRATOR) !== BigInt(0) : false
+
+  await redis.set(cacheKey, allowed ? '1' : '0', 'EX', 120)
+  return allowed
+}

@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { fetchGuild } from '@/lib/cluster'
 import { isAntinukeAdmin } from '@/lib/settings/antinuke'
+import { hasGuildAdmin } from '@/lib/discord'
 import ServerSettingsView from '../ServerSettingsView'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -25,7 +26,15 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
   if (!session) redirect('/api/auth/login')
   if (!guild) redirect('/dashboard')
 
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    redirect('/dashboard')
+  }
+
   const canAccessAntinuke = await isAntinukeAdmin(id, session.userId)
+
+  if (tab === 'prefix') {
+    redirect(`/dashboard/${id}/general`)
+  }
 
   if (tab === 'antinuke' && !canAccessAntinuke) {
     redirect(`/dashboard/${id}/general`)

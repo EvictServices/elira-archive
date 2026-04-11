@@ -73,15 +73,6 @@ const sections: SidebarSection[] = [
           </svg>
         ),
       },
-      {
-        id: 'prefix',
-        label: 'Prefix',
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" />
-          </svg>
-        ),
-      },
     ],
   },
   {
@@ -184,8 +175,7 @@ const sections: SidebarSection[] = [
 
 const sectionDescriptions: Record<string, string> = {
   general: 'Manage general server configuration.',
-  prefix: 'Set the command prefix for the bot.',
-  automod: 'Configure automatic moderation rules.',
+  automod: 'Configure automatic moderation rules',
   logging: 'Set up event logging channels.',
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
   welcome: 'Customize welcome messages for new members.',
@@ -237,7 +227,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
         </div>
 
         <nav className="sidebar-nav">
-          {sections.map((section) => (
+          {filteredSections.map((section) => (
             <div key={section.label} className="sidebar-section">
               <button
                 className="sidebar-section-toggle"
@@ -285,10 +275,10 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
           )}
         </h1>
         <div className="server-content-body">
-          {activeItem === 'prefix' && <PrefixSettings guildId={guild.guild_id} />}
+          {activeItem === 'general' && <PrefixSettings guildId={guild.guild_id} />}
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
-          {activeItem !== 'prefix' && activeItem !== 'antinuke' && activeItem !== 'logging' && (
+          {activeItem !== 'general' && activeItem !== 'antinuke' && activeItem !== 'logging' && (
             <p className="server-content-placeholder">Settings for this section coming soon.</p>
           )}
         </div>

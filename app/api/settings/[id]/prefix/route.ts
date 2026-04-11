@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
+import { hasGuildAdmin } from '@/lib/discord'
 import { getGuildPrefix, updateGuildPrefix } from '@/lib/settings/prefix'
 
 export async function GET(
@@ -12,6 +13,11 @@ export async function GET(
   }
 
   const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const prefix = await getGuildPrefix(id)
   return NextResponse.json({ prefix }, {
     headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' },
@@ -28,6 +34,10 @@ export async function PATCH(
   }
 
   const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
   const body = await req.json()
   const prefix = body?.prefix
 
