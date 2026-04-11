@@ -21,83 +21,83 @@ interface Settings {
 }
 
 const EVENT_TYPES = [
-  'MESSAGE',
-  'MEMBER',
-  'ROLE',
-  'CHANNEL',
-  'INVITE',
-  'MODERATION',
-  'VOICE',
-  'EMOJI',
-  'STICKER',
+  'message',
+  'member',
+  'role',
+  'channel',
+  'invite',
+  'moderation',
+  'voice',
+  'emoji',
+  'sticker',
 ] as const
 
 const EVENT_LABELS: Record<string, string> = {
-  MESSAGE: 'Message',
-  MEMBER: 'Member',
-  ROLE: 'Role',
-  CHANNEL: 'Channel',
-  INVITE: 'Invite',
-  MODERATION: 'Moderation',
-  VOICE: 'Voice',
-  EMOJI: 'Emoji',
-  STICKER: 'Sticker',
+  message: 'Message',
+  member: 'Member',
+  role: 'Role',
+  channel: 'Channel',
+  invite: 'Invite',
+  moderation: 'Moderation',
+  voice: 'Voice',
+  emoji: 'Emoji',
+  sticker: 'Sticker',
 }
 
 const EVENT_DESCRIPTIONS: Record<string, string> = {
-  MESSAGE: 'Message edits, deletions, and bulk deletes.',
-  MEMBER: 'Member joins, leaves, and profile updates.',
-  ROLE: 'Role creation, deletion, and permission changes.',
-  CHANNEL: 'Channel creation, deletion, and updates.',
-  INVITE: 'Invite creation and deletion.',
-  MODERATION: 'Bans, kicks, mutes, and warnings.',
-  VOICE: 'Voice channel joins, leaves, and moves.',
-  EMOJI: 'Emoji creation, deletion, and updates.',
-  STICKER: 'Sticker creation, deletion, and updates.',
+  message: 'Message edits, deletions, and bulk deletes.',
+  member: 'Member joins, leaves, and profile updates.',
+  role: 'Role creation, deletion, and permission changes.',
+  channel: 'Channel creation, deletion, and updates.',
+  invite: 'Invite creation and deletion.',
+  moderation: 'Bans, kicks, mutes, and warnings.',
+  voice: 'Voice channel joins, leaves, and moves.',
+  emoji: 'Emoji creation, deletion, and updates.',
+  sticker: 'Sticker creation, deletion, and updates.',
 }
 
 const EVENT_ICONS: Record<string, React.ReactNode> = {
-  MESSAGE: (
+  message: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   ),
-  MEMBER: (
+  member: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
     </svg>
   ),
-  ROLE: (
+  role: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   ),
-  CHANNEL: (
+  channel: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="4" y1="9" x2="20" y2="9" /><line x1="4" y1="15" x2="20" y2="15" /><line x1="10" y1="3" x2="8" y2="21" /><line x1="16" y1="3" x2="14" y2="21" />
     </svg>
   ),
-  INVITE: (
+  invite: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </svg>
   ),
-  MODERATION: (
+  moderation: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
     </svg>
   ),
-  VOICE: (
+  voice: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" />
     </svg>
   ),
-  EMOJI: (
+  emoji: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" />
     </svg>
   ),
-  STICKER: (
+  sticker: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z" /><path d="M14 3v4a2 2 0 0 0 2 2h4" />
     </svg>
@@ -127,7 +127,9 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
   const eventChannelMap: Record<string, string | null> = {}
   if (settings) {
     for (const event of EVENT_TYPES) {
-      const match = settings.channels.find((ch) => ch.events.includes(event))
+      const match = settings.channels.find((ch) =>
+        ch.events.some((e) => e.toLowerCase() === event)
+      )
       eventChannelMap[event] = match ? match.channel_id : null
     }
   }

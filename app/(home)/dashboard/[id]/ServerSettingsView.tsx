@@ -196,8 +196,8 @@ const sectionDescriptions: Record<string, string> = {
   tickets: 'Set up a support ticket system.',
 }
 
-export default function ServerSettingsView({ guild, user }: { guild: Guild; user: User }) {
-  const [activeItem, setActiveItem] = useState('general')
+export default function ServerSettingsView({ guild, user, activeTab }: { guild: Guild; user: User; activeTab: string }) {
+  const activeItem = activeTab
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(sections.map((s) => [s.label, true]))
   )
@@ -243,14 +243,14 @@ export default function ServerSettingsView({ guild, user }: { guild: Guild; user
               <div className={`sidebar-section-items${openSections[section.label] ? ' open' : ''}`}>
                 <div className="sidebar-section-items-inner">
                   {section.items.map((item) => (
-                    <button
+                    <Link
                       key={item.id}
                       className={`sidebar-item${activeItem === item.id ? ' active' : ''}`}
-                      onClick={() => setActiveItem(item.id)}
+                      href={`/dashboard/${guild.guild_id}/${item.id === 'general' ? '' : item.id}`}
                     >
                       {item.icon}
                       <span>{item.label}</span>
-                    </button>
+                    </Link>
                   ))}
                 </div>
               </div>

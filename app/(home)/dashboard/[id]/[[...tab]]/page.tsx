@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { fetchGuild } from '@/lib/cluster'
-import ServerSettingsView from './ServerSettingsView'
+import ServerSettingsView from '../ServerSettingsView'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -13,11 +13,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 }
 
-export default async function ServerSettingsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ServerSettingsPage({ params }: { params: Promise<{ id: string; tab?: string[] }> }) {
   const session = await getSession()
   if (!session) redirect('/api/auth/login')
 
-  const { id } = await params
+  const { id, tab } = await params
+  const activeTab = tab?.[0] || 'general'
 
   let guild
   try {
@@ -29,6 +30,7 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
   return (
     <ServerSettingsView
       guild={guild}
+      activeTab={activeTab}
       user={{
         id: session.userId,
         username: session.username,

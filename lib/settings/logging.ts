@@ -3,15 +3,15 @@ import redis from '@/lib/redis'
 import { xxh32 } from '@/lib/hash'
 
 export const EVENT_TYPES = [
-  'MESSAGE',
-  'MEMBER',
-  'ROLE',
-  'CHANNEL',
-  'INVITE',
-  'MODERATION',
-  'VOICE',
-  'EMOJI',
-  'STICKER',
+  'message',
+  'member',
+  'role',
+  'channel',
+  'invite',
+  'moderation',
+  'voice',
+  'emoji',
+  'sticker',
 ] as const
 
 export type EventType = (typeof EVENT_TYPES)[number]
