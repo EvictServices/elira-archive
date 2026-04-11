@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface Module {
   threshold: number
@@ -192,7 +192,6 @@ function ModuleCard({
   onToggle: () => void
   onUpdate: (config: Module) => void
 }) {
-  const [editing, setEditing] = useState(false)
   const [threshold, setThreshold] = useState(config?.threshold ?? 5)
   const [duration, setDuration] = useState(config?.duration ?? 60)
   const [punishment, setPunishment] = useState<Module['punishment']>(config?.punishment ?? 'ban')
@@ -205,9 +204,10 @@ function ModuleCard({
     }
   }, [config])
 
+  const dirty = config && (threshold !== config.threshold || duration !== config.duration || punishment !== config.punishment)
+
   const handleSave = () => {
     onUpdate({ threshold, duration, punishment })
-    setEditing(false)
   }
 
   return (
@@ -225,61 +225,102 @@ function ModuleCard({
       <span className="an-module-desc">{description}</span>
       {config && (
         <div className="an-module-body">
-          {!editing ? (
-            <div className="an-module-summary">
-              <div className="an-summary-stats">
-                <span>Threshold: <b>{config.threshold}</b></span>
-                <span>Duration: <b>{config.duration}s</b></span>
-                <span>Punishment: <b>{config.punishment}</b></span>
-              </div>
-              <button className="an-edit-btn" onClick={() => setEditing(true)}>Edit</button>
+          <div className="an-edit-field">
+            <label>Threshold</label>
+            <div className="settings-input-row">
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={threshold}
+                onChange={(e) => setThreshold(Number(e.target.value))}
+                className="settings-input"
+              />
             </div>
-          ) : (
-            <div className="an-module-edit">
-              <div className="an-edit-field">
-                <label>Threshold</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={threshold}
-                  onChange={(e) => setThreshold(Number(e.target.value))}
-                  className="settings-input"
-                />
-              </div>
-              <div className="an-edit-field">
-                <label>Duration (seconds)</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={86400}
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                  className="settings-input"
-                />
-              </div>
-              <div className="an-edit-field">
-                <label>Punishment</label>
-                <select
-                  value={punishment}
-                  onChange={(e) => setPunishment(e.target.value as Module['punishment'])}
-                  className="settings-input"
-                >
-                  <option value="ban">Ban</option>
-                  <option value="kick">Kick</option>
-                  <option value="strip">Strip Roles</option>
-                </select>
-              </div>
-              <div className="an-edit-actions">
-                <button className="settings-save-btn" onClick={handleSave} disabled={saving}>
-                  Save
-                </button>
-                <button className="an-cancel-btn" onClick={() => setEditing(false)}>
-                  Cancel
-                </button>
-              </div>
+          </div>
+          <div className="an-edit-field">
+            <label>Duration (seconds)</label>
+            <div className="settings-input-row">
+              <input
+                type="number"
+                min={1}
+                max={86400}
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+                className="settings-input"
+              />
             </div>
-          )}
+          </div>
+          <div className="an-edit-field">
+            <label>Punishment</label>
+            <Dropdown
+              value={punishment}
+              options={[
+                { value: 'ban', label: 'Ban' },
+                { value: 'kick', label: 'Kick' },
+                { value: 'strip', label: 'Strip Roles' },
+              ]}
+              onChange={(v) => setPunishment(v as Module['punishment'])}
+            />
+          </div>
+          <div className="settings-input-row" style={{ marginTop: 4 }}>
+            <button className="settings-save-btn" onClick={handleSave} disabled={saving || !dirty}>
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+          {dirty && <p className="settings-hint">You have unsaved changes</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Dropdown({
+  value,
+  options,
+  onChange,
+}: {
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const selected = options.find((o) => o.value === value)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div className={`an-dropdown${open ? ' open' : ''}`} ref={ref}>
+      <button className="an-dropdown-trigger" onClick={() => setOpen(!open)} type="button">
+        <span>{selected?.label}</span>
+        <svg className="an-dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="an-dropdown-menu">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              className={`an-dropdown-item${opt.value === value ? ' active' : ''}`}
+              onClick={() => { onChange(opt.value); setOpen(false) }}
+              type="button"
+            >
+              {opt.label}
+              {opt.value === value && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </button>
+          ))}
         </div>
       )}
     </div>

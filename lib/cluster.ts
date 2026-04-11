@@ -67,3 +67,15 @@ export interface GuildData {
 export async function fetchGuild(guildId: string): Promise<GuildData> {
   return clusterGet<GuildData>(`/guild/find?idx=${guildId}`)
 }
+
+export interface GuildChannel {
+  id: string
+  name: string
+  type: number | string
+  position: number
+  parent_id: string | null
+}
+
+export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[]> {
+  return clusterGet<GuildChannel[]>(`/guild/${guildId}/channels`)
+}
