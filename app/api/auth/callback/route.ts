@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
       avatar: user.avatar,
       discriminator: user.discriminator,
       accessToken: tokenData.access_token,
+      email: user.email ?? null,
     })
 
     const res = NextResponse.redirect(new URL('/dashboard', req.url))

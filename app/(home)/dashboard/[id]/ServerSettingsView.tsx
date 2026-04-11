@@ -221,7 +221,14 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
             </div>
           )}
           <div className="sidebar-guild-info">
-            <span className="sidebar-guild-name">{guild.name}</span>
+            <span className="sidebar-guild-name">
+              {guild.name}
+              {(guild.boost_level as number) > 0 && (
+                <svg className={`sidebar-boost-badge boost-level-${guild.boost_level as number}`} width="16" height="16" viewBox="0 0 24 24" title={`Server Boost Level ${guild.boost_level as number}`}>
+                  <path fill="currentColor" d="M3.06 9.72c.18-.18.42-.18.6-.06l.06.06 2.22 2.22V5.34c0-.24.18-.42.42-.48h.06c.24 0 .42.18.48.42v6.66l2.22-2.22c.18-.18.42-.18.6 0 .18.18.18.42.06.6l-.06.06-3 3c-.06.06-.12.06-.18.06h-.12s-.06 0-.12-.06l-3-3c-.18-.12-.24-.42-.06-.6Zm17.88 4.56c-.18.18-.42.18-.6.06l-.06-.06-2.22-2.22v6.6c0 .24-.18.42-.42.48h-.06c-.24 0-.42-.18-.48-.42v-6.66l-2.22 2.22c-.18.18-.42.18-.6 0-.18-.18-.18-.42-.06-.6l.06-.06 3-3c.06-.06.12-.06.18-.06h.12s.06 0 .12.06l3 3c.18.12.24.42.06.6Z" />
+                </svg>
+              )}
+            </span>
             <span className="sidebar-guild-meta">{guild.member_count.toLocaleString()} members</span>
           </div>
         </div>

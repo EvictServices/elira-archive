@@ -7,7 +7,7 @@ function buildAuthUrl() {
     client_id: process.env.DISCORD_CLIENT_ID ?? '',
     redirect_uri: process.env.DISCORD_REDIRECT_URI ?? '',
     response_type: 'code',
-    scope: 'identify guilds',
+    scope: 'identify guilds email',
   })
   return `https://discord.com/oauth2/authorize?${params}`
 }
@@ -53,6 +53,7 @@ export async function fetchDiscordUser(accessToken: string) {
     discriminator: string
     avatar: string | null
     global_name: string | null
+    email: string | null
   }>
 }
 

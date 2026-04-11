@@ -16,6 +16,7 @@ export interface Session {
   avatar: string | null
   discriminator: string
   accessToken: string
+  email: string | null
 }
 
 export async function createSession(data: Session): Promise<string> {

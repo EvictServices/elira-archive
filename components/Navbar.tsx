@@ -58,6 +58,7 @@ export default function Navbar() {
               <a href={DOCS_URL} target="_blank" rel="noopener" className="mobile-only" onClick={closeMenu}>Docs</a>
               <Link href="/updates" className={isActive('updates') ? 'active' : ''} onClick={closeMenu}>Updates</Link>
               <Link href="/status" className={isActive('status') ? 'active' : ''} onClick={closeMenu}>Status</Link>
+              <UserMenu />
             </div>
           </div>
 
@@ -76,7 +77,6 @@ export default function Navbar() {
                 </svg>
                 Add to Server
               </a>
-              <UserMenu />
             </div>
           </div>
         </div>
