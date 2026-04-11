@@ -1,3 +1,5 @@
+import redis from '@/lib/redis'
+
 const CLUSTER_API = 'http://localhost:8000'
 
 /**
@@ -77,5 +79,13 @@ export interface GuildChannel {
 }
 
 export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[]> {
-  return clusterGet<GuildChannel[]>(`/guild/${guildId}/channels`)
+  const cacheKey = `dashboard:channels:${guildId}`
+  const cached = await redis.get(cacheKey)
+  if (cached) {
+    return JSON.parse(cached) as GuildChannel[]
+  }
+
+  const channels = await clusterGet<GuildChannel[]>(`/guild/${guildId}/channels`)
+  await redis.set(cacheKey, JSON.stringify(channels), 'EX', 120)
+  return channels
 }

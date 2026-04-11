@@ -18,7 +18,9 @@ export async function GET(
     const textChannels = channels
       .filter((c) => c.type === 'text' || c.type === 'news' || c.type === 0 || c.type === 5)
       .sort((a, b) => a.position - b.position)
-    return NextResponse.json(textChannels)
+    return NextResponse.json(textChannels, {
+      headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' },
+    })
   } catch {
     return NextResponse.json([])
   }

@@ -61,7 +61,7 @@ export async function getLoggingSettings(guildId: string): Promise<LoggingSettin
     ignored: ignoredRes.rows.map((r) => String(r.target_id)),
   }
 
-  await redis.set(key, JSON.stringify(settings))
+  await redis.set(key, JSON.stringify(settings), 'EX', 300)
   return settings
 }
 

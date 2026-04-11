@@ -13,7 +13,9 @@ export async function GET(
 
   const { id } = await params
   const prefix = await getGuildPrefix(id)
-  return NextResponse.json({ prefix })
+  return NextResponse.json({ prefix }, {
+    headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' },
+  })
 }
 
 export async function PATCH(

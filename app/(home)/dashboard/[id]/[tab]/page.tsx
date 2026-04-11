@@ -14,17 +14,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function ServerSettingsPage({ params }: { params: Promise<{ id: string; tab: string }> }) {
-  const session = await getSession()
-  if (!session) redirect('/api/auth/login')
-
   const { id, tab } = await params
 
-  let guild
-  try {
-    guild = await fetchGuild(id)
-  } catch {
-    redirect('/dashboard')
-  }
+  const [session, guild] = await Promise.all([
+    getSession(),
+    fetchGuild(id).catch(() => null),
+  ])
+
+  if (!session) redirect('/api/auth/login')
+  if (!guild) redirect('/dashboard')
 
   return (
     <ServerSettingsView

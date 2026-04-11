@@ -2608,6 +2608,9 @@ body.nav-open { overflow: hidden; }
 }
 
 .an-module-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--text-primary);
@@ -2779,7 +2782,6 @@ body.nav-open { overflow: hidden; }
 .logging-event-icon {
   display: flex;
   align-items: center;
-  margin-right: 6px;
   opacity: 0.5;
 }
 

@@ -22,7 +22,9 @@ export async function GET(
 
   const { id } = await params
   const settings = await getLoggingSettings(id)
-  return NextResponse.json(settings)
+  return NextResponse.json(settings, {
+    headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' },
+  })
 }
 
 export async function PATCH(

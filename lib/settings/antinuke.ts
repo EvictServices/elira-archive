@@ -84,12 +84,12 @@ export async function getAntinukeSettings(guildId: string): Promise<AntinukeSett
       [guildId]
     )
     const settings = rowToSettings(insert.rows[0])
-    await redis.set(key, settingsToCache(settings))
+    await redis.set(key, settingsToCache(settings), 'EX', 300)
     return settings
   }
 
   const settings = rowToSettings(res.rows[0])
-  await redis.set(key, settingsToCache(settings))
+  await redis.set(key, settingsToCache(settings), 'EX', 300)
   return settings
 }
 
