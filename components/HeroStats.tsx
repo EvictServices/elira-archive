@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { animateCounter } from '@/lib/animateCounter'
 
 export default function HeroStats() {
@@ -8,11 +8,9 @@ export default function HeroStats() {
   const [servers, setServers] = useState('—')
   const [users, setUsers] = useState('—')
   const [commands, setCommands] = useState('—')
-  const fetched = useRef(false)
 
   useEffect(() => {
-    if (fetched.current) return
-    fetched.current = true
+    let cancelled = false
 
     async function load() {
       try {
@@ -21,6 +19,7 @@ export default function HeroStats() {
           fetch('/api/commands'),
         ])
 
+        if (cancelled) return
         if (!res.ok) throw new Error()
         const d = await res.json()
 
@@ -58,11 +57,14 @@ export default function HeroStats() {
           setServers('0'); setUsers('0'); setCommands('0')
         }
       } catch {
+        if (cancelled) return
         setOnline(false)
         setServers('0'); setUsers('0'); setCommands('0')
       }
     }
     load()
+
+    return () => { cancelled = true }
   }, [])
 
   return (
