@@ -18,7 +18,7 @@ export function proxyGet(
             resolve(
               NextResponse.json(transform ? transform(json) : json, {
                 status: upstream.statusCode ?? 200,
-                headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' },
+                headers: { 'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=60' },
               })
             )
           } catch {
