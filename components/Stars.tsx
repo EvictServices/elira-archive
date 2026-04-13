@@ -14,7 +14,7 @@ interface Dot {
 export default function Stars() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dotsRef = useRef<Dot[]>([])
-  const mouseRef = useRef({ x: 0, y: 0 })
+  const mouseRef = useRef({ x: -9999, y: -9999 })
   const frameRef = useRef<number | undefined>(undefined)
 
   useEffect(() => {
@@ -24,15 +24,19 @@ export default function Stars() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    let resizeTimer: ReturnType<typeof setTimeout>
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      }, 150)
     }
-    resize()
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
     window.addEventListener('resize', resize)
 
-    // Initialize dots
-    const dotCount = 60
+    const dotCount = 35
     for (let i = 0; i < dotCount; i++) {
       dotsRef.current.push({
         x: Math.random() * canvas.width,
@@ -44,16 +48,32 @@ export default function Stars() {
       })
     }
 
+    let lastMouseTime = 0
     const handleMouseMove = (e: MouseEvent) => {
+      const now = Date.now()
+      if (now - lastMouseTime < 50) return
+      lastMouseTime = now
       mouseRef.current = { x: e.clientX, y: e.clientY }
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+
+    let running = true
+    const handleVisibility = () => {
+      if (document.hidden) {
+        running = false
+        if (frameRef.current) cancelAnimationFrame(frameRef.current)
+      } else {
+        running = true
+        frameRef.current = requestAnimationFrame(animate)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
 
     const animate = () => {
+      if (!running) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Update and draw dots
       dotsRef.current.forEach((dot) => {
         dot.x += dot.vx
         dot.y += dot.vy
@@ -61,11 +81,11 @@ export default function Stars() {
         if (dot.x < 0 || dot.x > canvas.width) dot.vx *= -1
         if (dot.y < 0 || dot.y > canvas.height) dot.vy *= -1
 
-        // Mouse interaction - push dots away gently
         const dx = dot.x - mouseRef.current.x
         const dy = dot.y - mouseRef.current.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < 150) {
+        const distSq = dx * dx + dy * dy
+        if (distSq < 22500) {
+          const dist = Math.sqrt(distSq)
           const force = (150 - dist) / 150
           dot.x += (dx / dist) * force * 0.8
           dot.y += (dy / dist) * force * 0.8
@@ -83,8 +103,10 @@ export default function Stars() {
     animate()
 
     return () => {
+      running = false
       window.removeEventListener('resize', resize)
       window.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('visibilitychange', handleVisibility)
       if (frameRef.current) cancelAnimationFrame(frameRef.current)
     }
   }, [])
