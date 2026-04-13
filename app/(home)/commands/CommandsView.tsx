@@ -18,7 +18,10 @@ function esc(s: string): string {
 
 function fmtPermissions(permissions: unknown): string {
   if (!permissions || !Array.isArray(permissions) || permissions.length === 0) return 'none'
-  return permissions.join(', ')
+  return permissions
+    .flatMap((p) => (typeof p === 'string' ? [p] : typeof p === 'object' && p ? Object.keys(p) : []))
+    .map((s) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()))
+    .join(', ')
 }
 
 export default function CommandsView() {
