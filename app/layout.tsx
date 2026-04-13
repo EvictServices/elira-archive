@@ -1,12 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Outfit, Inter } from 'next/font/google'
-import dynamic from 'next/dynamic'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-
-const ScrollRevealInit = dynamic(() => import('@/components/ScrollRevealInit'), { ssr: false })
-const CursorEffects = dynamic(() => import('@/components/CursorEffects'), { ssr: false })
+import ClientEffects from '@/components/ClientEffects'
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -53,8 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         <div className="page">{children}</div>
         <Footer />
-        <ScrollRevealInit />
-        <CursorEffects />
+        <ClientEffects />
       </body>
     </html>
   )
