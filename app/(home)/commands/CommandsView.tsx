@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 export interface Command {
   name: string
@@ -10,10 +10,6 @@ export interface Command {
   signature: string
   permissions: unknown
   example: string
-}
-
-function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 function fmtPermissions(permissions: unknown): string {
@@ -34,8 +30,6 @@ export default function CommandsView() {
   const [gridKey, setGridKey] = useState(0)
   const [modalCmd, setModalCmd] = useState<Command | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
-  const [displayedTotal, setDisplayedTotal] = useState(0)
-  const [displayedCounts, setDisplayedCounts] = useState<Record<string, number>>({})
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -74,15 +68,10 @@ export default function CommandsView() {
       .catch(() => setLoading(false))
   }, [])
 
-  useEffect(() => {
-    if (allCommands.length === 0) return
-    const total = allCommands.length
-    const cats = [...new Set(allCommands.map((c) => c.category))]
-    const catTotals: Record<string, number> = {}
-    cats.forEach((cat) => { catTotals[cat] = allCommands.filter((c) => c.category === cat).length })
-
-    setDisplayedTotal(total)
-    setDisplayedCounts(catTotals)
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    allCommands.forEach((c) => { counts[c.category] = (counts[c.category] || 0) + 1 })
+    return counts
   }, [allCommands])
 
   const applyFilter = useCallback(
@@ -171,7 +160,7 @@ export default function CommandsView() {
                 className={`filter-btn${activeCategory === 'all' ? ' active' : ''}`}
                 onClick={() => switchCategory('all')}
               >
-                All <span className="filter-count">({displayedTotal})</span>
+                All <span className="filter-count">({allCommands.length})</span>
               </button>
               {categories.map((cat) => {
                 return (
@@ -180,7 +169,7 @@ export default function CommandsView() {
                     className={`filter-btn${activeCategory === cat ? ' active' : ''}`}
                     onClick={() => switchCategory(cat)}
                   >
-                    {cat[0].toUpperCase() + cat.slice(1)} <span className="filter-count">({displayedCounts[cat] ?? 0})</span>
+                    {cat[0].toUpperCase() + cat.slice(1)} <span className="filter-count">({categoryCounts[cat] ?? 0})</span>
                   </button>
                 )
               })}
@@ -250,7 +239,7 @@ export default function CommandsView() {
         >
           <div className="cmd-modal">
             <div className="cmd-modal-head">
-              <span className="cmd-modal-title">{esc(modalCmd.category || 'General')}</span>
+              <span className="cmd-modal-title">{modalCmd.category || 'General'}</span>
               <span className="cmd-modal-x" role="button" tabIndex={0} onClick={closeModal}>&times;</span>
             </div>
             <div className="cmd-modal-body">

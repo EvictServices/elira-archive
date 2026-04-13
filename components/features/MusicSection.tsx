@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import MusicProgress from '@/components/MusicProgress'
 
 export default function MusicSection() {
@@ -12,7 +13,7 @@ export default function MusicSection() {
           <div className="music-embed">
             <div className="discord-message">
               <div className="discord-msg-avatar">
-                <img loading="lazy" src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                <Image src="/img/evict.webp" alt="evict" width={40} height={40} style={{ borderRadius: '50%' }} />
               </div>
               <div className="discord-msg-body">
                 <div className="discord-msg-header">
@@ -37,7 +38,7 @@ export default function MusicSection() {
                       <MusicProgress />
                     </div>
                     <div className="discord-embed-thumbnail">
-                      <img loading="lazy" src="/img/music/timeless.png" alt="Timeless" />
+                      <Image src="/img/music/timeless.png" alt="Timeless" width={80} height={80} />
                     </div>
                   </div>
                 </div>

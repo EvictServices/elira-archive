@@ -27,7 +27,6 @@ interface Props {
 
 export default function TranscriptView({ messages, users, attachments, embeds, channelName, headerRight, footer }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -62,21 +61,27 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
 
   const visibleMessages = useMemo(() => messages.slice(0, visibleCount), [messages, visibleCount])
 
-  const userMap = new Map(users.map((u) => [u.id, u]))
+  const userMap = useMemo(() => new Map(users.map((u) => [u.id, u])), [users])
 
-  const attachmentMap = new Map<string, Attachment[]>()
-  attachments.forEach((att) => {
-    const existing = attachmentMap.get(att.message_id) || []
-    existing.push(att)
-    attachmentMap.set(att.message_id, existing)
-  })
+  const attachmentMap = useMemo(() => {
+    const map = new Map<string, Attachment[]>()
+    attachments.forEach((att) => {
+      const existing = map.get(att.message_id) || []
+      existing.push(att)
+      map.set(att.message_id, existing)
+    })
+    return map
+  }, [attachments])
 
-  const embedMap = new Map<string, Embed[]>()
-  ;(embeds || []).forEach((emb) => {
-    const existing = embedMap.get(emb.message_id) || []
-    existing.push(emb)
-    embedMap.set(emb.message_id, existing)
-  })
+  const embedMap = useMemo(() => {
+    const map = new Map<string, Embed[]>()
+    ;(embeds || []).forEach((emb) => {
+      const existing = map.get(emb.message_id) || []
+      existing.push(emb)
+      map.set(emb.message_id, existing)
+    })
+    return map
+  }, [embeds])
 
   return (
     <>
@@ -304,7 +309,7 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
                       {msgAttachments.length > 0 && (
                         <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                           {msgAttachments.map((att, idx) => {
-                            const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(att.filename) && !failedImages.has(att.url)
+                            const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(att.filename)
                             if (isImage) {
                               return (
                                 <div
@@ -325,7 +330,7 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
                                     style={{ width: '100%', display: 'block', borderRadius: '8px', objectFit: 'contain', maxHeight: '400px' }}
                                     loading="lazy"
                                     referrerPolicy="no-referrer"
-                                    onError={() => setFailedImages((prev) => new Set(prev).add(att.url))}
+                                    onError={(e) => { e.currentTarget.style.display = 'none' }}
                                   />
                                 </div>
                               )

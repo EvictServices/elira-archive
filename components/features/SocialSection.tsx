@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export default function SocialSection() {
   return (
     <section className="section">
@@ -34,7 +36,7 @@ export default function SocialSection() {
           <div className="music-embed">
             <div className="discord-message">
               <div className="discord-msg-avatar">
-                <img loading="lazy" src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                <Image src="/img/evict.webp" alt="evict" width={40} height={40} style={{ borderRadius: '50%' }} />
               </div>
               <div className="discord-msg-body">
                 <div className="discord-msg-header">
@@ -47,7 +49,7 @@ export default function SocialSection() {
                   <div className="discord-embed-content">
                     <div className="discord-embed-inner">
                       <div className="discord-embed-author" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <img loading="lazy" src="/img/mercy.png" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+                        <Image src="/img/mercy.png" alt="" width={20} height={20} style={{ borderRadius: '50%', objectFit: 'cover' }} />
                         <span>mercy</span>
                       </div>
                       <div className="discord-embed-title" style={{ color: '#00a8fc' }}>
@@ -89,7 +91,7 @@ export default function SocialSection() {
                       </div>
                     </div>
                     <div className="discord-embed-thumbnail" style={{ width: 100, height: 100 }}>
-                      <img loading="lazy" src="/img/kendall.jpg" alt="kendalljenner" />
+                      <Image src="/img/kendall.jpg" alt="kendalljenner" width={100} height={100} />
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 type ResponseType = 'simple' | 'dropdown' | 'embed'
 
@@ -140,7 +141,7 @@ export default function VoiceMasterButtons({ children }: { children?: React.Reac
             {loading === btn.icon ? (
               <div className="vm-spinner" />
             ) : (
-              <img src={`/img/voicemaster/${btn.icon}.webp`} alt={btn.icon} className="vm-btn-icon" />
+              <Image src={`/img/voicemaster/${btn.icon}.webp`} alt={btn.icon} width={20} height={20} className="vm-btn-icon" />
             )}
           </div>
         ))}
@@ -150,7 +151,7 @@ export default function VoiceMasterButtons({ children }: { children?: React.Reac
       {active?.type === 'simple' && !selectedActivity && (
         <div className="vm-response" style={{ animation: 'vm-fade-in 0.3s ease', opacity: responseFading ? 0 : 1, transition: 'opacity 0.4s ease' }}>
           <div className="vm-response-inner">
-            <img src="/img/context/approved.webp" alt="" className="vm-response-check" />
+            <Image src="/img/context/approved.webp" alt="" width={20} height={20} className="vm-response-check" />
             <span dangerouslySetInnerHTML={{ __html: `<span style="color:#c9cdfb;background:rgba(88,101,242,0.3);border-radius:3px;padding:0 2px">@mercy</span>: ${active.message}` }} />
           </div>
           <ResponseMeta onDismiss={dismiss} />
@@ -197,11 +198,11 @@ export default function VoiceMasterButtons({ children }: { children?: React.Reac
           <div className="discord-message">
             <div className="discord-msg-avatar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ width: 33, height: 14, borderLeft: '2px solid #4e5058', borderTop: '2px solid #4e5058', borderTopLeftRadius: '6px', alignSelf: 'flex-end', marginBottom: 2 }} />
-              <img src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+              <Image src="/img/evict.webp" alt="evict" width={40} height={40} style={{ borderRadius: '50%' }} />
             </div>
             <div className="discord-msg-body">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: '#949ba4', marginBottom: '0.15rem' }}>
-                <img src="/img/evict.webp" alt="" style={{ width: 16, height: 16, borderRadius: '50%' }} />
+                <Image src="/img/evict.webp" alt="" width={16} height={16} style={{ borderRadius: '50%' }} />
                 <span style={{ color: '#ffffff', fontWeight: 500, fontSize: '0.75rem' }}>evict</span>
                 <span className="discord-msg-bot-tag" style={{ fontSize: '0.55rem', padding: '0 3px', lineHeight: '1.2' }}>APP</span>
                 <span style={{ color: '#949ba4', fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Click to see attachment 🖼️</span>
