@@ -4,7 +4,7 @@ import HomeView from '@/components/HomeView'
 export const metadata: Metadata = {
   title: 'Evict',
   description:
-    'Advanced Discord bot with comprehensive moderation, robust antinuke protection, and versatile utility tools.',
+    'The all-in-one solution for seamless server management — powerful, polished, and visually refined.',
 }
 
 export default function HomePage() {
