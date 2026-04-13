@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { fetchMutualGuilds, type MutualGuild } from '@/lib/cluster'
+import { fetchMutualGuilds, fetchGuild, type MutualGuild } from '@/lib/cluster'
 import { fetchDiscordGuilds } from '@/lib/discord'
 import DashboardView from './DashboardView'
 
@@ -22,27 +22,35 @@ export default async function DashboardPage() {
       .map((dg) => dg.id)
   )
 
-  console.log('[dashboard] cluster guilds:', clusterGuilds.length, clusterGuilds.map(g => g.id))
-  console.log('[dashboard] discord guilds:', discordGuilds.length, discordGuilds.map(dg => ({ id: dg.id, owner: dg.owner, perms: dg.permissions })))
-  console.log('[dashboard] admin guild IDs:', [...adminGuildIds])
-
   const guilds: MutualGuild[] = clusterGuilds.filter((g) => adminGuildIds.has(g.id))
-  console.log('[dashboard] filtered guilds:', guilds.length, guilds.map(g => g.id))
 
-  if (clusterGuilds.length === 0) {
-    for (const dg of discordGuilds) {
-      if (adminGuildIds.has(dg.id)) {
-        guilds.push({
-          id: dg.id,
-          name: dg.name,
-          icon_url: dg.icon
-            ? `https://cdn.discordapp.com/icons/${dg.id}/${dg.icon}.webp?size=128`
-            : null,
-          member_count: 0,
-        })
-      }
+  // Add Discord guilds with admin that the cluster missed (inactive shards)
+  const includedIds = new Set(guilds.map((g) => g.id))
+  for (const dg of discordGuilds) {
+    if (adminGuildIds.has(dg.id) && !includedIds.has(dg.id)) {
+      guilds.push({
+        id: dg.id,
+        name: dg.name,
+        icon_url: dg.icon
+          ? `https://cdn.discordapp.com/icons/${dg.id}/${dg.icon}.webp?size=128`
+          : null,
+        member_count: 0,
+      })
     }
   }
+
+  // Fetch member counts for guilds missing them
+  const enriched = await Promise.all(
+    guilds.map(async (g) => {
+      if (g.member_count > 0) return g
+      try {
+        const full = await fetchGuild(g.id)
+        return { ...g, member_count: full.member_count || 0 }
+      } catch {
+        return g
+      }
+    })
+  )
 
   return (
     <DashboardView
@@ -51,7 +59,7 @@ export default async function DashboardPage() {
         username: session.username,
         avatar: session.avatar,
       }}
-      guilds={guilds}
+      guilds={enriched}
     />
   )
 }

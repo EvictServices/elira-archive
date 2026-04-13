@@ -2466,14 +2466,31 @@ body:has(.server-layout) > footer {
   object-fit: cover;
   flex-shrink: 0;
 }
+.sidebar-user-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
 .sidebar-user-name {
   font-size: 0.85rem;
   font-weight: 500;
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.sidebar-user-email {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-user-servers {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  opacity: 0.4;
 }
 .sidebar-user-logout {
   display: flex;

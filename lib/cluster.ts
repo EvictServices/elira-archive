@@ -2,10 +2,6 @@ import redis from '@/lib/redis'
 
 const CLUSTER_API = 'http://localhost:8000'
 
-/**
- * Parse JSON text, converting large numeric IDs (snowflakes) to strings
- * to avoid JavaScript Number precision loss.
- */
 function safeParse<T>(text: string): T {
   const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
   return JSON.parse(safe) as T

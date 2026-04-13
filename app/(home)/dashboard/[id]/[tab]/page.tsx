@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { fetchGuild } from '@/lib/cluster'
+import { fetchGuild, fetchMutualGuilds } from '@/lib/cluster'
 import { isAntinukeAdmin } from '@/lib/settings/antinuke'
 import { hasGuildAdmin } from '@/lib/discord'
 import ServerSettingsView from '../ServerSettingsView'
@@ -30,7 +30,10 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
     redirect('/dashboard')
   }
 
-  const canAccessAntinuke = await isAntinukeAdmin(id, session.userId)
+  const [canAccessAntinuke, serverCount] = await Promise.all([
+    isAntinukeAdmin(id, session.userId),
+    fetchMutualGuilds(session.userId).then((g) => g.length).catch(() => 0),
+  ])
 
   if (tab === 'prefix') {
     redirect(`/dashboard/${id}/general`)
@@ -49,6 +52,8 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
         id: session.userId,
         username: session.username,
         avatar: session.avatar,
+        email: session.email ?? null,
+        serverCount,
       }}
     />
   )

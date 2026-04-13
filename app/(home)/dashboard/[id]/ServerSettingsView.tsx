@@ -20,6 +20,8 @@ interface User {
   id: string
   username: string
   avatar: string | null
+  email: string | null
+  serverCount: number
 }
 
 function userAvatarUrl(user: User) {
@@ -263,7 +265,11 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
 
         <div className="sidebar-user">
           <img src={userAvatarUrl(user)} alt={user.username} className="sidebar-user-avatar" />
-          <span className="sidebar-user-name">{user.username}</span>
+          <div className="sidebar-user-info">
+            <span className="sidebar-user-name">{user.username}</span>
+            {user.email && <span className="sidebar-user-email">{user.email}</span>}
+            <span className="sidebar-user-servers">{user.serverCount} server{user.serverCount !== 1 ? 's' : ''}</span>
+          </div>
           <a href="/api/auth/logout" className="sidebar-user-logout" title="Log out">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
