@@ -1,9 +1,26 @@
 import type { Metadata, Viewport } from 'next'
+import { Outfit, Inter } from 'next/font/google'
+import dynamic from 'next/dynamic'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import ScrollRevealInit from '@/components/ScrollRevealInit'
-import CursorEffects from '@/components/CursorEffects'
+
+const ScrollRevealInit = dynamic(() => import('@/components/ScrollRevealInit'), { ssr: false })
+const CursorEffects = dynamic(() => import('@/components/CursorEffects'), { ssr: false })
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+  variable: '--font-outfit',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://evict.bot'),
@@ -31,7 +48,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
       <body>
         <Navbar />
         <div className="page">{children}</div>
