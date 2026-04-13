@@ -15,14 +15,11 @@ export default function MusicProgress() {
   const startRef = useRef(Date.now())
 
   useEffect(() => {
-    let raf: number
-    const tick = () => {
+    const interval = setInterval(() => {
       const delta = (Date.now() - startRef.current) / 1000
       setElapsed(delta % TOTAL_SECONDS)
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    }, 1000)
+    return () => clearInterval(interval)
   }, [])
 
   const pct = (elapsed / TOTAL_SECONDS) * 100
