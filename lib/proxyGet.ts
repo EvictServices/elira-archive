@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import http from 'http'
 
+const UPSTREAM_TIMEOUT = 5000
+
 export function proxyGet(
   url: string,
   transform?: (data: unknown) => unknown
 ): Promise<NextResponse> {
   return new Promise<NextResponse>((resolve) => {
-    http
-      .get(url, { headers: { Accept: 'application/json' } }, (upstream) => {
+    const req = http
+      .get(url, { headers: { Accept: 'application/json' }, timeout: UPSTREAM_TIMEOUT }, (upstream) => {
         let data = ''
         upstream.on('data', (chunk: Buffer) => { data += chunk })
         upstream.on('end', () => {
@@ -24,6 +26,7 @@ export function proxyGet(
           }
         })
       })
+      .on('timeout', () => { req.destroy(); resolve(NextResponse.json({ error: 'upstream timeout' }, { status: 504 })) })
       .on('error', () => resolve(NextResponse.json({ error: 'upstream error' }, { status: 502 })))
   })
 }

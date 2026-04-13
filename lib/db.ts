@@ -7,6 +7,9 @@ const pool = new Pool({
   password: 'admin',
   database: 'evict',
   max: 10,
+  connectionTimeoutMillis: 5000,
+  idle_in_transaction_session_timeout: 10000,
+  statement_timeout: 10000,
 })
 
 export default pool

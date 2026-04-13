@@ -34,7 +34,7 @@ export default function AntinukeSection() {
           <div className="music-embed">
             <div className="discord-message">
               <div className="discord-msg-avatar">
-                <img src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                <img loading="lazy" src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
               </div>
               <div className="discord-msg-body">
                 <div className="discord-msg-header">
@@ -47,7 +47,7 @@ export default function AntinukeSection() {
                   <div className="discord-embed-content">
                     <div className="discord-embed-inner">
                       <div className="discord-embed-author" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <img src="/img/evict.webp" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+                        <img loading="lazy" src="/img/evict.webp" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
                         <span style={{ fontWeight: 600 }}>Settings</span>
                       </div>
                       <div className="discord-embed-description" style={{ borderLeft: '3px solid rgba(255,255,255,0.15)', paddingLeft: '0.6rem', margin: '0.4rem 0' }}>
@@ -61,18 +61,18 @@ export default function AntinukeSection() {
                         <div className="discord-embed-field-inline">
                           <div className="discord-embed-field-name">Member Protection</div>
                           <div className="discord-embed-field-value" style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', borderLeft: '3px solid rgba(255,255,255,0.15)', paddingLeft: '0.6rem' }}>
-                            <span><img src="/img/antinuke/disable.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Bot: Disabled</span>
-                            <span><img src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Ban: 3 per hour</span>
-                            <span><img src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Kick: 3 per hour</span>
+                            <span><img loading="lazy" src="/img/antinuke/disable.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Bot: Disabled</span>
+                            <span><img loading="lazy" src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Ban: 3 per hour</span>
+                            <span><img loading="lazy" src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Kick: 3 per hour</span>
                           </div>
                         </div>
                         <div className="discord-embed-field-inline">
                           <div className="discord-embed-field-name">Guild Protection</div>
                           <div className="discord-embed-field-value" style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', borderLeft: '3px solid rgba(255,255,255,0.15)', paddingLeft: '0.6rem' }}>
-                            <span><img src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Role: 3 per hour</span>
-                            <span><img src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Channel: 3 per hour</span>
-                            <span><img src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Webhook: 1 per hour</span>
-                            <span><img src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Emoji: 3 per hour</span>
+                            <span><img loading="lazy" src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Role: 3 per hour</span>
+                            <span><img loading="lazy" src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Channel: 3 per hour</span>
+                            <span><img loading="lazy" src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Webhook: 1 per hour</span>
+                            <span><img loading="lazy" src="/img/antinuke/enabled.webp" alt="" style={{ width: 16, height: 16, display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Emoji: 3 per hour</span>
                           </div>
                         </div>
                       </div>

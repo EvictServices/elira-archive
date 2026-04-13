@@ -10,6 +10,7 @@ export async function fetchUserInfoBatch(userIds: string[]): Promise<Map<string,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_ids: userIds }),
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(5000),
     })
 
     if (!response.ok) return result

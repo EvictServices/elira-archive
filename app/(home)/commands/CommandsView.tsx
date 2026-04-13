@@ -21,14 +21,11 @@ function fmtPermissions(permissions: unknown): string {
   return permissions.join(', ')
 }
 
-interface Props {
-  commands: Command[]
-}
-
-export default function CommandsView({ commands }: Props) {
-  const [allCommands] = useState<Command[]>(commands)
-  const [filtered, setFiltered] = useState<Command[]>(commands)
-  const [categories] = useState<string[]>([...new Set(commands.map((c) => c.category))].sort())
+export default function CommandsView() {
+  const [allCommands, setAllCommands] = useState<Command[]>([])
+  const [filtered, setFiltered] = useState<Command[]>([])
+  const [categories, setCategories] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [gridKey, setGridKey] = useState(0)
@@ -39,35 +36,51 @@ export default function CommandsView({ commands }: Props) {
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const total = commands.length
-    const cats = [...new Set(commands.map((c) => c.category))]
+    fetch('/api/commands')
+      .then(r => r.ok ? r.json() : { data: { commands: {} } })
+      .then(parsed => {
+        const cmdMap: Record<string, unknown[]> = parsed?.data?.commands ?? parsed?.commands ?? parsed ?? {}
+        const rawCmds: Command[] = []
+        if (typeof cmdMap === 'object' && !Array.isArray(cmdMap)) {
+          Object.entries(cmdMap).forEach(([category, cmds]) => {
+            if (!Array.isArray(cmds)) return
+            cmds.forEach((cmd: unknown) => {
+              rawCmds.push({ ...(cmd as object), category } as Command)
+            })
+          })
+        }
+        const seen = new Set<string>()
+        const cmds = rawCmds
+          .filter((c) => !(c as { hidden?: boolean }).hidden && (c.category || '').toLowerCase() !== 'jishaku')
+          .map((c, i) => ({
+            name: (c as { qualified_name?: string }).qualified_name || c.name || `cmd${i}`,
+            description: c.description || (c as { help?: string }).help || '',
+            category: c.category || 'Uncategorized',
+            aliases: c.aliases || [],
+            signature: c.signature || '',
+            permissions: c.permissions || [],
+            example: c.example || '',
+          } as Command))
+          .filter((c) => { if (seen.has(c.name)) return false; seen.add(c.name); return true })
+
+        setAllCommands(cmds)
+        setFiltered(cmds)
+        setCategories([...new Set(cmds.map((c) => c.category))].sort())
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (allCommands.length === 0) return
+    const total = allCommands.length
+    const cats = [...new Set(allCommands.map((c) => c.category))]
     const catTotals: Record<string, number> = {}
-    cats.forEach((cat) => { catTotals[cat] = commands.filter((c) => c.category === cat).length })
+    cats.forEach((cat) => { catTotals[cat] = allCommands.filter((c) => c.category === cat).length })
 
-    const duration = 800
-    const steps = 50
-    let step = 0
-
-    setDisplayedTotal(0)
-    setDisplayedCounts(Object.fromEntries(cats.map((c) => [c, 0])))
-
-    const timer = setInterval(() => {
-      step++
-      const progress = Math.min(step / steps, 1)
-      setDisplayedTotal(Math.min(Math.floor(progress * total), total))
-      setDisplayedCounts(
-        Object.fromEntries(cats.map((cat) => [cat, Math.min(Math.floor(progress * catTotals[cat]), catTotals[cat])]))
-      )
-
-      if (step >= steps) {
-        clearInterval(timer)
-        setDisplayedTotal(total)
-        setDisplayedCounts(catTotals)
-      }
-    }, duration / steps)
-
-    return () => clearInterval(timer)
-  }, [commands])
+    setDisplayedTotal(total)
+    setDisplayedCounts(catTotals)
+  }, [allCommands])
 
   const applyFilter = useCallback(
     (q: string, cat: string, cmds: Command[]) => {
@@ -172,7 +185,9 @@ export default function CommandsView({ commands }: Props) {
           </div>
 
           <div key={gridKey} className="commands-grid" id="commands-grid" data-reveal>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="commands-empty">Loading commands…</div>
+            ) : filtered.length === 0 ? (
               <div className="commands-empty">No commands found.</div>
             ) : (
               filtered.map((c, idx) => (
@@ -180,11 +195,11 @@ export default function CommandsView({ commands }: Props) {
                   key={c.name} 
                   className="command-card" 
                   onClick={() => openModal(c)}
-                  style={{
+                  style={idx < 40 ? {
                     animation: 'fadeInUp 0.4s ease-out forwards',
                     opacity: 0,
-                    animationDelay: `${Math.min(idx * 0.025, 2)}s`
-                  }}
+                    animationDelay: `${idx * 0.025}s`
+                  } : undefined}
                 >
                   <div className="command-top">
                     <span className="command-name">{c.name}</span>

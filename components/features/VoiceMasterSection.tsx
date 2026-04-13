@@ -13,7 +13,7 @@ export default function VoiceMasterSection() {
             <VoiceMasterButtons>
               <div className="discord-message">
                 <div className="discord-msg-avatar">
-                  <img src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                  <img loading="lazy" src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
                 </div>
                 <div className="discord-msg-body">
                   <div className="discord-msg-header">
@@ -26,7 +26,7 @@ export default function VoiceMasterSection() {
                     <div className="discord-embed-content">
                       <div className="discord-embed-inner">
                         <div className="discord-embed-author" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <img src="/img/evict.webp" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+                          <img loading="lazy" src="/img/evict.webp" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
                           <span>evict</span>
                         </div>
                         <div className="discord-embed-title" style={{ color: '#ffffff' }}>
@@ -39,20 +39,20 @@ export default function VoiceMasterSection() {
                           <strong>Button Usage</strong>
                         </div>
                         <div className="vm-usage-list">
-                          <div className="vm-usage-row"><img src="/img/voicemaster/lock.webp" alt="lock" className="vm-emoji" /> — <span className="vm-cmd">Lock</span> the voice channel</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/unlock.webp" alt="unlock" className="vm-emoji" /> — <span className="vm-cmd">Unlock</span> the voice channel</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/ghost.webp" alt="ghost" className="vm-emoji" /> — <span className="vm-cmd">Ghost</span> the voice channel</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/reveal.webp" alt="reveal" className="vm-emoji" /> — <span className="vm-cmd">Reveal</span> the voice channel</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/claim.webp" alt="claim" className="vm-emoji" /> — <span className="vm-cmd">Claim</span> the voice channel</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/hammer.webp" alt="disconnect" className="vm-emoji" /> — <span className="vm-cmd">Disconnect</span> a member</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/activity.webp" alt="activity" className="vm-emoji" /> — <span className="vm-cmd">Start</span> a new voice channel activity</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/information.webp" alt="info" className="vm-emoji" /> — <span className="vm-cmd">View</span> channel information</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/increase.webp" alt="increase" className="vm-emoji" /> — <span className="vm-cmd">Increase</span> the user limit</div>
-                          <div className="vm-usage-row"><img src="/img/voicemaster/decrease.webp" alt="decrease" className="vm-emoji" /> — <span className="vm-cmd">Decrease</span> the user limit</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/lock.webp" alt="lock" className="vm-emoji" /> — <span className="vm-cmd">Lock</span> the voice channel</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/unlock.webp" alt="unlock" className="vm-emoji" /> — <span className="vm-cmd">Unlock</span> the voice channel</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/ghost.webp" alt="ghost" className="vm-emoji" /> — <span className="vm-cmd">Ghost</span> the voice channel</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/reveal.webp" alt="reveal" className="vm-emoji" /> — <span className="vm-cmd">Reveal</span> the voice channel</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/claim.webp" alt="claim" className="vm-emoji" /> — <span className="vm-cmd">Claim</span> the voice channel</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/hammer.webp" alt="disconnect" className="vm-emoji" /> — <span className="vm-cmd">Disconnect</span> a member</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/activity.webp" alt="activity" className="vm-emoji" /> — <span className="vm-cmd">Start</span> a new voice channel activity</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/information.webp" alt="info" className="vm-emoji" /> — <span className="vm-cmd">View</span> channel information</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/increase.webp" alt="increase" className="vm-emoji" /> — <span className="vm-cmd">Increase</span> the user limit</div>
+                          <div className="vm-usage-row"><img loading="lazy" src="/img/voicemaster/decrease.webp" alt="decrease" className="vm-emoji" /> — <span className="vm-cmd">Decrease</span> the user limit</div>
                         </div>
                       </div>
                       <div className="discord-embed-thumbnail" style={{ width: 80, height: 80 }}>
-                        <img src="/img/evict.webp" alt="evict" />
+                        <img loading="lazy" src="/img/evict.webp" alt="evict" />
                       </div>
                     </div>
                   </div>

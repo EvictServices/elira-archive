@@ -12,7 +12,7 @@ export default function MusicSection() {
           <div className="music-embed">
             <div className="discord-message">
               <div className="discord-msg-avatar">
-                <img src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                <img loading="lazy" src="/img/evict.webp" alt="evict" style={{ width: 40, height: 40, borderRadius: '50%' }} />
               </div>
               <div className="discord-msg-body">
                 <div className="discord-msg-header">
@@ -37,7 +37,7 @@ export default function MusicSection() {
                       <MusicProgress />
                     </div>
                     <div className="discord-embed-thumbnail">
-                      <img src="/img/music/timeless.png" alt="Timeless" />
+                      <img loading="lazy" src="/img/music/timeless.png" alt="Timeless" />
                     </div>
                   </div>
                 </div>

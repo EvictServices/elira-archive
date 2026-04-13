@@ -5,6 +5,7 @@ export async function fetchCommands(): Promise<Command[]> {
     const res = await fetch('http://127.0.0.1:8000/commands', {
       headers: { Accept: 'application/json' },
       next: { revalidate: 120 },
+      signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return []
     const parsed = await res.json()
