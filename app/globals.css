@@ -1181,14 +1181,18 @@ body.nav-open { overflow: hidden; }
   font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.35);
 }
+.update-detail-body > div + div {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
 .update-detail-body h4 {
   font-size: 0.6rem; font-weight: 700;
   margin-bottom: 0.5rem;
-  margin-top: 1.4rem;
+  margin-top: 0;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase; letter-spacing: 0.08em;
 }
-.update-detail-body h4:first-child { margin-top: 0; }
 .update-detail-body ul {
   list-style: none;
   display: flex; flex-direction: column;
