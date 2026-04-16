@@ -4,7 +4,9 @@ import type { Metadata } from 'next'
 import { parseYAML, type Update } from '@/lib/parseYaml'
 import UpdatesView from './UpdatesView'
 
-export const metadata: Metadata = { title: 'Updates' }
+export const metadata: Metadata = {
+  title: 'Updates',
+}
 
 export default async function UpdatesPage() {
   let updates: Update[] = []

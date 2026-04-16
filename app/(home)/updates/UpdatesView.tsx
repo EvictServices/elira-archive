@@ -1,20 +1,25 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { timeAgo, type Update } from '@/lib/parseYaml'
 
 interface Props {
   updates: Update[]
+  initialIndex?: number
 }
 
-export default function UpdatesView({ updates }: Props) {
-  const [activeIndex, setActiveIndex] = useState(0)
+export default function UpdatesView({ updates, initialIndex = 0 }: Props) {
+  const [activeIndex, setActiveIndex] = useState(initialIndex)
   const [switching, setSwitching] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   function switchTo(index: number) {
     if (index === activeIndex) return
     setSwitching(true)
+    const entryNum = updates.length - index
+    router.replace(`/updates/${entryNum}`, { scroll: false })
     setTimeout(() => {
       setActiveIndex(index)
       setSwitching(false)
