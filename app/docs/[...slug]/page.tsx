@@ -8,13 +8,14 @@ import rehypePrettyCode from 'rehype-pretty-code'
 import { getDocBySlug, extractTOC } from '@/lib/docs'
 import Callout from '@/components/docs/Callout'
 import Frame from '@/components/docs/Frame'
+import CodeBlock from '@/components/docs/CodeBlock'
 import DocsTOC from '@/components/docs/DocsTOC'
 
 interface Props {
   params: Promise<{ slug: string[] }>
 }
 
-const components = { Callout, Frame }
+const components = { Callout, Frame, pre: CodeBlock }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params

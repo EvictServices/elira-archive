@@ -12,6 +12,31 @@ threshold tailered to your server.
 
 Prevent users from massbanning a bunch of people from your server.
 
+To enable antinuke ban, run the following command:
+
+```python
+,antinuke ban enable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/ban/antinuke-ban-default.png" alt="AntiNuke ban default" width="600" />
+</Frame>
+
+To set a custom threshold for how many bans trigger antinuke, pass the `--threshold` flag:
+
+```python
+,antinuke ban true --threshold 3 --duration 1h --punishment strip
+```
+
+&nbsp;
+
+| Flag | Description |
+|---|---|
+| `--threshold` | Number of bans before antinuke triggers |
+| `--duration` | Time window to count bans within |
+| `--punishment` | Action taken against the attacker: `ban`, `kick`, or `strip` |
+
+
 <Frame>
   <img src="/img/antinuke/examples/ban/antinuke-ban-1.png" alt="AntiNuke ban example" width="600" />
 </Frame>
