@@ -2528,8 +2528,9 @@ body.nav-open { overflow: hidden; }
 
   .docs-main { padding: 1rem 1.25rem 4rem; }
 
-  .docs-prose [data-rehype-pretty-code-figure] pre {
-    font-size: 0.72rem;
+  .docs-prose [data-rehype-pretty-code-figure] pre,
+  .docs-prose .docs-code-wrap pre {
+    font-size: 0.62rem;
     padding: 0.75rem 0.9rem;
   }
 }

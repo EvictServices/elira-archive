@@ -5,6 +5,10 @@ description: Configure antinuke to match your server needs.
 
 # Introduction
 
+<Callout type="info">
+  Replace ``[prefix]`` with your own prefix. Type ``@evict#6621 prefix`` to get your server prefixes, however, ``;`` is default.
+</Callout>
+
 AntiNuke aims to stop users from taking too many destructive actions against your server. Stop users from banning or kicking all your members by setting up a custom
 threshold tailered to your server.
 
@@ -15,7 +19,7 @@ Prevent users from massbanning a bunch of people from your server.
 To enable antinuke ban, run the following command:
 
 ```python
-,antinuke ban enable
+[prefix]antinuke ban enable
 ```
 
 <Frame>
@@ -25,7 +29,7 @@ To enable antinuke ban, run the following command:
 To set a custom threshold for how many bans trigger antinuke, pass the `--threshold` flag:
 
 ```python
-,antinuke ban true --threshold 3 --duration 1h --punishment strip
+[prefix]antinuke ban true --threshold 3 --duration 1h --punishment strip
 ```
 
 &nbsp;
