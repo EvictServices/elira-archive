@@ -55,7 +55,7 @@ export default function Navbar() {
               <Link href="/" className={isActive('home') ? 'active' : ''} onClick={closeMenu}>Home</Link>
               <Link href="/commands" className={isActive('commands') ? 'active' : ''} onClick={closeMenu}>Commands</Link>
               <Link href="/embeds" className={isActive('embeds') ? 'active' : ''} onClick={closeMenu}>Embeds</Link>
-              <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" className="mobile-only" onClick={closeMenu}>Docs</a>
+              <Link href={DOCS_URL} className={isActive('docs') ? 'active' : ''} onClick={closeMenu}>Docs</Link>
               <Link href="/updates" className={isActive('updates') ? 'active' : ''} onClick={closeMenu}>Updates</Link>
               <Link href="/status" className={isActive('status') ? 'active' : ''} onClick={closeMenu}>Status</Link>
             </div>
