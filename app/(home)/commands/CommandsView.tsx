@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { animateCounter } from '@/lib/animateCounter'
 
 export interface Command {
   name: string
@@ -30,6 +31,7 @@ export default function CommandsView() {
   const [gridKey, setGridKey] = useState(0)
   const [modalCmd, setModalCmd] = useState<Command | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [displayCounts, setDisplayCounts] = useState<Record<string, string>>({})
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function CommandsView() {
         }
         const seen = new Set<string>()
         const cmds = rawCmds
-          .filter((c) => !(c as { hidden?: boolean }).hidden && (c.category || '').toLowerCase() !== 'jishaku')
+          .filter((c) => !(c as { hidden?: boolean }).hidden && (c.category || '').toLowerCase() !== 'jishaku' && c.name !== 'help')
           .map((c, i) => ({
             name: (c as { qualified_name?: string }).qualified_name || c.name || `cmd${i}`,
             description: c.description || (c as { help?: string }).help || '',
@@ -60,10 +62,21 @@ export default function CommandsView() {
           } as Command))
           .filter((c) => { if (seen.has(c.name)) return false; seen.add(c.name); return true })
 
+        const cats = [...new Set(cmds.map((c) => c.category))].sort()
+        const counts: Record<string, number> = {}
+        cmds.forEach((c) => { counts[c.category] = (counts[c.category] || 0) + 1 })
+
         setAllCommands(cmds)
         setFiltered(cmds)
-        setCategories([...new Set(cmds.map((c) => c.category))].sort())
+        setCategories(cats)
         setLoading(false)
+        setGridKey((k) => k + 1)
+
+        const dur = 900
+        animateCounter((v) => setDisplayCounts((prev) => ({ ...prev, all: v })), cmds.length, dur)
+        cats.forEach((cat) => {
+          animateCounter((v) => setDisplayCounts((prev) => ({ ...prev, [cat]: v })), counts[cat] ?? 0, dur)
+        })
       })
       .catch(() => setLoading(false))
   }, [])
@@ -160,7 +173,7 @@ export default function CommandsView() {
                 className={`filter-btn${activeCategory === 'all' ? ' active' : ''}`}
                 onClick={() => switchCategory('all')}
               >
-                All <span className="filter-count">({allCommands.length})</span>
+                All <span className="filter-count">({displayCounts['all'] ?? allCommands.length})</span>
               </button>
               {categories.map((cat) => {
                 return (
@@ -169,7 +182,7 @@ export default function CommandsView() {
                     className={`filter-btn${activeCategory === cat ? ' active' : ''}`}
                     onClick={() => switchCategory(cat)}
                   >
-                    {cat[0].toUpperCase() + cat.slice(1)} <span className="filter-count">({categoryCounts[cat] ?? 0})</span>
+                    {cat[0].toUpperCase() + cat.slice(1)} <span className="filter-count">({displayCounts[cat] ?? categoryCounts[cat] ?? 0})</span>
                   </button>
                 )
               })}
@@ -178,20 +191,20 @@ export default function CommandsView() {
 
           <div key={gridKey} className="commands-grid" id="commands-grid" data-reveal>
             {loading ? (
-              <div className="commands-empty">Loading commands…</div>
+              Array.from({ length: 30 }).map((_, i) => (
+                <div key={i} className="command-card-skeleton">
+                  <div className="skeleton-line" style={{ height: '14px', width: `${45 + (i * 37) % 35}%` }} />
+                  <div className="skeleton-line" style={{ height: '12px', width: `${60 + (i * 23) % 30}%`, opacity: 0.5 }} />
+                </div>
+              ))
             ) : filtered.length === 0 ? (
               <div className="commands-empty">No commands found.</div>
             ) : (
-              filtered.map((c, idx) => (
-                <div 
-                  key={c.name} 
-                  className="command-card" 
+              filtered.map((c) => (
+                <div
+                  key={c.name}
+                  className="command-card"
                   onClick={() => openModal(c)}
-                  style={idx < 40 ? {
-                    animation: 'fadeInUp 0.4s ease-out forwards',
-                    opacity: 0,
-                    animationDelay: `${idx * 0.025}s`
-                  } : undefined}
                 >
                   <div className="command-top">
                     <span className="command-name">{c.name}</span>
@@ -215,19 +228,6 @@ export default function CommandsView() {
               ))
             )}
           </div>
-          
-          <style jsx>{`
-            @keyframes fadeInUp {
-              from {
-                opacity: 0;
-                transform: translateY(10px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-          `}</style>
         </div>
       </div>
 
