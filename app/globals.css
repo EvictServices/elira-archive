@@ -239,7 +239,6 @@ body.nav-open { overflow: hidden; }
 
 .page {
   position: relative;
-  z-index: 1;
   min-height: 100vh;
 }
 
@@ -2062,24 +2061,27 @@ body.nav-open { overflow: hidden; }
 }
 
 .docs-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
   min-height: 100vh;
   max-width: 1440px;
   margin: 0 auto;
+  padding-left: 260px;
 }
 
 .docs-sidebar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  height: 100vh;
+  left: max(0px, calc((100vw - 1440px) / 2));
+  width: 260px;
+  height: 100dvh;
   overflow-y: auto;
+  background: #1a1a1a;
   border-right: 1px solid var(--border);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
   padding: 1.75rem 0 0;
   display: flex;
   flex-direction: column;
+  z-index: 99;
 }
 
 .docs-sidebar-header {
@@ -2554,7 +2556,7 @@ body.nav-open { overflow: hidden; }
 
 @media (max-width: 768px) {
   .docs-layout {
-    grid-template-columns: 1fr;
+    padding-left: 0;
   }
 
   .docs-sidebar {

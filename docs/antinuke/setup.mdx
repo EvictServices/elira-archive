@@ -12,7 +12,7 @@ description: Configure antinuke to match your server needs.
 AntiNuke aims to stop users from taking too many destructive actions against your server. Stop users from banning or kicking all your members by setting up a custom
 threshold tailered to your server.
 
-## Enable AntiNuke ban
+## Enable AntiNuke Ban
 
 Prevent users from massbanning a bunch of people from your server.
 
@@ -23,13 +23,13 @@ To enable antinuke ban, run the following command:
 ```
 
 <Frame>
-  <img src="/img/antinuke/examples/ban/antinuke-ban-default.png" alt="AntiNuke ban default" width="600" />
+  <img src="/img/antinuke/examples/ban/antinuke-ban-default.png" alt="AntiNuke ban Default" width="600" />
 </Frame>
 
 To set a custom threshold for how many bans trigger antinuke, pass the `--threshold` flag:
 
 ```python
-[prefix]antinuke ban true --threshold 3 --duration 1h --punishment strip
+[prefix]antinuke ban enable --threshold 3 --duration 1h --punishment strip
 ```
 
 &nbsp;
@@ -42,5 +42,19 @@ To set a custom threshold for how many bans trigger antinuke, pass the `--thresh
 
 
 <Frame>
-  <img src="/img/antinuke/examples/ban/antinuke-ban-1.png" alt="AntiNuke ban example" width="600" />
+  <img src="/img/antinuke/examples/ban/antinuke-ban-1.png" alt="AntiNuke Ban Example" width="600" />
+</Frame>
+
+## Disable AntiNuke Ban
+
+Disable the antinuke protection module.
+
+To disable antinuke ban, run the following command:
+
+```python
+[prefix]antinuke ban disable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/ban/antinuke-ban-2.png" alt="AntiNuke Ban Disable" width="600" />
 </Frame>
