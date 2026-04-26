@@ -3,97 +3,126 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-interface SearchResult {
+interface SectionResult {
   title: string
   href: string
-  snippet: string
+  snippet?: string
+}
+
+interface GroupedResult {
+  group: string
+  pageTitle: string
+  pageHref: string
+  sections: SectionResult[]
+}
+
+interface FlatItem {
+  type: 'page' | 'section'
+  title: string
+  href: string
+  snippet?: string
+  groupIndex: number
+}
+
+function buildFlat(groups: GroupedResult[]): FlatItem[] {
+  const flat: FlatItem[] = []
+  groups.forEach((g, gi) => {
+    g.sections.forEach((s) =>
+      flat.push({ type: 'section', title: s.title, href: s.href, snippet: s.snippet, groupIndex: gi }),
+    )
+  })
+  return flat
 }
 
 export default function DocsSearch({ onNavigate }: { onNavigate?: () => void }) {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [groups, setGroups] = useState<GroupedResult[]>([])
   const [loading, setLoading] = useState(false)
-  const [selected, setSelected] = useState(-1)
+  const [selected, setSelected] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const resultRefs = useRef<(HTMLElement | null)[]>([])
   const router = useRouter()
 
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([])
-      setOpen(false)
-      return
-    }
-    setLoading(true)
-    const timeout = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/docs/search?q=${encodeURIComponent(query)}`)
-        const data: SearchResult[] = await res.json()
-        setResults(data)
-        setOpen(true)
-      } finally {
-        setLoading(false)
-      }
-    }, 200)
-    return () => clearTimeout(timeout)
-  }, [query])
+  const flat = buildFlat(groups)
+
+  const openModal = useCallback(() => {
+    setOpen(true)
+    setTimeout(() => inputRef.current?.focus(), 30)
+  }, [])
+
+  const closeModal = useCallback(() => {
+    setOpen(false)
+    setQuery('')
+    setGroups([])
+    setSelected(0)
+  }, [])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
-        inputRef.current?.focus()
+        open ? closeModal() : openModal()
       }
-      if (e.key === 'Escape') {
-        setOpen(false)
-        inputRef.current?.blur()
-      }
+      if (e.key === 'Escape' && open) closeModal()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [])
+  }, [open, openModal, closeModal])
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+    if (query.trim().length < 2) {
+      setGroups([])
+      return
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
+    setLoading(true)
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/docs/search?q=${encodeURIComponent(query)}`)
+        const data: GroupedResult[] = await res.json()
+        setGroups(data)
+        setSelected(0)
+      } finally {
+        setLoading(false)
+      }
+    }, 180)
+    return () => clearTimeout(t)
+  }, [query])
+
+  useEffect(() => {
+    resultRefs.current[selected]?.scrollIntoView({ block: 'nearest' })
+  }, [selected])
 
   const navigate = useCallback(
     (href: string) => {
-      setOpen(false)
-      setQuery('')
+      closeModal()
       onNavigate?.()
       router.push(href)
     },
-    [router, onNavigate],
+    [router, closeModal, onNavigate],
   )
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open || results.length === 0) return
+    if (flat.length === 0) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelected((s) => Math.min(s + 1, results.length - 1))
+      setSelected((s) => Math.min(s + 1, flat.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setSelected((s) => Math.max(s - 1, 0))
-    } else if (e.key === 'Enter' && selected >= 0) {
-      navigate(results[selected].href)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (flat[selected]) navigate(flat[selected].href)
     }
   }
 
-  const noResults = open && query.length >= 2 && !loading && results.length === 0
+  let flatIdx = -1
 
   return (
-    <div className="docs-search" ref={containerRef}>
-      <div className="docs-search-input-wrap">
+    <>
+      <div className="docs-search-trigger-wrap" onClick={openModal}>
         <svg
-          className="docs-search-icon"
+          className="docs-search-trigger-icon"
           width="13"
           height="13"
           viewBox="0 0 24 24"
@@ -106,48 +135,116 @@ export default function DocsSearch({ onNavigate }: { onNavigate?: () => void }) 
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <input
-          ref={inputRef}
-          type="text"
-          className="docs-search-input"
-          placeholder="Search docs..."
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
-            setSelected(-1)
-          }}
-          onFocus={() => results.length > 0 && setOpen(true)}
-          onKeyDown={handleKeyDown}
-          aria-label="Search documentation"
-          aria-autocomplete="list"
-          aria-expanded={open}
-        />
+        <span className="docs-search-trigger-label">Search docs...</span>
         <kbd className="docs-search-kbd">⌘K</kbd>
       </div>
 
-      {open && results.length > 0 && (
-        <ul className="docs-search-results" role="listbox">
-          {results.map((result, i) => (
-            <li
-              key={result.href}
-              className={`docs-search-result${selected === i ? ' selected' : ''}`}
-              role="option"
-              aria-selected={selected === i}
-              onMouseEnter={() => setSelected(i)}
-              onClick={() => navigate(result.href)}
-            >
-              <span className="docs-search-result-title">{result.title}</span>
-              {result.snippet && (
-                <span className="docs-search-result-snippet">{result.snippet}</span>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      {open && (
+        <div className="docs-search-overlay" onMouseDown={closeModal}>
+          <div
+            className="docs-search-modal"
+            onMouseDown={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search documentation"
+          >
+            <div className="docs-search-modal-header">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="docs-search-modal-icon"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                ref={inputRef}
+                type="text"
+                className="docs-search-modal-input"
+                placeholder="Search documentation..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                aria-autocomplete="list"
+              />
+              {loading && <span className="docs-search-spinner" />}
+              <button className="docs-search-esc" onClick={closeModal}>
+                Esc
+              </button>
+            </div>
 
-      {noResults && (
-        <div className="docs-search-empty">No results for &ldquo;{query}&rdquo;</div>
+            {groups.length > 0 && (
+              <div className="docs-search-modal-results">
+                {groups.map((group) => (
+                  <div key={group.pageHref} className="docs-search-group">
+                    <div className="docs-search-group-label">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                      </svg>
+                      {group.pageTitle}
+                    </div>
+                    {group.sections.map((section) => {
+                      flatIdx++
+                      const idx = flatIdx
+                      const isSelected = selected === idx
+                      return (
+                        <div
+                          key={section.href}
+                          ref={(el) => { resultRefs.current[idx] = el }}
+                          className={`docs-search-section-item${isSelected ? ' selected' : ''}`}
+                          onMouseEnter={() => setSelected(idx)}
+                          onClick={() => navigate(section.href)}
+                        >
+                          <div className="docs-search-section-body">
+                            <span className="docs-search-section-title">{section.title}</span>
+                            {section.snippet && (
+                              <span className="docs-search-section-snippet">{section.snippet}</span>
+                            )}
+                          </div>
+                          {isSelected ? (
+                            <span className="docs-search-enter-hint">↵</span>
+                          ) : (
+                            <svg
+                              className="docs-search-chevron"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {query.length >= 2 && !loading && groups.length === 0 && (
+              <div className="docs-search-no-results">
+                No results for &ldquo;{query}&rdquo;
+              </div>
+            )}
+
+            {query.length < 2 && (
+              <div className="docs-search-hint">Type to search across all docs...</div>
+            )}
+          </div>
+        </div>
       )}
-    </div>
+    </>
   )
 }
