@@ -2220,7 +2220,7 @@ body.nav-open { overflow: hidden; }
   background: none;
   border: none;
   outline: none;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-primary);
   font-family: inherit;
   min-width: 0;

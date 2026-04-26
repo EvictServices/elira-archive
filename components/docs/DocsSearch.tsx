@@ -110,6 +110,7 @@ export default function DocsSearch({ onNavigate, mobileOnly, desktopOnly }: { on
 
   const navigate = useCallback(
     (href: string) => {
+      inputRef.current?.blur()
       closeModal()
       onNavigate?.()
       router.push(href)
