@@ -2184,11 +2184,11 @@ body.nav-open { overflow: hidden; }
   -webkit-backdrop-filter: blur(6px);
   z-index: 1100;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: clamp(48px, 10vh, 120px);
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding: 1rem;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .docs-search-modal {
@@ -2201,7 +2201,7 @@ body.nav-open { overflow: hidden; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - clamp(96px, 20vh, 240px));
+  max-height: min(600px, calc(100dvh - 2rem));
 }
 
 .docs-search-modal-header {
@@ -2708,21 +2708,56 @@ body.nav-open { overflow: hidden; }
 .docs-toc-item a:hover,
 .docs-toc-item a.active { color: var(--text-primary); }
 
-.docs-mobile-toggle {
+.docs-search-trigger-wrap.desktop-only { display: flex; }
+
+.docs-mobile-bar {
   display: none;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
+  margin: 1rem 1rem 0;
+}
+
+.docs-mobile-search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: 1px solid var(--border);
   color: rgba(255, 255, 255, 0.6);
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.45rem 0.85rem;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   border-radius: var(--r-full);
   cursor: pointer;
-  margin: 1rem 1rem 0;
   font-family: inherit;
   transition: all var(--ease);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  touch-action: manipulation;
+  outline: none;
+  -webkit-appearance: none;
+}
+.docs-mobile-search:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+.docs-mobile-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border);
+  color: rgba(255, 255, 255, 0.6);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--ease);
+  flex-shrink: 0;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   touch-action: manipulation;
   outline: none;
@@ -2773,7 +2808,9 @@ body.nav-open { overflow: hidden; }
   }
   .docs-sidebar.mobile-open { transform: translateX(0); }
 
+  .docs-mobile-bar { display: flex; }
   .docs-mobile-toggle { display: flex; }
+  .docs-search-trigger-wrap.desktop-only { display: none; }
 
   .docs-main { padding: 1rem 1.25rem 4rem; }
 

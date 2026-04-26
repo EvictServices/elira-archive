@@ -13,18 +13,20 @@ export default function DocsSidebar() {
 
   return (
     <>
-      <button
-        className="docs-mobile-toggle"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label="Toggle navigation"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-        Navigation
-      </button>
+      <div className="docs-mobile-bar">
+        <button
+          className="docs-mobile-toggle"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle navigation"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <DocsSearch onNavigate={() => setMobileOpen(false)} mobileOnly />
+      </div>
 
       {mobileOpen && (
         <div className="docs-sidebar-overlay" onClick={() => setMobileOpen(false)} />
@@ -39,7 +41,7 @@ export default function DocsSidebar() {
             </Link>
           </div>
 
-          <DocsSearch onNavigate={() => setMobileOpen(false)} />
+          <DocsSearch onNavigate={() => setMobileOpen(false)} desktopOnly />
         </div>
 
         <div className="docs-sidebar-scroll">
