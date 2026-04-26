@@ -40,6 +40,8 @@ export default function Navbar() {
   const isActive = (page: string) =>
     page === 'home' ? pathname === '/' : pathname.startsWith('/' + page)
 
+  if (pathname.startsWith('/docs')) return null
+
   return (
     <nav className={`navbar${navHidden ? ' nav-hidden' : ''}`}>
       <div className="nav-inner">

@@ -29,7 +29,7 @@ export default function CodeBlock(props: ComponentPropsWithoutRef<'pre'>) {
           </svg>
         )}
       </button>
-      <pre ref={ref} {...props} />
+      <pre ref={ref} {...props} className={`docs-codeblock${props.className ? ` ${props.className}` : ''}`} style={{ ...props.style, WebkitTextSizeAdjust: 'none' }} />
     </div>
   )
 }
