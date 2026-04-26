@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { docsNav } from '@/lib/docs-nav'
+import DocsSearch from '@/components/docs/DocsSearch'
 
 export default function DocsSidebar() {
   const pathname = usePathname()
@@ -30,33 +31,39 @@ export default function DocsSidebar() {
       )}
 
       <aside className={`docs-sidebar${mobileOpen ? ' mobile-open' : ''}`}>
-        <div className="docs-sidebar-header">
-          <Link href="/docs" className="docs-sidebar-brand" onClick={() => setMobileOpen(false)}>
-            <Image src="/img/evict.webp" alt="evict" width={22} height={22} className="docs-sidebar-avatar" />
-            <span>Evict Documentation</span>
-          </Link>
+        <div className="docs-sidebar-top">
+          <div className="docs-sidebar-header">
+            <Link href="/docs" className="docs-sidebar-brand" onClick={() => setMobileOpen(false)}>
+              <Image src="/img/evict.webp" alt="evict" width={22} height={22} className="docs-sidebar-avatar" />
+              <span>Evict Documentation</span>
+            </Link>
+          </div>
+
+          <DocsSearch onNavigate={() => setMobileOpen(false)} />
         </div>
 
-        <nav className="docs-nav">
-          {docsNav.map((group) => (
-            <div key={group.title} className="docs-nav-group">
-              <span className="docs-nav-group-title">{group.title}</span>
-              <ul className="docs-nav-items">
-                {group.items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={`docs-nav-item${pathname === item.href ? ' active' : ''}`}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
+        <div className="docs-sidebar-scroll">
+          <nav className="docs-nav">
+            {docsNav.map((group) => (
+              <div key={group.title} className="docs-nav-group">
+                <span className="docs-nav-group-title">{group.title}</span>
+                <ul className="docs-nav-items">
+                  {group.items.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className={`docs-nav-item${pathname === item.href ? ' active' : ''}`}
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        {item.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+        </div>
 
         <div className="docs-sidebar-footer">
           <Link href="/" className="docs-home-btn" onClick={() => setMobileOpen(false)}>
