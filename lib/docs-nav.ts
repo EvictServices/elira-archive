@@ -1,24 +1,35 @@
 export interface NavItem {
   title: string
   href: string
+  items?: NavItem[]
 }
 
 export interface NavGroup {
   title: string
+  icon?: string
   items: NavItem[]
 }
 
 export const docsNav: NavGroup[] = [
   {
     title: 'Getting Started',
+    icon: 'book',
     items: [
       { title: 'Introduction', href: '/docs/getting-started/introduction' },
     ],
   },
   {
     title: 'AntiNuke',
+    icon: 'shield',
     items: [
-      { title: 'Setup', href: '/docs/antinuke/setup' },
+      {
+        title: 'Setup',
+        href: '/docs/antinuke/setup',
+        items: [
+          { title: 'Ban', href: '/docs/antinuke/ban' },
+          { title: 'Kick', href: '/docs/antinuke/kick' },
+        ],
+      },
     ],
   },
 ]

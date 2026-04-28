@@ -16,6 +16,12 @@ threshold tailered to your server.
 
 Prevent users from massbanning a bunch of people from your server.
 
+<Callout type="warning">
+  Due to the way Discord works, it is impossible to stop a user from using the members tab and selecting a bunch of users and banning them.
+  it is highly recommended to use fake permissions since a user requires ``manage_guild`` paired with ``ban_members`` for this to be possible.
+  Evict can still take action against this, but it cannot prevent the first batch of members.
+</Callout>
+
 To enable antinuke ban, run the following command:
 
 ```python
@@ -57,4 +63,51 @@ To disable antinuke ban, run the following command:
 
 <Frame>
   <img src="/img/antinuke/examples/ban/antinuke-ban-2.png" alt="AntiNuke Ban Disable" width="600" />
+</Frame>
+
+## Enable AntiNuke kick
+
+Prevent users from masskicking a bunch of members.
+
+To enable antinuke kick, run the following command:
+
+```python
+[prefix]antinuke kick enable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/kick/antinuke-kick-default.png" alt="AntiNuke Kick Default" width="600" />
+</Frame>
+
+To set a custom threshold for how many kicks trigger antinuke, pass the `--threshold` flag:
+
+```python
+[prefix]antinuke kick enable --threshold 3 --duration 1h --punishment strip
+```
+
+&nbsp;
+
+| Flag | Description |
+|---|---|
+| `--threshold` | Number of kicks before antinuke triggers |
+| `--duration` | Time window to count kicks within |
+| `--punishment` | Action taken against the attacker: `ban`, `kick`, or `strip` |
+
+
+<Frame>
+  <img src="/img/antinuke/examples/kick/antinuke-kick-1.png" alt="AntiNuke Kick Example" width="600" />
+</Frame>
+
+## Disable AntiNuke Kick
+
+Disable the antinuke kick protection module.
+
+To disable antinuke kick, run the following command:
+
+```python
+[prefix]antinuke kick disable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/kick/antinuke-kick-2.png" alt="AntiNuke Kick Disable" width="600" />
 </Frame>
