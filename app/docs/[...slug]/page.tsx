@@ -60,6 +60,10 @@ export default async function DocPage({ params }: Props) {
             components={components}
           />
         </div>
+        <p className="docs-article-updated">
+          Last updated{' '}
+          {doc.lastUpdated.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
       </article>
       <DocsTOC items={toc} />
     </>

@@ -2441,6 +2441,14 @@ body.nav-open { overflow: hidden; }
   line-height: 1.65;
 }
 
+.docs-article-updated {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.25);
+}
+
 .docs-prose h1,
 .docs-prose h2,
 .docs-prose h3,

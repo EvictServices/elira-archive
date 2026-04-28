@@ -32,6 +32,7 @@ export const docsNav: NavGroup[] = [
           { title: 'Channel', href: '/docs/antinuke/channel' },
           { title: 'Emoji', href: '/docs/antinuke/emoji' },
           { title: 'Role', href: '/docs/antinuke/role' },
+          { title: 'Bot', href: '/docs/antinuke/bot' },
         ],
       },
     ],

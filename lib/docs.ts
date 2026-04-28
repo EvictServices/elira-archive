@@ -18,6 +18,7 @@ export interface DocHeading {
 export interface DocData {
   frontmatter: DocFrontmatter
   content: string
+  lastUpdated: Date
 }
 
 export function getDocBySlug(slug: string[]): DocData | null {
@@ -32,10 +33,12 @@ export function getDocBySlug(slug: string[]): DocData | null {
 
   const raw = fs.readFileSync(filePath, 'utf-8')
   const { data, content } = matter(raw)
+  const { mtime } = fs.statSync(filePath)
 
   return {
     frontmatter: data as DocFrontmatter,
     content,
+    lastUpdated: mtime,
   }
 }
 

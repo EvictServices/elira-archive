@@ -24,6 +24,16 @@ To set a custom threshold for how many webhook modifications trigger antinuke, p
 ```python
 [prefix]antinuke webhook enable --threshold 3 --duration 1h --punishment strip
 ```
+
+&nbsp;
+
+| Flag | Description |
+|---|---|
+| `--threshold` | Number of webhook modifications before antinuke triggers |
+| `--duration` | Time window to count kicks within |
+| `--punishment` | Action taken against the attacker: `ban`, `kick`, or `strip` |
+
+
 <Frame>
   <img src="/img/antinuke/examples/webhook/antinuke-webhook-1.png" alt="AntiNuke Webhook Example" width="600" />
 </Frame>

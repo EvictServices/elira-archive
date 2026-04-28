@@ -1,0 +1,12 @@
+---
+title: Fake Permissions Setup
+description: Grant trusted users elevated command access without giving them real Discord permissions.
+---
+
+<Callout type="info">
+  Replace ``[prefix]`` with your own prefix. Run ``@evict#6621 prefix`` to see your server's active prefixes. The default prefix is ``;``.
+</Callout>
+
+Fake Permissions lets you grant users or roles access to Evict's commands without ever touching their real Discord permissions. Instead of handing out `Administrator` or `Manage Server` to someone you only partially trust, you assign them a fake permission level that Evict enforces independently — keeping your server's actual permission structure intact.
+
+This is especially important when paired with AntiNuke, since real `manage_guild` or `ban_members` permissions open the door to mass attacks. Fake permissions give you a way to delegate bot access while keeping that attack surface closed.
