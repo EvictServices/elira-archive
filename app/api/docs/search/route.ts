@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDocBySlug } from '@/lib/docs'
-import { docsNav } from '@/lib/docs-nav'
+import { docsNav, NavItem } from '@/lib/docs-nav'
 
 function stripMarkdown(text: string): string {
   return text
@@ -71,6 +71,10 @@ export interface GroupedResult {
   sections: SectionResult[]
 }
 
+function flattenItems(items: NavItem[]): NavItem[] {
+  return items.flatMap((item) => [item, ...flattenItems(item.items ?? [])])
+}
+
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q')?.trim().toLowerCase() ?? ''
   if (q.length < 2) return NextResponse.json([])
@@ -78,7 +82,7 @@ export async function GET(request: NextRequest) {
   const grouped: GroupedResult[] = []
 
   for (const navGroup of docsNav) {
-    for (const item of navGroup.items) {
+    for (const item of flattenItems(navGroup.items)) {
       const slug = item.href.replace('/docs/', '').split('/')
       const doc = getDocBySlug(slug)
       if (!doc) continue

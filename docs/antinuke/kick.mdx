@@ -1,0 +1,50 @@
+---
+title: AntiNuke Kick
+description: Prevent users from masskicking members in your server.
+---
+
+<Callout type="info">
+  Replace ``[prefix]`` with your own prefix. Type ``@evict#6621 prefix`` to get your server prefixes, however, ``;`` is default.
+</Callout>
+
+## Enable
+
+To enable antinuke kick, run the following command:
+
+```python
+[prefix]antinuke kick enable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/kick/antinuke-kick-default.png" alt="AntiNuke Kick Default" width="600" />
+</Frame>
+
+To set a custom threshold for how many kicks trigger antinuke, pass the `--threshold` flag:
+
+```python
+[prefix]antinuke kick enable --threshold 3 --duration 1h --punishment strip
+```
+
+&nbsp;
+
+| Flag | Description |
+|---|---|
+| `--threshold` | Number of kicks before antinuke triggers |
+| `--duration` | Time window to count kicks within |
+| `--punishment` | Action taken against the attacker: `ban`, `kick`, or `strip` |
+
+<Frame>
+  <img src="/img/antinuke/examples/kick/antinuke-kick-1.png" alt="AntiNuke Kick Example" width="600" />
+</Frame>
+
+## Disable
+
+To disable antinuke kick, run the following command:
+
+```python
+[prefix]antinuke kick disable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/kick/antinuke-kick-2.png" alt="AntiNuke Kick Disable" width="600" />
+</Frame>

@@ -3,111 +3,53 @@ title: AntiNuke Setup
 description: Configure antinuke to match your server needs.
 ---
 
-# Introduction
+# AntiNuke
+
+AntiNuke is Evict's server protection system designed to detect and respond to coordinated destructive actions in real time. Whether a compromised admin account starts mass banning members, a rogue bot begins deleting channels, or an attacker strips roles and floods webhooks — AntiNuke catches it and acts before the damage becomes irreversible.
+
+Each module operates independently with its own configurable threshold, time window, and punishment, giving you fine-grained control over how aggressively your server is protected.
 
 <Callout type="info">
-  Replace ``[prefix]`` with your own prefix. Type ``@evict#6621 prefix`` to get your server prefixes, however, ``;`` is default.
+  Replace ``[prefix]`` with your own prefix. Run ``@evict#6621 prefix`` to see your server's active prefixes. The default prefix is ``;``.
 </Callout>
 
-AntiNuke aims to stop users from taking too many destructive actions against your server. Stop users from banning or kicking all your members by setting up a custom
-threshold tailered to your server.
+The default for every module is 3 modifications, with the punishment ban, and the timeframe being an hour.
 
-## Enable AntiNuke Ban
+## AntiNuke Trust
 
-Prevent users from massbanning a bunch of people from your server.
+Give other users the ability to modify antinuke settings.
 
 <Callout type="warning">
-  Due to the way Discord works, it is impossible to stop a user from using the members tab and selecting a bunch of users and banning them.
-  it is highly recommended to use fake permissions since a user requires ``manage_guild`` paired with ``ban_members`` for this to be possible.
-  Evict can still take action against this, but it cannot prevent the first batch of members.
+  It is not recommended to hand this out because it allows members to run various of dangerous commands and modify the settings of the antinuke system.
+  If the user decides to be malicious, Evict cannot help you in anyway if they have this.
 </Callout>
 
-To enable antinuke ban, run the following command:
+To give another member antinuke trust, run the following command:
 
 ```python
-[prefix]antinuke ban enable
+[prefix]antinuke trust @member
 ```
 
 <Frame>
-  <img src="/img/antinuke/examples/ban/antinuke-ban-default.png" alt="AntiNuke ban Default" width="600" />
+  <img src="/img/antinuke/examples/trust/antinuke-trust-1.png" alt="AntiNuke Trust Example" width="600" />
 </Frame>
 
-To set a custom threshold for how many bans trigger antinuke, pass the `--threshold` flag:
+To remove their antinuke trust, run the command again:
 
 ```python
-[prefix]antinuke ban enable --threshold 3 --duration 1h --punishment strip
-```
-
-&nbsp;
-
-| Flag | Description |
-|---|---|
-| `--threshold` | Number of bans before antinuke triggers |
-| `--duration` | Time window to count bans within |
-| `--punishment` | Action taken against the attacker: `ban`, `kick`, or `strip` |
-
-
-<Frame>
-  <img src="/img/antinuke/examples/ban/antinuke-ban-1.png" alt="AntiNuke Ban Example" width="600" />
-</Frame>
-
-## Disable AntiNuke Ban
-
-Disable the antinuke protection module.
-
-To disable antinuke ban, run the following command:
-
-```python
-[prefix]antinuke ban disable
+[prefix]antinuke trust @member
 ```
 
 <Frame>
-  <img src="/img/antinuke/examples/ban/antinuke-ban-2.png" alt="AntiNuke Ban Disable" width="600" />
+  <img src="/img/antinuke/examples/trust/antinuke-trust-2.png" alt="AntiNuke Trust Example" width="600" />
 </Frame>
 
-## Enable AntiNuke kick
+## AntiNuke Whitelist
 
-Prevent users from masskicking a bunch of members.
+Whitelist other members from triggering the antinuke system.
 
-To enable antinuke kick, run the following command:
-
-```python
-[prefix]antinuke kick enable
-```
-
-<Frame>
-  <img src="/img/antinuke/examples/kick/antinuke-kick-default.png" alt="AntiNuke Kick Default" width="600" />
-</Frame>
-
-To set a custom threshold for how many kicks trigger antinuke, pass the `--threshold` flag:
-
-```python
-[prefix]antinuke kick enable --threshold 3 --duration 1h --punishment strip
-```
-
-&nbsp;
-
-| Flag | Description |
-|---|---|
-| `--threshold` | Number of kicks before antinuke triggers |
-| `--duration` | Time window to count kicks within |
-| `--punishment` | Action taken against the attacker: `ban`, `kick`, or `strip` |
-
-
-<Frame>
-  <img src="/img/antinuke/examples/kick/antinuke-kick-1.png" alt="AntiNuke Kick Example" width="600" />
-</Frame>
-
-## Disable AntiNuke Kick
-
-Disable the antinuke kick protection module.
-
-To disable antinuke kick, run the following command:
-
-```python
-[prefix]antinuke kick disable
-```
-
-<Frame>
-  <img src="/img/antinuke/examples/kick/antinuke-kick-2.png" alt="AntiNuke Kick Disable" width="600" />
-</Frame>
+<Callout type="warning">
+  Similarly to antinuke trust, it is not recommended to give this out to anyone you don't trust. 
+  While it is not as dangerous, if the user adds a bot, Evict will ignore the addition. 
+  Be mindful who you give this out to.
+</Callout>

@@ -28,6 +28,7 @@ export const docsNav: NavGroup[] = [
         items: [
           { title: 'Ban', href: '/docs/antinuke/ban' },
           { title: 'Kick', href: '/docs/antinuke/kick' },
+          { title: 'Webhook', href: '/docs/antinuke/webhook' },
         ],
       },
     ],

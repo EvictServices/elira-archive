@@ -2114,6 +2114,8 @@ body.nav-open { overflow: hidden; }
 .docs-sidebar-avatar { border-radius: 6px; }
 
 .docs-sidebar-footer {
+  display: flex;
+  gap: 0.25rem;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--border);
   margin-top: auto;
@@ -2339,7 +2341,9 @@ body.nav-open { overflow: hidden; }
 .docs-nav-group { margin-bottom: 1.75rem; }
 
 .docs-nav-group-title {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.62rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -2347,6 +2351,13 @@ body.nav-open { overflow: hidden; }
   color: rgba(255, 255, 255, 0.3);
   padding: 0 0.5rem;
   margin-bottom: 0.35rem;
+}
+
+.docs-nav-group-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0.6;
 }
 
 .docs-nav-items { list-style: none; }
@@ -2370,6 +2381,31 @@ body.nav-open { overflow: hidden; }
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.08);
   font-weight: 600;
+}
+
+.docs-nav-subitems {
+  list-style: none;
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 1px;
+  margin-bottom: 2px;
+}
+
+.docs-nav-subitem {
+  font-size: 0.79rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.docs-nav-subitem:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.docs-nav-subitem.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 500;
 }
 
 .docs-main {
@@ -2508,21 +2544,27 @@ body.nav-open { overflow: hidden; }
 }
 
 .docs-prose [data-rehype-pretty-code-figure] {
-  overflow-x: auto;
+  display: block;
+  width: 100%;
   margin-bottom: 1.25rem;
-  border-radius: var(--r-md);
 }
 .docs-prose [data-rehype-pretty-code-figure] pre {
+  display: block;
+  width: 100%;
   padding: 1rem 1.25rem;
   font-size: 0.83rem;
   line-height: 1.65;
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   border-radius: var(--r-md);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
   /* autoprefixer: ignore next */
   -webkit-text-size-adjust: none;
 }
 .docs-prose [data-rehype-pretty-code-figure] code {
+  display: grid;
+  min-width: 100%;
+  width: max-content;
   background: none;
   padding: 0;
   border-radius: 0;
@@ -2619,9 +2661,24 @@ body.nav-open { overflow: hidden; }
 }
 .docs-code-wrap {
   position: relative;
-  overflow-x: auto;
+  width: 100%;
   margin-bottom: 1.25rem;
   border-radius: var(--r-md);
+  overflow-x: auto;
+}
+.docs-code-wrap pre,
+.docs-codeblock {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  font-size: 0.83rem;
+  line-height: 1.65;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+  /* autoprefixer: ignore next */
+  -webkit-text-size-adjust: none;
 }
 .docs-code-wrap pre {
   margin-bottom: 0 !important;

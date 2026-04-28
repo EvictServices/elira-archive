@@ -1,0 +1,56 @@
+---
+title: AntiNuke Ban
+description: Prevent users from massbanning members in your server.
+---
+
+<Callout type="info">
+  Replace ``[prefix]`` with your own prefix. Type ``@evict#6621 prefix`` to get your server prefixes, however, ``;`` is default.
+</Callout>
+
+<Callout type="warning">
+  Due to the way Discord works, it is impossible to stop a user from using the members tab and selecting a bunch of users and banning them.
+  It is highly recommended to use fake permissions since a user requires ``manage_guild`` paired with ``ban_members`` for this to be possible.
+  Evict can still take action against this, but it cannot prevent the first batch of members.
+</Callout>
+
+## Enable
+
+To enable antinuke ban, run the following command:
+
+```python
+[prefix]antinuke ban enable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/ban/antinuke-ban-default.png" alt="AntiNuke ban Default" width="600" />
+</Frame>
+
+To set a custom threshold for how many bans trigger antinuke, pass the `--threshold` flag:
+
+```python
+[prefix]antinuke ban enable --threshold 3 --duration 1h --punishment strip
+```
+
+&nbsp;
+
+| Flag | Description |
+|---|---|
+| `--threshold` | Number of bans before antinuke triggers |
+| `--duration` | Time window to count bans within |
+| `--punishment` | Action taken against the attacker: `ban`, `kick`, or `strip` |
+
+<Frame>
+  <img src="/img/antinuke/examples/ban/antinuke-ban-1.png" alt="AntiNuke Ban Example" width="600" />
+</Frame>
+
+## Disable
+
+To disable antinuke ban, run the following command:
+
+```python
+[prefix]antinuke ban disable
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/ban/antinuke-ban-2.png" alt="AntiNuke Ban Disable" width="600" />
+</Frame>
