@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-const TOTAL_SECONDS = 197 // 3:17
+const TOTAL_SECONDS = 197
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60)

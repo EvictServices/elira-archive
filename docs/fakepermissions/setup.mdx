@@ -10,3 +10,59 @@ description: Grant trusted users elevated command access without giving them rea
 Fake Permissions lets you grant users or roles access to Evict's commands without ever touching their real Discord permissions. Instead of handing out `Administrator` or `Manage Server` to someone you only partially trust, you assign them a fake permission level that Evict enforces independently — keeping your server's actual permission structure intact.
 
 This is especially important when paired with AntiNuke, since real `manage_guild` or `ban_members` permissions open the door to mass attacks. Fake permissions give you a way to delegate bot access while keeping that attack surface closed.
+
+## Supported Permissions
+
+| Permission | Description |
+|---|---|
+| `kick_members` | Access to kick commands |
+| `ban_members` | Access to ban, unban, and mass ban commands |
+| `administrator` | Grants access to all Evict commands, equivalent to full bot admin |
+| `manage_channels` | Access to channel creation, editing, and deletion commands |
+| `manage_guild` | Access to server settings, prefix, and configuration commands |
+| `manage_messages` | Access to purge, snipe, and message moderation commands |
+| `manage_roles` | Access to role creation, editing, and assignment commands |
+| `manage_webhooks` | Access to webhook management commands |
+| `manage_expressions` | Access to emoji and sticker management commands |
+| `manage_threads` | Access to thread creation, archiving, and deletion commands |
+| `mention_everyone` | Access to commands that can mass mention roles or everyone |
+| `moderate_members` | Access to timeout and unmute commands |
+| `pin_messages` | Access to pin and unpin message commands |
+| `view_audit_log` | Access to commands that read the server audit log |
+| `manage_nicknames` | Access to nickname set and reset commands |
+
+## Adding a permission to a role
+
+To grant a role a permission, run the following command:
+
+```python
+[prefix]fakepermissions add @role permission
+```
+
+<Frame>
+  <img src="/img/fakepermissions/fakepermissions-example-1.png" alt="Fakepermission Grant Example" width="600" />
+</Frame>
+
+## Removing a permission from a role
+
+To remove a fakepermission from a role, run the following command:
+
+```python
+[prefix]fakepermissions remove @role permission
+```
+
+<Frame>
+  <img src="/img/fakepermissions/fakepermissions-example-2.png" alt="Fakepermission Remove Example" width="600" />
+</Frame>
+
+## List all fake permissions
+
+To list all fakepermissions setup in the server, run the following command:
+
+```python
+[prefix]fakepermissions list
+```
+
+<Frame>
+  <img src="/img/fakepermissions/fakepermissions-example-3.png" alt="Fakepermission List Example" width="600" />
+</Frame>

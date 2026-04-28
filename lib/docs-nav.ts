@@ -37,4 +37,11 @@ export const docsNav: NavGroup[] = [
       },
     ],
   },
+  {
+    title: 'Fake Permissions',
+    icon: 'hammer',
+    items: [
+      { title: 'Setup', href: '/docs/fakepermissions/setup' },
+    ],
+  },
 ]

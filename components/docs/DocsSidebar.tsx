@@ -19,6 +19,13 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   ),
+  hammer: (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 12l-8.5 8.5a2.121 2.121 0 0 1-3-3L12 9" />
+      <path d="M17.64 15L22 10.64" />
+      <path d="M20.91 11.7l-1.25-1.25c.54-.76.51-1.82-.13-2.46l-3.22-3.22a2 2 0 0 0-2.84 0L11.34 7l3.75 3.75 1.82-1.82 1.5 1.5-1.82 1.82L20 15.34l1.25-1.25c.64-.64.54-1.7-.34-2.39z" />
+    </svg>
+  ),
 }
 
 function NavItemLink({ item, pathname, depth = 0, onNavigate }: {

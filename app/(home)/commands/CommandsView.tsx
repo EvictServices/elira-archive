@@ -231,7 +231,6 @@ export default function CommandsView() {
         </div>
       </div>
 
-      {/* Modal */}
       {modalCmd && (
         <div
           className="cmd-modal-overlay open"
