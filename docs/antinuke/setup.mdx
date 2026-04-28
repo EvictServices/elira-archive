@@ -3,17 +3,27 @@ title: AntiNuke Setup
 description: Configure antinuke to match your server needs.
 ---
 
-# AntiNuke
+<Callout type="info">
+  Replace ``[prefix]`` with your own prefix. Run ``@evict#6621 prefix`` to see your server's active prefixes. The default prefix is ``;``.
+</Callout>
 
 AntiNuke is Evict's server protection system designed to detect and respond to coordinated destructive actions in real time. Whether a compromised admin account starts mass banning members, a rogue bot begins deleting channels, or an attacker strips roles and floods webhooks — AntiNuke catches it and acts before the damage becomes irreversible.
 
 Each module operates independently with its own configurable threshold, time window, and punishment, giving you fine-grained control over how aggressively your server is protected.
 
-<Callout type="info">
-  Replace ``[prefix]`` with your own prefix. Run ``@evict#6621 prefix`` to see your server's active prefixes. The default prefix is ``;``.
-</Callout>
-
 The default for every module is 3 modifications, with the punishment ban, and the timeframe being an hour.
+
+## Antinuke Configuration
+
+To view the server configuration, run the following command:
+
+```python
+[prefix]antinuke configuration
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/antinuke-config.png" alt="AntiNuke Configuration" width="600" />
+</Frame>
 
 ## AntiNuke Trust
 
@@ -53,3 +63,23 @@ Whitelist other members from triggering the antinuke system.
   While it is not as dangerous, if the user adds a bot, Evict will ignore the addition. 
   Be mindful who you give this out to.
 </Callout>
+
+To give another member antinuke whitelist, run the following command:
+
+```python
+[prefix]antinuke whitelist @member
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/whitelist/antinuke-whitelist-1.png" alt="AntiNuke Whitelist Example" width="600" />
+</Frame>
+
+To remove their antinuke whitelist, run the command again:
+
+```python
+[prefix]antinuke whitelist @member
+```
+
+<Frame>
+  <img src="/img/antinuke/examples/whitelist/antinuke-whitelist-2.png" alt="AntiNuke Whitelist Example" width="600" />
+</Frame>
