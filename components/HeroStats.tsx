@@ -40,16 +40,37 @@ export default function HeroStats() {
           try {
             if (cmdRes.ok) {
               const cmdData = await cmdRes.json()
-              const cmdMap: Record<string, unknown[]> = cmdData?.data?.commands ?? {}
+              const payload: unknown = cmdData?.data?.commands ?? cmdData?.commands ?? cmdData ?? []
               const seen = new Set<string>()
               let count = 0
-              Object.entries(cmdMap).forEach(([cat, cmds]) => {
-                if (!Array.isArray(cmds) || cat.toLowerCase() === 'jishaku') return
-                ;(cmds as { qualified_name?: string; name?: string; hidden?: boolean }[]).forEach((cmd) => {
-                  const name = cmd.qualified_name || cmd.name
-                  if (name && !seen.has(name) && !cmd.hidden) { seen.add(name); count++ }
+
+              if (Array.isArray(payload)) {
+                payload.forEach((group: unknown) => {
+                  if (!group || typeof group !== 'object') return
+                  const cat = String((group as { category?: unknown }).category ?? '').toLowerCase()
+                  const cmds = (group as { commands?: unknown }).commands
+                  if (!Array.isArray(cmds) || cat === 'jishaku') return
+                  ;(cmds as { qualified_name?: string; name?: string; hidden?: boolean }[]).forEach((cmd) => {
+                    const name = cmd.qualified_name || cmd.name
+                    if (name && name !== 'help' && !seen.has(name) && !cmd.hidden) {
+                      seen.add(name)
+                      count++
+                    }
+                  })
                 })
-              })
+              } else if (typeof payload === 'object' && payload) {
+                Object.entries(payload as Record<string, unknown[]>).forEach(([cat, cmds]) => {
+                  if (!Array.isArray(cmds) || cat.toLowerCase() === 'jishaku') return
+                  ;(cmds as { qualified_name?: string; name?: string; hidden?: boolean }[]).forEach((cmd) => {
+                    const name = cmd.qualified_name || cmd.name
+                    if (name && name !== 'help' && !seen.has(name) && !cmd.hidden) {
+                      seen.add(name)
+                      count++
+                    }
+                  })
+                })
+              }
+
               animateCounter(setCommands, count)
             }
           } catch {}

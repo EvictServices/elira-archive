@@ -10,6 +10,8 @@ interface Shard {
   users: number
   latency: number
   uptime: number
+  reconnect_count?: number
+  restart_count?: number
 }
 
 interface ClusterData {
@@ -385,6 +387,14 @@ export default function StatusView() {
               <div className="shard-popout-stat">
                 <span className="shard-popout-stat-label">Uptime</span>
                 <span className="shard-popout-stat-value mono">{fmtUptime(selectedShard.uptime)}</span>
+              </div>
+              <div className="shard-popout-stat">
+                <span className="shard-popout-stat-label">Reconnects</span>
+                <span className="shard-popout-stat-value mono">{(selectedShard.reconnect_count ?? 0).toLocaleString()}</span>
+              </div>
+              <div className="shard-popout-stat">
+                <span className="shard-popout-stat-label">Restarts</span>
+                <span className="shard-popout-stat-value mono">{(selectedShard.restart_count ?? 0).toLocaleString()}</span>
               </div>
             </div>
           </div>

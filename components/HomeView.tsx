@@ -1,5 +1,6 @@
 import { INVITE_URL, SUPPORT_URL } from '@/lib/constants'
 import HeroStats from '@/components/HeroStats'
+import BiggestGuildsCarousel from '@/components/BiggestGuildsCarousel'
 import Stars from '@/components/Stars'
 import MusicSection from '@/components/features/MusicSection'
 import SocialSection from '@/components/features/SocialSection'
@@ -45,6 +46,7 @@ export default function HomeView() {
             </a>
           </div>
           <HeroStats />
+          <BiggestGuildsCarousel />
         </div>
       </section>
 
