@@ -38,10 +38,27 @@ export default function CommandsView() {
     fetch('/api/commands')
       .then(r => r.ok ? r.json() : { data: { commands: {} } })
       .then(parsed => {
-        const cmdMap: Record<string, unknown[]> = parsed?.data?.commands ?? parsed?.commands ?? parsed ?? {}
+        const payload: unknown = parsed?.data?.commands ?? parsed?.commands ?? parsed ?? []
         const rawCmds: Command[] = []
-        if (typeof cmdMap === 'object' && !Array.isArray(cmdMap)) {
-          Object.entries(cmdMap).forEach(([category, cmds]) => {
+
+        // New layout: [{ category: string, commands: Command[] }]
+        if (Array.isArray(payload)) {
+          payload.forEach((group: unknown) => {
+            if (!group || typeof group !== 'object') return
+            const category = typeof (group as { category?: unknown }).category === 'string'
+              ? (group as { category: string }).category
+              : 'Uncategorized'
+            const cmds = (group as { commands?: unknown }).commands
+            if (!Array.isArray(cmds)) return
+            cmds.forEach((cmd: unknown) => {
+              rawCmds.push({ ...(cmd as object), category } as Command)
+            })
+          })
+        }
+
+        // Legacy layout: { [category]: Command[] }
+        if (typeof payload === 'object' && payload && !Array.isArray(payload)) {
+          Object.entries(payload as Record<string, unknown[]>).forEach(([category, cmds]) => {
             if (!Array.isArray(cmds)) return
             cmds.forEach((cmd: unknown) => {
               rawCmds.push({ ...(cmd as object), category } as Command)
