@@ -69,9 +69,14 @@ export default function Navbar() {
           ))}
         </div>
 
-        <a href={INVITE_URL} target="_blank" rel="noopener noreferrer" className="nav-cta">
-          Add to Server
-        </a>
+        <div className="nav-actions">
+          <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="nav-cta nav-cta-ghost">
+            Support
+          </a>
+          <a href={INVITE_URL} target="_blank" rel="noopener noreferrer" className="nav-cta">
+            Add to Server
+          </a>
+        </div>
 
         <button
           className={`nav-hamburger${menuOpen ? ' active' : ''}`}

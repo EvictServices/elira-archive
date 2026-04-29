@@ -356,32 +356,35 @@ export default function StatusView() {
         <div className="shard-popout-overlay" onClick={() => setSelectedShard(null)}>
           <div className="shard-popout" onClick={(e) => e.stopPropagation()}>
             <div className="shard-popout-header">
-              <div>
-                <div className="shard-popout-title">Shard {selectedShard.id}</div>
-                <div className="shard-popout-sub">Cluster {selectedShard.clusterIdx}</div>
+              <div className="shard-popout-title-row">
+                <span className={`cluster-status-dot ${selectedShard.latency > 0 ? 'online' : 'offline'}`} />
+                <div>
+                  <div className="shard-popout-title">Shard #{selectedShard.id}</div>
+                  <div className="shard-popout-sub">Cluster {selectedShard.clusterIdx}</div>
+                </div>
               </div>
               <button className="shard-popout-close" onClick={() => setSelectedShard(null)} aria-label="Close">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
             <div className="shard-popout-grid">
               <div className="shard-popout-stat">
-                <span className="shard-popout-stat-value">{(selectedShard.guilds || 0).toLocaleString()}</span>
                 <span className="shard-popout-stat-label">Guilds</span>
+                <span className="shard-popout-stat-value">{(selectedShard.guilds || 0).toLocaleString()}</span>
               </div>
               <div className="shard-popout-stat">
-                <span className="shard-popout-stat-value">{(selectedShard.users || 0).toLocaleString()}</span>
                 <span className="shard-popout-stat-label">Users</span>
+                <span className="shard-popout-stat-value">{(selectedShard.users || 0).toLocaleString()}</span>
               </div>
               <div className="shard-popout-stat">
-                <span className="shard-popout-stat-value">{selectedShard.latency && selectedShard.latency > 0 ? (selectedShard.latency * 1000).toFixed(0) + 'ms' : '—'}</span>
                 <span className="shard-popout-stat-label">Latency</span>
+                <span className="shard-popout-stat-value mono">{selectedShard.latency && selectedShard.latency > 0 ? (selectedShard.latency * 1000).toFixed(0) + 'ms' : '—'}</span>
               </div>
               <div className="shard-popout-stat">
-                <span className="shard-popout-stat-value">{fmtUptime(selectedShard.uptime)}</span>
                 <span className="shard-popout-stat-label">Uptime</span>
+                <span className="shard-popout-stat-value mono">{fmtUptime(selectedShard.uptime)}</span>
               </div>
             </div>
           </div>
@@ -401,7 +404,7 @@ export default function StatusView() {
             <div className="st-hstat-col">
               <div className="st-hstat">
                 <span className="st-hstat-num">{shards}</span>
-                <span className="st-hstat-key">Clusters</span>
+                <span className="st-hstat-key">Shards</span>
               </div>
               <div className="st-hstat st-hstat-sub">
                 <span className="st-hstat-num mono">{latVal}</span>
