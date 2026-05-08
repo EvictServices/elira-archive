@@ -85,3 +85,61 @@ export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[
   await redis.set(cacheKey, JSON.stringify(channels), 'EX', 120)
   return channels
 }
+
+export interface GuildRole {
+  id: string
+  name: string
+  color: number
+  position: number
+  hoist: boolean
+  managed: boolean
+  mentionable: boolean
+  permissions: string
+  is_default: boolean
+  is_bot_managed: boolean
+  is_premium_subscriber: boolean
+  is_integration: boolean
+  icon_url: string | null
+  unicode_emoji: string | null
+  member_count: number
+}
+
+export async function fetchGuildRoles(guildId: string): Promise<GuildRole[]> {
+  const cacheKey = `dashboard:roles:${guildId}`
+  const cached = await redis.get(cacheKey)
+  if (cached) {
+    return JSON.parse(cached) as GuildRole[]
+  }
+
+  const roles = await clusterGet<GuildRole[]>(`/guild/${guildId}/roles`)
+  await redis.set(cacheKey, JSON.stringify(roles), 'EX', 120)
+  return roles
+}
+
+export interface GuildMember {
+  guild_id: string
+  user_id: string
+  is_owner: boolean
+  top_role_position: number
+  role_ids: string[]
+  permissions: string
+}
+
+export async function fetchGuildMember(
+  guildId: string,
+  userId: string
+): Promise<GuildMember | null> {
+  const cacheKey = `dashboard:member:${guildId}:${userId}`
+  const cached = await redis.get(cacheKey)
+  if (cached) {
+    return JSON.parse(cached) as GuildMember
+  }
+
+  try {
+    const member = await clusterGet<GuildMember>(`/guild/${guildId}/member/${userId}`)
+    await redis.set(cacheKey, JSON.stringify(member), 'EX', 30)
+    return member
+  } catch {
+    return null
+  }
+}

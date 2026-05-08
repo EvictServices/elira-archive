@@ -2711,7 +2711,7 @@ body:has(.server-layout) > footer {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .an-module-name {
@@ -2725,26 +2725,27 @@ body:has(.server-layout) > footer {
 }
 
 .an-module-desc {
+  display: block;
   font-size: 0.78rem;
   color: var(--text-secondary);
   opacity: 0.5;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .an-module-body {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 18px;
+  padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   animation: fadeIn 0.25s ease both;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .an-edit-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .an-edit-field label {
@@ -2841,6 +2842,27 @@ body:has(.server-layout) > footer {
   opacity: 1;
 }
 
+.an-dropdown-item.disabled,
+.an-dropdown-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.an-dropdown-item.disabled:hover,
+.an-dropdown-item:disabled:hover {
+  background: transparent;
+  opacity: 0.35;
+}
+
+.autorole-disabled-reason {
+  font-size: 0.7rem;
+  color: rgb(230, 140, 140);
+  font-weight: 500;
+  margin-left: 8px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
 .settings-loading {
   color: var(--text-muted);
   opacity: 0.5;
@@ -2894,5 +2916,122 @@ body:has(.server-layout) > footer {
 
 .an-dropdown.saving .an-dropdown-trigger {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.an-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.an-toggle-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+.an-toggle-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.autorole-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.autorole-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.autorole-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.autorole-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.autorole-role-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autorole-role-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.autorole-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.autorole-pill-add {
+  background: rgba(78, 220, 130, 0.12);
+  border-color: rgba(78, 220, 130, 0.3);
+  color: rgb(140, 230, 170);
+}
+
+.autorole-pill-remove {
+  background: rgba(220, 90, 90, 0.12);
+  border-color: rgba(220, 90, 90, 0.3);
+  color: rgb(230, 140, 140);
+}
+
+.autorole-delay {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.autorole-remove-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.autorole-remove-btn:hover:not(:disabled) {
+  background: rgba(220, 90, 90, 0.1);
+  color: rgb(240, 150, 150);
+  border-color: rgba(220, 90, 90, 0.3);
+}
+
+.autorole-remove-btn:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }

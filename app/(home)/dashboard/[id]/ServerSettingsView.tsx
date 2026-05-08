@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PrefixSettings from '@/components/settings/PrefixSettings'
 import AntinukeSettings from '@/components/settings/AntinukeSettings'
 import LoggingSettings from '@/components/settings/LoggingSettings'
+import AutoroleSettings from '@/components/settings/AutoroleSettings'
 
 interface Guild {
   guild_id: string
@@ -291,9 +292,13 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
           {activeItem === 'general' && <PrefixSettings guildId={guild.guild_id} />}
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
-          {activeItem !== 'general' && activeItem !== 'antinuke' && activeItem !== 'logging' && (
-            <p className="server-content-placeholder">Settings for this section coming soon.</p>
-          )}
+          {activeItem === 'autorole' && <AutoroleSettings guildId={guild.guild_id} />}
+          {activeItem !== 'general' &&
+            activeItem !== 'antinuke' &&
+            activeItem !== 'logging' &&
+            activeItem !== 'autorole' && (
+              <p className="server-content-placeholder">Settings for this section coming soon.</p>
+            )}
         </div>
       </main>
     </div>
