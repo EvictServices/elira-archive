@@ -39,10 +39,24 @@ function parseModule(val: unknown): AntinukeModule | null {
   }
 }
 
+function toSnowflakeList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((v) => {
+      if (typeof v === 'string') return v
+      if (typeof v === 'number') {
+        return Number.isSafeInteger(v) ? String(v) : ''
+      }
+      if (typeof v === 'bigint') return v.toString()
+      return ''
+    })
+    .filter((v) => v.length > 0)
+}
+
 function rowToSettings(row: Record<string, unknown>): AntinukeSettings {
   return {
-    whitelist: ((row.whitelist as string[]) || []).map(String),
-    trusted_admins: ((row.trusted_admins as string[]) || []).map(String),
+    whitelist: toSnowflakeList(row.whitelist),
+    trusted_admins: toSnowflakeList(row.trusted_admins),
     bot: Boolean(row.bot),
     ban: parseModule(row.ban),
     kick: parseModule(row.kick),
@@ -55,8 +69,8 @@ function rowToSettings(row: Record<string, unknown>): AntinukeSettings {
 
 function settingsToCache(settings: AntinukeSettings): string {
   return JSON.stringify({
-    whitelist: settings.whitelist.map(Number),
-    trusted_admins: settings.trusted_admins.map(Number),
+    whitelist: settings.whitelist,
+    trusted_admins: settings.trusted_admins,
     bot: settings.bot,
     ban: settings.ban,
     kick: settings.kick,
@@ -67,13 +81,28 @@ function settingsToCache(settings: AntinukeSettings): string {
   })
 }
 
+function parseAntinukeCache(text: string): unknown {
+  const safe = text.replace(
+    /"(whitelist|trusted_admins)"\s*:\s*\[([^\]]*)\]/g,
+    (_match, key: string, body: string) => {
+      const fixed = body.replace(/(?<!")(\d{16,20})(?!")/g, '"$1"')
+      return `"${key}":[${fixed}]`
+    },
+  )
+  return JSON.parse(safe)
+}
+
 export async function getAntinukeSettings(guildId: string): Promise<AntinukeSettings> {
   const key = cacheKey(guildId)
 
   const cached = await redis.get(key)
   if (cached) {
-    const data = typeof cached === 'string' ? JSON.parse(cached) : cached
-    return rowToSettings(data)
+    try {
+      const data = typeof cached === 'string' ? parseAntinukeCache(cached) : cached
+      return rowToSettings(data as Record<string, unknown>)
+    } catch {
+      await redis.del(key)
+    }
   }
 
   const res = await pool.query('SELECT * FROM antinuke WHERE guild_id = $1', [guildId])
@@ -93,9 +122,20 @@ export async function getAntinukeSettings(guildId: string): Promise<AntinukeSett
   return settings
 }
 
+/**
+ * Whether the user may view or edit antinuke for this guild.
+ * Reads `trusted_admins` from Postgres (not Redis) so every request is
+ * authorized against current data, not a cached row.
+ */
 export async function isAntinukeAdmin(guildId: string, userId: string): Promise<boolean> {
-  const settings = await getAntinukeSettings(guildId)
-  if (settings.trusted_admins.includes(userId)) return true
+  const res = await pool.query(
+    'SELECT trusted_admins FROM antinuke WHERE guild_id = $1',
+    [guildId]
+  )
+  if (res.rows.length > 0) {
+    const admins = toSnowflakeList(res.rows[0].trusted_admins)
+    if (admins.includes(userId)) return true
+  }
 
   try {
     const { fetchGuild } = await import('@/lib/cluster')
@@ -154,8 +194,8 @@ export async function updateAntinukeWhitelist(
   ids: string[]
 ): Promise<void> {
   await pool.query(
-    'UPDATE antinuke SET whitelist = $2 WHERE guild_id = $1',
-    [guildId, ids.map(Number)]
+    'UPDATE antinuke SET whitelist = $2::bigint[] WHERE guild_id = $1',
+    [guildId, ids]
   )
 
   const key = cacheKey(guildId)
@@ -167,8 +207,8 @@ export async function updateAntinukeTrustedAdmins(
   ids: string[]
 ): Promise<void> {
   await pool.query(
-    'UPDATE antinuke SET trusted_admins = $2 WHERE guild_id = $1',
-    [guildId, ids.map(Number)]
+    'UPDATE antinuke SET trusted_admins = $2::bigint[] WHERE guild_id = $1',
+    [guildId, ids]
   )
 
   const key = cacheKey(guildId)

@@ -26,6 +26,17 @@ export interface LoggingSettings {
   ignored: string[]
 }
 
+/** Bot matches `LogType.name` (MESSAGE, MEMBER, …) in `ANY(events)`. */
+function storedEventType(eventLower: string): string {
+  return eventLower.toUpperCase()
+}
+
+/** API + dashboard use lowercase labels; normalize DB values for responses. */
+function normalizeEventsFromDb(events: unknown): string[] {
+  if (!Array.isArray(events)) return []
+  return events.map((e) => String(e).toLowerCase())
+}
+
 function cacheKey(guildId: string): string {
   return xxh32(`logging:${guildId}`)
 }
@@ -40,7 +51,14 @@ export async function getLoggingSettings(guildId: string): Promise<LoggingSettin
   const cached = await redis.get(key)
   if (cached) {
     const data = typeof cached === 'string' ? JSON.parse(cached) : cached
-    return data as LoggingSettings
+    const s = data as LoggingSettings
+    return {
+      ...s,
+      channels: s.channels.map((ch) => ({
+        ...ch,
+        events: normalizeEventsFromDb(ch.events),
+      })),
+    }
   }
 
   const channelRes = await pool.query(
@@ -56,7 +74,7 @@ export async function getLoggingSettings(guildId: string): Promise<LoggingSettin
   const settings: LoggingSettings = {
     channels: channelRes.rows.map((r) => ({
       channel_id: String(r.channel_id),
-      events: r.events || [],
+      events: normalizeEventsFromDb(r.events),
     })),
     ignored: ignoredRes.rows.map((r) => String(r.target_id)),
   }
@@ -87,11 +105,13 @@ export async function setLoggingEvents(
     throw new Error(`Invalid event types: ${invalid.join(', ')}`)
   }
 
+  const stored = events.map((e) => storedEventType(e))
+
   await pool.query(
     `INSERT INTO logging (guild_id, channel_id, events)
      VALUES ($1, $2, $3)
      ON CONFLICT (guild_id, channel_id) DO UPDATE SET events = EXCLUDED.events`,
-    [guildId, channelId, events]
+    [guildId, channelId, stored]
   )
 
   await invalidateCache(guildId)
@@ -145,6 +165,8 @@ export async function setEventChannel(
     throw new Error(`Invalid event type: ${event}`)
   }
 
+  const stored = storedEventType(event)
+
   const existing = await pool.query(
     'SELECT channel_id, events FROM logging WHERE guild_id = $1',
     [guildId]
@@ -152,8 +174,13 @@ export async function setEventChannel(
 
   for (const row of existing.rows) {
     const events: string[] = row.events || []
-    if (events.includes(event)) {
-      const remaining = events.filter((e: string) => e !== event)
+    const hasEvent = events.some(
+      (e) => String(e).toUpperCase() === stored
+    )
+    if (hasEvent) {
+      const remaining = events.filter(
+        (e: string) => String(e).toUpperCase() !== stored
+      )
       if (remaining.length === 0) {
         await pool.query(
           'DELETE FROM logging WHERE guild_id = $1 AND channel_id = $2',
@@ -174,16 +201,19 @@ export async function setEventChannel(
     )
     if (target) {
       const events: string[] = target.events || []
-      if (!events.includes(event)) {
+      const hasStored = events.some(
+        (e) => String(e).toUpperCase() === stored
+      )
+      if (!hasStored) {
         await pool.query(
           'UPDATE logging SET events = array_append(events, $3) WHERE guild_id = $1 AND channel_id = $2',
-          [guildId, channelId, event]
+          [guildId, channelId, stored]
         )
       }
     } else {
       await pool.query(
         'INSERT INTO logging (guild_id, channel_id, events) VALUES ($1, $2, $3)',
-        [guildId, channelId, [event]]
+        [guildId, channelId, [stored]]
       )
     }
   }

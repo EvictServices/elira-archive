@@ -3370,7 +3370,220 @@ body:has(.server-layout) > footer {
 .an-modules {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  align-items: start;
   gap: 14px;
+}
+.an-modules-enabled + .an-modules-compact {
+  margin-top: 14px;
+}
+.an-modules-compact .an-module {
+  align-self: start;
+}
+
+.antinuke-settings .an-access {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--border);
+}
+.an-access-heading {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+}
+.an-access-lead {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  opacity: 0.75;
+  line-height: 1.55;
+  max-width: 720px;
+  margin: 0 0 14px;
+}
+.an-access-panel {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 45%),
+    var(--bg-card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 40px -18px rgba(0, 0, 0, 0.45);
+  padding: 18px;
+  overflow: hidden;
+  animation: fadeUp 0.35s ease both;
+}
+.an-access-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.an-access-panel .an-access-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--r-md);
+  padding: 16px;
+}
+.an-access-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.an-access-card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.an-access-card-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+.an-access-card-desc {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  opacity: 0.65;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+.an-access-add {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.an-access-input {
+  flex: 1;
+  min-width: 0;
+}
+.an-access-add-btn {
+  flex-shrink: 0;
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.an-access-local-error {
+  font-size: 0.75rem;
+  color: #f87171;
+  margin: 8px 0 0;
+}
+.an-access-chips {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+.an-access-empty {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  opacity: 0.55;
+  padding: 4px 0;
+}
+.an-access-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+.an-access-chip-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.an-access-chip-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.an-access-chip-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  color: var(--text-secondary);
+}
+.an-access-chip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.an-access-chip-name {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.an-access-chip-id {
+  font-family: ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.an-access-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background var(--ease), color var(--ease);
+}
+.an-access-chip-remove:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+.an-access-chip-remove:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .an-access-panel {
+    padding: 14px;
+  }
+  .an-access-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .an-module {

@@ -3,7 +3,10 @@ import redis from '@/lib/redis'
 const CLUSTER_API = 'http://localhost:8000'
 
 function safeParse<T>(text: string): T {
-  const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
+  const safe = text.replace(
+    /"(id|guild_id|owner_id|user_id)":\s*(\d{15,})/g,
+    '"$1":"$2"'
+  )
   return JSON.parse(safe) as T
 }
 
@@ -158,4 +161,35 @@ export async function fetchGuildMember(
   } catch {
     return null
   }
+}
+
+/** Resolved via cluster bulk user lookup (bot cache). */
+export interface ResolvedDiscordUser {
+  user_id: string
+  username: string
+  display_name: string | null
+  avatar: string | null
+}
+
+export async function fetchResolvedUsers(
+  userIds: string[]
+): Promise<ResolvedDiscordUser[]> {
+  const unique = [...new Set(userIds)].slice(0, 100)
+  if (unique.length === 0) return []
+
+  const raw = await clusterPost<
+    Array<{
+      user_id: number | string
+      username: string
+      display_name?: string | null
+      avatar?: string | null
+    }>
+  >('/users/find', { user_ids: unique })
+
+  return raw.map((u) => ({
+    user_id: String(u.user_id),
+    username: u.username,
+    display_name: u.display_name ?? null,
+    avatar: u.avatar ?? null,
+  }))
 }

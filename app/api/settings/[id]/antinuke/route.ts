@@ -4,8 +4,31 @@ import {
   getAntinukeSettings,
   updateAntinukeModule,
   updateAntinukeBotToggle,
+  updateAntinukeWhitelist,
+  updateAntinukeTrustedAdmins,
   isAntinukeAdmin,
 } from '@/lib/settings/antinuke'
+
+const SNOWFLAKE_RE = /^\d{17,20}$/
+
+function parseSnowflakeIdArray(arr: unknown): string[] | { error: string } {
+  if (!Array.isArray(arr)) return { error: 'Expected an array of user IDs' }
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const v of arr) {
+    if (typeof v !== 'string') {
+      return { error: 'Each user ID must be sent as a string (Discord snowflake)' }
+    }
+    const t = v.trim()
+    if (!SNOWFLAKE_RE.test(t)) {
+      return { error: 'Each user ID must be a 17–20 digit Discord snowflake' }
+    }
+    if (seen.has(t)) continue
+    seen.add(t)
+    out.push(t)
+  }
+  return out
+}
 
 export async function GET(
   _req: NextRequest,
@@ -61,6 +84,26 @@ export async function PATCH(
 
   if (typeof body.bot === 'boolean') {
     await updateAntinukeBotToggle(id, body.bot)
+    const updated = await getAntinukeSettings(id)
+    return NextResponse.json(updated)
+  }
+
+  if (body.whitelist !== undefined) {
+    const parsed = parseSnowflakeIdArray(body.whitelist)
+    if ('error' in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 })
+    }
+    await updateAntinukeWhitelist(id, parsed)
+    const updated = await getAntinukeSettings(id)
+    return NextResponse.json(updated)
+  }
+
+  if (body.trusted_admins !== undefined) {
+    const parsed = parseSnowflakeIdArray(body.trusted_admins)
+    if ('error' in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 })
+    }
+    await updateAntinukeTrustedAdmins(id, parsed)
     const updated = await getAntinukeSettings(id)
     return NextResponse.json(updated)
   }
