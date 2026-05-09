@@ -4,9 +4,6 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   trailingSlash: false,
   compress: true,
-  experimental: {
-    transitionIndicator: false,
-  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
