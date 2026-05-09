@@ -9,7 +9,7 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
     data.author.name || data.footer.text || data.fields.length > 0
 
   return (
-    <div style={{ fontFamily: "'Outfit', sans-serif" }}>
+    <div>
       {data.content && (
         <div style={{ color: '#dcddde', fontSize: '0.9rem', marginBottom: hasEmbed ? '0.5rem' : 0, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
           <DiscordMarkdown text={data.content} />

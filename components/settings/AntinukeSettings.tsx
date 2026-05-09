@@ -242,9 +242,6 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
     return <div className="settings-error">Failed to load settings</div>
   }
 
-  const enabledModules = MODULE_NAMES.filter((n) => settings[n] !== null)
-  const disabledModules = MODULE_NAMES.filter((n) => settings[n] === null)
-
   const renderModuleCard = (name: (typeof MODULE_NAMES)[number]) => {
     const mod = settings[name] as Module | null
     return (
@@ -281,25 +278,21 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
     <div className="antinuke-settings">
       {error && <p className="settings-error">{error}</p>}
 
-      {enabledModules.length > 0 && (
-        <div className="an-modules an-modules-enabled">
-          {enabledModules.map(renderModuleCard)}
-        </div>
-      )}
-
-      <div className="an-modules an-modules-compact">
-        {disabledModules.map(renderModuleCard)}
+      <div className="an-modules">
+        {MODULE_NAMES.map(renderModuleCard)}
         {antiBotCard}
       </div>
 
       <section className="an-access" aria-labelledby="an-access-heading">
-        <h2 id="an-access-heading" className="an-access-heading">
-          Trusted &amp; whitelisted users
-        </h2>
-        <p className="an-access-lead">
-          Trusted admins can manage antinuke from Discord and this dashboard. Whitelisted users
-          are ignored by antinuke thresholds (same as the bot).
-        </p>
+        <header className="server-content-header">
+          <h2 id="an-access-heading" className="server-content-title">
+            Trusted &amp; whitelisted users
+          </h2>
+          <p className="server-content-desc">
+            Trusted admins can manage antinuke from Discord and this dashboard. Whitelisted users
+            are ignored by antinuke thresholds (same as the bot).
+          </p>
+        </header>
         <div className="an-access-panel">
           <div className="an-access-grid">
             <SnowflakeUserColumn
@@ -384,12 +377,12 @@ function SnowflakeUserColumn({
   }
 
   return (
-    <div className="an-access-card">
-      <div className="an-access-card-head">
-        <h3 className="an-access-card-title">{title}</h3>
+    <div className="an-module">
+      <div className="an-module-header">
+        <span className="an-module-name">{title}</span>
         <span className="an-access-card-count">{ids.length}</span>
       </div>
-      <p className="an-access-card-desc">{description}</p>
+      <span className="an-module-desc">{description}</span>
       <div className="an-access-add">
         <input
           type="text"

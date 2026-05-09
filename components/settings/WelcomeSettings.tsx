@@ -1,0 +1,884 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import EmbedEditor from '@/app/(home)/embeds/components/EmbedEditor'
+import EmbedPreview from '@/app/(home)/embeds/components/EmbedPreview'
+import VariablesPaginator from '@/app/(home)/embeds/components/VariablesPaginator'
+import Autocomplete from '@/app/(home)/embeds/components/Autocomplete'
+import {
+  defaultEmbed,
+  generateScript,
+  parseScriptToEmbed,
+  type EmbedButton,
+  type EmbedData,
+  type EmbedField,
+} from '@/app/(home)/embeds/lib/types'
+
+interface WelcomeRow {
+  channel_id: string
+  template: string
+}
+
+interface GuildChannel {
+  id: string
+  name: string
+  type: number | string
+  position: number
+  parent_id: string | null
+}
+
+const MAX_WELCOME = 2
+
+function normalizeSnowflake(v: unknown): string {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'bigint') return String(v)
+  if (typeof v === 'number' && Number.isFinite(v)) return String(Math.trunc(v))
+  if (typeof v === 'string') {
+    const t = v.trim()
+    if (!t || t === 'null' || t === 'undefined') return ''
+    return t
+  }
+  return String(v).trim()
+}
+
+function normalizeOptionalSnowflake(v: unknown): string | null {
+  const s = normalizeSnowflake(v)
+  return s || null
+}
+
+/** Discord ChannelType names some APIs serialize as strings instead of numbers. */
+const DISCORD_CHANNEL_TYPE_BY_NAME: Record<string, number> = {
+  GUILD_TEXT: 0,
+  GUILD_NEWS: 5,
+  ANNOUNCEMENT: 5,
+  GUILD_CATEGORY: 4,
+  GUILD_VOICE: 2,
+  GUILD_STAGE_VOICE: 13,
+  GUILD_FORUM: 15,
+}
+
+function channelTypeCode(t: number | string | undefined): number | null {
+  if (t === undefined || t === null) return null
+  if (typeof t === 'number' && !Number.isNaN(t)) return t
+  if (typeof t === 'string') {
+    if (t === 'text' || t === 'news' || t === 'category') return null
+    const key = t.toUpperCase().replace(/-/g, '_')
+    const mapped = DISCORD_CHANNEL_TYPE_BY_NAME[key]
+    if (mapped !== undefined) return mapped
+    const n = parseInt(t, 10)
+    return Number.isNaN(n) ? null : n
+  }
+  return null
+}
+
+function parentIdFromChannelRow(o: Record<string, unknown>): string | null {
+  const pick = (v: unknown): string | null => {
+    if (v === undefined || v === null) return null
+    if (typeof v === 'object' && v !== null && 'id' in v) {
+      return normalizeOptionalSnowflake((v as { id: unknown }).id)
+    }
+    return normalizeOptionalSnowflake(v)
+  }
+  return (
+    pick(o.parent_id) ??
+    pick(o.parentId) ??
+    pick(o.category_id) ??
+    pick(o.categoryId) ??
+    pick(o.parent)
+  )
+}
+
+function isTextChannel(c: { type: number | string }): boolean {
+  const t = c.type
+  if (t === 'text' || t === 'news') return true
+  const n = channelTypeCode(t)
+  return n === 0 || n === 5
+}
+
+function isCategoryChannel(c: { type: number | string }): boolean {
+  const t = c.type
+  if (t === 'category') return true
+  const n = channelTypeCode(t)
+  return n === 4
+}
+
+function parseGuildChannelsFromApi(raw: unknown): GuildChannel[] {
+  if (!Array.isArray(raw)) return []
+  const out: GuildChannel[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const o = row as Record<string, unknown>
+    const id = normalizeSnowflake(o.id)
+    if (!id) continue
+    const name = typeof o.name === 'string' ? o.name : String(o.name ?? '')
+    const position = Number(o.position) || 0
+    const parent_id = parentIdFromChannelRow(o)
+    out.push({
+      id,
+      name,
+      type: o.type as number | string,
+      position,
+      parent_id,
+    })
+  }
+  return out
+}
+
+function categoryLabel(parentId: string | null, categoryById: Record<string, string>): string {
+  const key = parentId ? normalizeSnowflake(parentId) : ''
+  if (!key) return 'Uncategorized'
+  const name = categoryById[key]
+  if (name) return name
+  return 'Uncategorized'
+}
+
+function WelcomeChannelDropdown({
+  channels,
+  value,
+  onChange,
+  placeholder,
+  categoryById,
+  disabled,
+}: {
+  channels: GuildChannel[]
+  value: string
+  onChange: (id: string) => void
+  placeholder: string
+  categoryById: Record<string, string>
+  disabled?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const selected = channels.find((c) => c.id === value)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const empty = channels.length === 0
+
+  return (
+    <div className={`an-dropdown welcome-channel-dd${open ? ' open' : ''}`} ref={ref}>
+      <button
+        type="button"
+        className="an-dropdown-trigger welcome-channel-dd-trigger"
+        onClick={() => !disabled && !empty && setOpen(!open)}
+        disabled={disabled || empty}
+      >
+        <span className="welcome-channel-dd-trigger-inner">
+          {empty ? (
+            <span className="welcome-channel-dd-placeholder">{placeholder}</span>
+          ) : selected ? (
+            <span className="welcome-channel-dd-row">
+              <span className="welcome-channel-dd-name">#{selected.name}</span>
+              <span className="welcome-channel-dd-cat">
+                {categoryLabel(selected.parent_id, categoryById)}
+              </span>
+            </span>
+          ) : (
+            <span className="welcome-channel-dd-placeholder">{placeholder}</span>
+          )}
+        </span>
+        <svg
+          className="an-dropdown-chevron"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && !empty && (
+        <div className="an-dropdown-menu welcome-channel-dd-menu">
+          {channels.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`an-dropdown-item welcome-channel-dd-item${c.id === value ? ' active' : ''}`}
+              onClick={() => {
+                onChange(c.id)
+                setOpen(false)
+              }}
+            >
+              <span className="welcome-channel-dd-item-inner welcome-channel-dd-row">
+                <span className="welcome-channel-dd-name">#{c.name}</span>
+                <span className="welcome-channel-dd-cat">{categoryLabel(c.parent_id, categoryById)}</span>
+              </span>
+              {c.id === value && (
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="welcome-channel-dd-check"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const containerStyle = {
+  background: 'rgba(255,255,255,0.025)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  borderRadius: '14px',
+  overflow: 'hidden' as const,
+  boxShadow: '0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04) inset',
+}
+
+const headerStyle = {
+  background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+  padding: '0.85rem 1.25rem',
+  borderBottom: '1px solid rgba(255,255,255,0.07)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+}
+
+const headerTitle = {
+  fontWeight: 700,
+  fontSize: '0.88rem',
+  color: '#fff',
+  letterSpacing: '-0.01em',
+}
+
+const headerSub = {
+  fontSize: '0.68rem',
+  color: '#626876',
+  fontWeight: 500,
+}
+
+type ModalMode = 'add' | 'edit'
+
+function WelcomeEditorModal({
+  open,
+  mode,
+  guildName,
+  guildIconUrl,
+  channels,
+  categoryById,
+  messages,
+  draftChannelId,
+  setDraftChannelId,
+  embed,
+  setEmbed,
+  saving,
+  modalError,
+  onClose,
+  onSave,
+  lastInputRef,
+  handleEditorFocus,
+  insertVariable,
+  update,
+  updateAuthor,
+  updateFooter,
+  addField,
+  updateField,
+  removeField,
+  addButton,
+  updateButton,
+  removeButton,
+}: {
+  open: boolean
+  mode: ModalMode
+  guildName: string
+  guildIconUrl: string | null
+  channels: GuildChannel[]
+  categoryById: Record<string, string>
+  messages: WelcomeRow[]
+  draftChannelId: string
+  setDraftChannelId: (id: string) => void
+  embed: EmbedData
+  setEmbed: React.Dispatch<React.SetStateAction<EmbedData>>
+  saving: boolean
+  modalError: string | null
+  onClose: () => void
+  onSave: () => void
+  lastInputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>
+  handleEditorFocus: (e: React.FocusEvent) => void
+  insertVariable: (variable: string) => void
+  update: <K extends keyof EmbedData>(key: K, value: EmbedData[K]) => void
+  updateAuthor: (key: keyof EmbedData['author'], value: string) => void
+  updateFooter: (key: keyof EmbedData['footer'], value: string) => void
+  addField: () => void
+  updateField: (index: number, key: keyof EmbedField, value: string | boolean) => void
+  removeField: (index: number) => void
+  addButton: () => void
+  updateButton: (index: number, key: keyof EmbedButton, value: string | boolean) => void
+  removeButton: (index: number) => void
+}) {
+  const [mounted, setMounted] = useState(false)
+  const [timeStr, setTimeStr] = useState('')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (open) {
+      setTimeStr(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }))
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [open, onClose])
+
+  if (!mounted || !open) return null
+
+  const usedIds = new Set(messages.map((m) => m.channel_id))
+  const freeChannels = channels.filter((c) => !usedIds.has(c.id))
+  const dropdownChannels =
+    mode === 'edit'
+      ? channels.filter((c) => !usedIds.has(c.id) || c.id === draftChannelId)
+      : freeChannels
+  const previewAvatar = guildIconUrl || '/img/evict.webp'
+
+  return createPortal(
+    <>
+      <Autocomplete inputRef={lastInputRef} onInsert={insertVariable} />
+      <div
+        className="welcome-modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-modal-title"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose()
+        }}
+      >
+        <div className="welcome-modal-card" onClick={(e) => e.stopPropagation()}>
+          <div className="welcome-modal-head">
+            <div>
+              <h2 id="welcome-modal-title" className="welcome-modal-title">
+                {mode === 'add' ? 'Add welcome message' : 'Edit welcome message'}
+              </h2>
+              <p className="welcome-modal-sub">Choose a channel, then build the message.</p>
+            </div>
+            <button type="button" className="welcome-modal-close" onClick={onClose} aria-label="Close">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="welcome-modal-middle">
+            <div className="welcome-modal-channel-pane">
+              {modalError && <p className="settings-error welcome-modal-error">{modalError}</p>}
+
+              <section className="welcome-modal-section" aria-labelledby="welcome-modal-channel-label">
+                <h3 id="welcome-modal-channel-label" className="welcome-modal-h3">
+                  Channel
+                </h3>
+                <p className="welcome-modal-hint">Where this welcome is sent when someone joins.</p>
+                <WelcomeChannelDropdown
+                  channels={dropdownChannels}
+                  value={draftChannelId}
+                  onChange={setDraftChannelId}
+                  placeholder="Select a text channel"
+                  categoryById={categoryById}
+                  disabled={saving}
+                />
+              </section>
+            </div>
+
+            <div className="welcome-modal-scroll">
+            <section className="welcome-modal-section" aria-labelledby="welcome-modal-message-label">
+              <h3 id="welcome-modal-message-label" className="welcome-modal-h3">
+                Message
+              </h3>
+              <p className="welcome-modal-hint">Embed, content, variables, and buttons — same as the site embed builder.</p>
+
+              <div className="embed-grid welcome-modal-embed-grid">
+                <div className="welcome-modal-embed-col">
+                  <div className="embed-container" style={containerStyle}>
+                    <div style={headerStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: '#5865f2',
+                            boxShadow: '0 0 8px rgba(88,101,242,0.5)',
+                          }}
+                        />
+                        <span style={headerTitle}>Editor</span>
+                      </div>
+                      <span style={headerSub}>Build message</span>
+                    </div>
+                    <div
+                      style={{ padding: '1.25rem', maxHeight: 'min(45vh, 420px)', overflowY: 'auto' }}
+                      onFocusCapture={handleEditorFocus}
+                    >
+                      <EmbedEditor
+                        data={embed}
+                        update={update}
+                        updateAuthor={updateAuthor}
+                        updateFooter={updateFooter}
+                        addField={addField}
+                        updateField={updateField}
+                        removeField={removeField}
+                        addButton={addButton}
+                        updateButton={updateButton}
+                        removeButton={removeButton}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="embed-container" style={containerStyle}>
+                    <div style={headerStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: '#faa61a',
+                            boxShadow: '0 0 8px rgba(250,166,26,0.4)',
+                          }}
+                        />
+                        <span style={headerTitle}>Variables</span>
+                      </div>
+                      <span style={headerSub}>Insert at cursor</span>
+                    </div>
+                    <div style={{ padding: '1rem' }}>
+                      <VariablesPaginator onInsert={insertVariable} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="embed-grid-right welcome-modal-embed-col">
+                  <div
+                    className="embed-container"
+                    style={{ ...containerStyle, background: '#313338', border: '1px solid rgba(255,255,255,0.06)' }}
+                  >
+                    <div
+                      style={{
+                        ...headerStyle,
+                        background: 'linear-gradient(135deg, rgba(88,101,242,0.08) 0%, rgba(0,0,0,0.15) 100%)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: '#57f287',
+                            boxShadow: '0 0 8px rgba(87,242,135,0.5)',
+                          }}
+                        />
+                        <span style={headerTitle}>Preview</span>
+                      </div>
+                      <span style={headerSub}>Approximate layout</span>
+                    </div>
+                    <div style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <img
+                          src={previewAvatar}
+                          alt=""
+                          style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0 }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                            <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>{guildName}</span>
+                            <span
+                              style={{
+                                background: '#5865f2',
+                                color: '#fff',
+                                fontSize: '0.6rem',
+                                padding: '0.1rem 0.3rem',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                              }}
+                            >
+                              APP
+                            </span>
+                            {timeStr && (
+                              <span style={{ color: '#a3a6aa', fontSize: '0.7rem' }}>Today at {timeStr}</span>
+                            )}
+                          </div>
+                          <EmbedPreview data={embed} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="embed-container" style={containerStyle}>
+                    <div style={headerStyle}>
+                      <span style={headerTitle}>Stored script</span>
+                      <span style={headerSub}>Saved format</span>
+                    </div>
+                    <div style={{ padding: '1rem' }}>
+                      <pre className="welcome-script-pre welcome-modal-script-pre">
+                        {generateScript(embed) || '// Empty — add content or embed fields'}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            </div>
+          </div>
+
+          <div className="welcome-modal-footer">
+            <button type="button" className="welcome-modal-btn ghost" onClick={onClose} disabled={saving}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="welcome-modal-btn primary"
+              disabled={saving || !draftChannelId}
+              onClick={onSave}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  )
+}
+
+export default function WelcomeSettings({
+  guildId,
+  guildName,
+  guildIconUrl,
+}: {
+  guildId: string
+  guildName: string
+  guildIconUrl: string | null
+}) {
+  const [messages, setMessages] = useState<WelcomeRow[]>([])
+  const [channels, setChannels] = useState<GuildChannel[]>([])
+  const [categoryById, setCategoryById] = useState<Record<string, string>>({})
+  const [unavailable, setUnavailable] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [modalError, setModalError] = useState<string | null>(null)
+
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState<ModalMode>('add')
+  const [draftChannelId, setDraftChannelId] = useState('')
+  /** Row being edited; used when moving welcome to another channel. */
+  const [editSourceChannelId, setEditSourceChannelId] = useState<string | null>(null)
+  const [embed, setEmbed] = useState<EmbedData>(defaultEmbed)
+
+  const lastInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    setError(null)
+    Promise.all([
+      fetch(`/api/settings/${guildId}/welcome`).then((r) => r.json()),
+      fetch(`/api/settings/${guildId}/channels?type=all`).then((r) => r.json()),
+    ])
+      .then(([w, raw]) => {
+        const list: WelcomeRow[] = Array.isArray(w.messages) ? w.messages : []
+        const all = parseGuildChannelsFromApi(raw)
+        const cats: Record<string, string> = {}
+        for (const c of all) {
+          if (isCategoryChannel(c)) cats[normalizeSnowflake(c.id)] = c.name
+        }
+        const textList = all.filter(isTextChannel).sort((a, b) => a.position - b.position)
+        setMessages(list)
+        setUnavailable(Boolean(w.unavailable))
+        setCategoryById(cats)
+        setChannels(textList)
+      })
+      .catch(() => setError('Failed to load welcome settings'))
+      .finally(() => setLoading(false))
+  }, [guildId])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const channelName = (id: string) => channels.find((c) => c.id === id)?.name ?? id
+
+  const usedIds = new Set(messages.map((m) => m.channel_id))
+  const freeChannels = channels.filter((c) => !usedIds.has(c.id))
+
+  const openAdd = () => {
+    setModalMode('add')
+    setEditSourceChannelId(null)
+    setModalError(null)
+    setEmbed(defaultEmbed())
+    const first = freeChannels[0]
+    setDraftChannelId(first?.id ?? '')
+    setModalOpen(true)
+  }
+
+  const openEdit = (row: WelcomeRow) => {
+    setModalMode('edit')
+    setEditSourceChannelId(row.channel_id)
+    setModalError(null)
+    setDraftChannelId(row.channel_id)
+    setEmbed(parseScriptToEmbed(row.template))
+    setModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setModalOpen(false)
+    setModalError(null)
+    setEditSourceChannelId(null)
+  }
+
+  const handleEditorFocus = useCallback((e: React.FocusEvent) => {
+    const target = e.target as HTMLElement
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      lastInputRef.current = target as HTMLInputElement | HTMLTextAreaElement
+    }
+  }, [])
+
+  const insertVariable = useCallback((variable: string) => {
+    const el = lastInputRef.current
+    if (!el) return
+    const start = el.selectionStart ?? el.value.length
+    const end = el.selectionEnd ?? el.value.length
+    const newValue = el.value.slice(0, start) + variable + el.value.slice(end)
+    const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
+    const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
+    if (setter) {
+      setter.call(el, newValue)
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+    el.focus()
+    const cursor = start + variable.length
+    el.setSelectionRange(cursor, cursor)
+  }, [])
+
+  const update = useCallback(<K extends keyof EmbedData>(key: K, value: EmbedData[K]) => {
+    setEmbed((prev) => ({ ...prev, [key]: value }))
+  }, [])
+
+  const updateAuthor = useCallback((key: keyof EmbedData['author'], value: string) => {
+    setEmbed((prev) => ({ ...prev, author: { ...prev.author, [key]: value } }))
+  }, [])
+
+  const updateFooter = useCallback((key: keyof EmbedData['footer'], value: string) => {
+    setEmbed((prev) => ({ ...prev, footer: { ...prev.footer, [key]: value } }))
+  }, [])
+
+  const addField = useCallback(() => {
+    setEmbed((prev) => ({ ...prev, fields: [...prev.fields, { name: '', value: '', inline: false }] }))
+  }, [])
+
+  const updateField = useCallback((index: number, key: keyof EmbedField, value: string | boolean) => {
+    setEmbed((prev) => ({
+      ...prev,
+      fields: prev.fields.map((f, i) => (i === index ? { ...f, [key]: value } : f)),
+    }))
+  }, [])
+
+  const removeField = useCallback((index: number) => {
+    setEmbed((prev) => ({ ...prev, fields: prev.fields.filter((_, i) => i !== index) }))
+  }, [])
+
+  const addButton = useCallback(() => {
+    setEmbed((prev) => ({
+      ...prev,
+      buttons: [...prev.buttons, { style: 'link', label: '', url: '', emoji: '', disabled: false }],
+    }))
+  }, [])
+
+  const updateButton = useCallback((index: number, key: keyof EmbedButton, value: string | boolean) => {
+    setEmbed((prev) => ({
+      ...prev,
+      buttons: prev.buttons.map((b, i) => (i === index ? { ...b, [key]: value } : b)),
+    }))
+  }, [])
+
+  const removeButton = useCallback((index: number) => {
+    setEmbed((prev) => ({ ...prev, buttons: prev.buttons.filter((_, i) => i !== index) }))
+  }, [])
+
+  const saveModal = async () => {
+    if (!draftChannelId) {
+      setModalError('Select a channel.')
+      return
+    }
+    if (modalMode === 'add') {
+      const isNew = !messages.some((m) => m.channel_id === draftChannelId)
+      if (isNew && messages.length >= MAX_WELCOME) {
+        setModalError(`You can only have ${MAX_WELCOME} welcome messages. Remove one first.`)
+        return
+      }
+    }
+    setSaving(true)
+    setModalError(null)
+    try {
+      const body: Record<string, unknown> = { channel_id: draftChannelId, embed }
+      if (
+        modalMode === 'edit' &&
+        editSourceChannelId &&
+        editSourceChannelId !== draftChannelId
+      ) {
+        body.from_channel_id = editSourceChannelId
+      }
+      const res = await fetch(`/api/settings/${guildId}/welcome`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setModalError(data.error || 'Failed to save')
+        return
+      }
+      setMessages(data.messages ?? [])
+      closeModal()
+    } catch {
+      setModalError('Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const remove = async (cid: string) => {
+    setError(null)
+    try {
+      const res = await fetch(`/api/settings/${guildId}/welcome`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel_id: cid }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to remove')
+        return
+      }
+      setMessages(data.messages ?? [])
+    } catch {
+      setError('Failed to remove')
+    }
+  }
+
+  if (loading) {
+    return <div className="settings-loading">Loading welcome settings…</div>
+  }
+
+  const canAdd = !unavailable && messages.length < MAX_WELCOME && freeChannels.length > 0
+
+  return (
+    <div className="settings-field">
+      <label className="settings-label">Welcome messages</label>
+      {unavailable && (
+        <p className="settings-error">Welcome messages are not available for this server right now.</p>
+      )}
+      {error && <p className="settings-error">{error}</p>}
+
+      <div className="settings-input-row">
+        <button type="button" className="settings-save-btn" disabled={!canAdd} onClick={openAdd}>
+          Add welcome message
+        </button>
+      </div>
+      {!canAdd && !unavailable && messages.length < MAX_WELCOME && freeChannels.length === 0 && channels.length > 0 && (
+        <p className="settings-hint">Every text channel already has a welcome message. Remove one to add elsewhere.</p>
+      )}
+
+      {messages.length === 0 ? (
+        <p className="settings-desc welcome-message-empty">No welcome messages yet. Add one to send a message when members join.</p>
+      ) : (
+        <div className="an-modules welcome-message-modules">
+          {messages.map((m, i) => {
+            const ch = channels.find((c) => c.id === m.channel_id)
+            return (
+              <div
+                key={m.channel_id}
+                className="an-module welcome-message-module"
+                style={{ animationDelay: `${0.03 * (i + 1)}s` }}
+              >
+                <div className="an-module-header">
+                  <span className="an-module-name welcome-message-module-title">
+                    <span>#{channelName(m.channel_id)}</span>
+                    <span className="welcome-message-title-sep" aria-hidden>
+                      ·
+                    </span>
+                    <span className="welcome-message-title-category">
+                      {categoryLabel(ch?.parent_id ?? null, categoryById)}
+                    </span>
+                  </span>
+                  <div className="welcome-message-module-actions">
+                    <button type="button" className="settings-save-btn" onClick={() => openEdit(m)}>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="settings-save-btn welcome-message-remove-btn"
+                      onClick={() => void remove(m.channel_id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                <span className="an-module-desc welcome-message-channel-id">{m.channel_id}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <WelcomeEditorModal
+        open={modalOpen}
+        mode={modalMode}
+        guildName={guildName}
+        guildIconUrl={guildIconUrl}
+        channels={channels}
+        categoryById={categoryById}
+        messages={messages}
+        draftChannelId={draftChannelId}
+        setDraftChannelId={setDraftChannelId}
+        embed={embed}
+        setEmbed={setEmbed}
+        saving={saving}
+        modalError={modalError}
+        onClose={closeModal}
+        onSave={() => void saveModal()}
+        lastInputRef={lastInputRef}
+        handleEditorFocus={handleEditorFocus}
+        insertVariable={insertVariable}
+        update={update}
+        updateAuthor={updateAuthor}
+        updateFooter={updateFooter}
+        addField={addField}
+        updateField={updateField}
+        removeField={removeField}
+        addButton={addButton}
+        updateButton={updateButton}
+        removeButton={removeButton}
+      />
+    </div>
+  )
+}

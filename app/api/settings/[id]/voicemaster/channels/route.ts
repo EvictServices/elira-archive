@@ -12,6 +12,7 @@ import {
   deleteVoicemasterChannel,
   type GuildChannel,
 } from '@/lib/cluster'
+import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 interface EnrichedChannel {
   guild_id: string
@@ -103,6 +104,10 @@ export async function PATCH(
   }
 
   await updateChannelOwner(channelId, ownerId)
+  recordDashboardAudit(session, id, 'voicemaster.temp_channel.owner', {
+    channel_id: channelId,
+    owner_id: ownerId,
+  })
   const channels = await enrich(id, await getChannels(id))
   return NextResponse.json({ channels })
 }
@@ -140,6 +145,10 @@ export async function DELETE(
     } else {
       await deleteChannels(ids)
     }
+    recordDashboardAudit(session, id, 'voicemaster.temp_channels.delete_bulk', {
+      count: ids.length,
+      mode,
+    })
     const channels = await enrich(id, await getChannels(id))
     return NextResponse.json({
       channels,
@@ -183,6 +192,11 @@ export async function DELETE(
   } else {
     await deleteChannel(channelId)
   }
+
+  recordDashboardAudit(session, id, 'voicemaster.temp_channel.delete', {
+    channel_id: channelId,
+    mode,
+  })
 
   const channels = await enrich(id, await getChannels(id))
   return NextResponse.json({ channels })

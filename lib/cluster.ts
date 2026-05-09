@@ -77,14 +77,67 @@ export interface GuildChannel {
   parent_id: string | null
 }
 
+/** Elara IPC uses `category_id`; dashboard code expects `parent_id`. */
+function optionalSnowflake(v: unknown): string | null {
+  if (v === null || v === undefined) return null
+  if (typeof v === 'bigint') return String(v)
+  if (typeof v === 'number' && Number.isFinite(v)) return String(Math.trunc(v))
+  if (typeof v === 'string') {
+    const t = v.trim()
+    if (!t || t === 'null' || t === 'undefined') return null
+    return t
+  }
+  return String(v).trim() || null
+}
+
+/**
+ * Elara serializes `str(channel.type)` (discord.py). Normalize so TYPE_FILTERS in
+ * settings routes match (`text`, `news`, numeric codes, etc.).
+ */
+function normalizeChannelTypeFromCluster(t: unknown): number | string {
+  if (typeof t === 'number' && !Number.isNaN(t)) return t
+  if (typeof t !== 'string') return String(t ?? '')
+  const s = t.trim()
+  const enumStrip = /^ChannelType\.(\w+)$/i.exec(s)
+  if (enumStrip) return enumStrip[1].toLowerCase()
+  const n = parseInt(s, 10)
+  if (!Number.isNaN(n) && String(n) === s) return n
+  return s
+}
+
+function normalizeGuildChannelsFromCluster(raw: unknown): GuildChannel[] {
+  if (!Array.isArray(raw)) return []
+  const out: GuildChannel[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const o = row as Record<string, unknown>
+    const id = optionalSnowflake(o.id)
+    if (!id) continue
+    const parent_id =
+      optionalSnowflake(o.parent_id) ??
+      optionalSnowflake(o.parentId) ??
+      optionalSnowflake(o.category_id) ??
+      optionalSnowflake(o.categoryId)
+    out.push({
+      id,
+      name: typeof o.name === 'string' ? o.name : String(o.name ?? ''),
+      type: normalizeChannelTypeFromCluster(o.type),
+      position: Number(o.position) || 0,
+      parent_id,
+    })
+  }
+  return out
+}
+
 export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[]> {
-  const cacheKey = `dashboard:channels:${guildId}`
+  const cacheKey = `dashboard:channels:v2:${guildId}`
   const cached = await redis.get(cacheKey)
   if (cached) {
     return JSON.parse(cached) as GuildChannel[]
   }
 
-  const channels = await clusterGet<GuildChannel[]>(`/guild/${guildId}/channels`)
+  const raw = await clusterGet<unknown>(`/guild/${guildId}/channels`)
+  const channels = normalizeGuildChannelsFromCluster(raw)
   await redis.set(cacheKey, JSON.stringify(channels), 'EX', 120)
   return channels
 }

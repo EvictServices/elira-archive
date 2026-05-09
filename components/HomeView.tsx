@@ -68,15 +68,15 @@ export default function HomeView() {
           display: 'flex', flexDirection: 'column', gap: 24,
           background: 'rgba(255,255,255,0.02)',
         }}>
-          <h2 style={{ fontFamily: 'var(--font-geist-mono)', color: '#fff', fontSize: '1.6rem', margin: 0 }}>
+          <h2 style={{ color: '#fff', fontSize: '1.6rem', margin: 0 }}>
             Want to try Evict?
           </h2>
-          <p style={{ fontFamily: 'var(--font-geist-mono)', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.7, margin: 0 }}>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.7, margin: 0 }}>
             Add Evict to your server and explore everything it offers&nbsp;&mdash; moderation, antinuke, music, social feeds, and more, all in one place.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <a href={INVITE_URL} target="_blank" rel="noopener" style={{
-              fontFamily: 'var(--font-geist-mono)', fontSize: '0.9rem',
+              fontSize: '0.9rem',
               color: '#fff', textDecoration: 'none', textAlign: 'center',
               padding: '14px 32px', borderRadius: 10,
               border: '1px solid rgba(255,255,255,0.15)',
@@ -88,7 +88,7 @@ export default function HomeView() {
               Invite Evict
             </a>
             <a href={SUPPORT_URL} target="_blank" rel="noopener" style={{
-              fontFamily: 'var(--font-geist-mono)', fontSize: '0.9rem',
+              fontSize: '0.9rem',
               color: '#fff', textDecoration: 'none', textAlign: 'center',
               padding: '14px 32px', borderRadius: 10,
               border: '1px solid rgba(255,255,255,0.15)',
@@ -99,7 +99,7 @@ export default function HomeView() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               Join Support
             </a>
-            <p style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: '4px 0 0', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', margin: '4px 0 0', lineHeight: 1.6 }}>
               Join the growing community of users who use evict to manage and enhance their servers with features only found on paid bots completely for free.
             </p>
           </div>

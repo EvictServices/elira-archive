@@ -13,6 +13,7 @@ import {
   REGIONS,
   type Region,
 } from '@/lib/settings/voicemaster'
+import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 function asSnowflakeOrNull(value: unknown): string | null {
   if (value === null || value === undefined || value === '') return null
@@ -83,6 +84,11 @@ export async function POST(
       interfaceId,
       channelId
     )
+    recordDashboardAudit(session, id, 'voicemaster.create', {
+      category_id: categoryId,
+      interface_id: interfaceId,
+      channel_id: channelId,
+    })
     return NextResponse.json({ configuration })
   } catch (err) {
     return NextResponse.json(
@@ -112,9 +118,12 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
+  const detail: Record<string, unknown> = {}
+
   try {
     if ('category_id' in body) {
       await updateCategory(id, asSnowflakeOrNull(body.category_id))
+      detail.category_id = asSnowflakeOrNull(body.category_id)
     }
 
     if ('channel_id' in body) {
@@ -126,10 +135,12 @@ export async function PATCH(
         )
       }
       await updateChannel(id, channelId)
+      detail.channel_id = channelId
     }
 
     if ('role_id' in body) {
       await updateRole(id, asSnowflakeOrNull(body.role_id))
+      detail.role_id = asSnowflakeOrNull(body.role_id)
     }
 
     if ('region' in body) {
@@ -142,8 +153,10 @@ export async function PATCH(
           )
         }
         await updateRegion(id, region as Region)
+        detail.region = region
       } else {
         await updateRegion(id, null)
+        detail.region = null
       }
     }
 
@@ -151,12 +164,14 @@ export async function PATCH(
       const bitrate = body.bitrate
       if (bitrate === null || bitrate === undefined || bitrate === '') {
         await updateBitrate(id, null)
+        detail.bitrate = null
       } else {
         const value = Number(bitrate)
         if (!Number.isFinite(value)) {
           return NextResponse.json({ error: 'Bitrate must be a number' }, { status: 400 })
         }
         await updateBitrate(id, value)
+        detail.bitrate = value
       }
     }
   } catch (err) {
@@ -164,6 +179,10 @@ export async function PATCH(
       { error: (err as Error).message },
       { status: 400 }
     )
+  }
+
+  if (Object.keys(detail).length > 0) {
+    recordDashboardAudit(session, id, 'voicemaster.update', detail)
   }
 
   const updated = await getConfiguration(id)
@@ -193,5 +212,6 @@ export async function DELETE(
     )
   }
 
+  recordDashboardAudit(session, id, 'voicemaster.delete', {})
   return NextResponse.json({ deleted })
 }

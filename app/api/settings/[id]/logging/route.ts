@@ -11,6 +11,7 @@ import {
   EVENT_TYPES,
   type EventType,
 } from '@/lib/settings/logging'
+import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 export async function GET(
   _req: NextRequest,
@@ -59,6 +60,10 @@ export async function PATCH(
         { status: 400 }
       )
     }
+    recordDashboardAudit(session, id, 'logging.event_channel', {
+      event: body.event,
+      channel_id: channelId,
+    })
     const updated = await getLoggingSettings(id)
     return NextResponse.json(updated)
   }
@@ -82,6 +87,10 @@ export async function PATCH(
         { status: 400 }
       )
     }
+    recordDashboardAudit(session, id, 'logging.channel_events', {
+      channel_id: channelId,
+      events_count: events.length,
+    })
     const updated = await getLoggingSettings(id)
     return NextResponse.json(updated)
   }
@@ -89,6 +98,9 @@ export async function PATCH(
   // Add ignored target
   if (body.action === 'add_ignored' && body.target_id) {
     await addIgnored(id, String(body.target_id))
+    recordDashboardAudit(session, id, 'logging.ignored_add', {
+      target_id: String(body.target_id),
+    })
     const updated = await getLoggingSettings(id)
     return NextResponse.json(updated)
   }
@@ -96,6 +108,9 @@ export async function PATCH(
   // Remove ignored target
   if (body.action === 'remove_ignored' && body.target_id) {
     await removeIgnored(id, String(body.target_id))
+    recordDashboardAudit(session, id, 'logging.ignored_remove', {
+      target_id: String(body.target_id),
+    })
     const updated = await getLoggingSettings(id)
     return NextResponse.json(updated)
   }
@@ -125,6 +140,9 @@ export async function DELETE(
   }
 
   await deleteLoggingChannel(id, String(body.channel_id))
+  recordDashboardAudit(session, id, 'logging.channel_remove', {
+    channel_id: String(body.channel_id),
+  })
   const updated = await getLoggingSettings(id)
   return NextResponse.json(updated)
 }

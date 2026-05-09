@@ -18,6 +18,7 @@ import {
   setReassignIgnoreIds,
   setReassignRoles,
 } from '@/lib/settings/autorole'
+import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 export async function GET(
   _req: NextRequest,
@@ -144,6 +145,11 @@ export async function PATCH(
         }
 
         await addAutorole(id, body.role_id, action, delay)
+        recordDashboardAudit(session, id, 'autorole.add', {
+          role_id: body.role_id,
+          action,
+          delay,
+        })
         break
       }
       case 'remove': {
@@ -158,10 +164,15 @@ export async function PATCH(
         if (!removed) {
           return NextResponse.json({ error: 'No matching auto role found' }, { status: 404 })
         }
+        recordDashboardAudit(session, id, 'autorole.remove', {
+          role_id: body.role_id,
+          action: action ?? null,
+        })
         break
       }
       case 'clear': {
         await clearAutoroles(id)
+        recordDashboardAudit(session, id, 'autorole.clear', {})
         break
       }
       case 'reassign': {
@@ -169,6 +180,7 @@ export async function PATCH(
           return NextResponse.json({ error: 'enabled must be a boolean' }, { status: 400 })
         }
         await setReassignRoles(id, body.enabled)
+        recordDashboardAudit(session, id, 'autorole.reassign', { enabled: body.enabled })
         break
       }
       case 'reassign_ignore': {
@@ -176,6 +188,9 @@ export async function PATCH(
           return NextResponse.json({ error: 'role_ids must be an array of role IDs' }, { status: 400 })
         }
         await setReassignIgnoreIds(id, body.role_ids as string[])
+        recordDashboardAudit(session, id, 'autorole.reassign_ignore', {
+          role_ids_count: body.role_ids.length,
+        })
         break
       }
       default:

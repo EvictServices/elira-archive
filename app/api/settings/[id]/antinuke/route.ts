@@ -8,6 +8,7 @@ import {
   updateAntinukeTrustedAdmins,
   isAntinukeAdmin,
 } from '@/lib/settings/antinuke'
+import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 const SNOWFLAKE_RE = /^\d{17,20}$/
 
@@ -78,12 +79,16 @@ export async function PATCH(
         { status: 400 }
       )
     }
+    recordDashboardAudit(session, id, 'antinuke.module.update', {
+      module: body.module,
+    })
     const updated = await getAntinukeSettings(id)
     return NextResponse.json(updated)
   }
 
   if (typeof body.bot === 'boolean') {
     await updateAntinukeBotToggle(id, body.bot)
+    recordDashboardAudit(session, id, 'antinuke.bot_toggle', { enabled: body.bot })
     const updated = await getAntinukeSettings(id)
     return NextResponse.json(updated)
   }
@@ -94,6 +99,9 @@ export async function PATCH(
       return NextResponse.json({ error: parsed.error }, { status: 400 })
     }
     await updateAntinukeWhitelist(id, parsed)
+    recordDashboardAudit(session, id, 'antinuke.whitelist.update', {
+      count: parsed.length,
+    })
     const updated = await getAntinukeSettings(id)
     return NextResponse.json(updated)
   }
@@ -104,6 +112,9 @@ export async function PATCH(
       return NextResponse.json({ error: parsed.error }, { status: 400 })
     }
     await updateAntinukeTrustedAdmins(id, parsed)
+    recordDashboardAudit(session, id, 'antinuke.trusted_admins.update', {
+      count: parsed.length,
+    })
     const updated = await getAntinukeSettings(id)
     return NextResponse.json(updated)
   }

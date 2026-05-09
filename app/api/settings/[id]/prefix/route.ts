@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
 import { getGuildPrefix, updateGuildPrefix } from '@/lib/settings/prefix'
+import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 export async function GET(
   _req: NextRequest,
@@ -49,5 +50,6 @@ export async function PATCH(
   }
 
   await updateGuildPrefix(id, prefix)
+  recordDashboardAudit(session, id, 'prefix.update', { prefix })
   return NextResponse.json({ prefix })
 }

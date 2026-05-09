@@ -7,6 +7,8 @@ import AntinukeSettings from '@/components/settings/AntinukeSettings'
 import LoggingSettings from '@/components/settings/LoggingSettings'
 import AutoroleSettings from '@/components/settings/AutoroleSettings'
 import VoicemasterSettings from '@/components/settings/VoicemasterSettings'
+import AuditLogSettings from '@/components/settings/AuditLogSettings'
+import WelcomeSettings from '@/components/settings/WelcomeSettings'
 
 interface Guild {
   guild_id: string
@@ -74,6 +76,18 @@ const sections: SidebarSection[] = [
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        ),
+      },
+      {
+        id: 'audit',
+        label: 'Audit log',
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <path d="M12 18v-6" />
+            <path d="M9 15h6" />
           </svg>
         ),
       },
@@ -179,6 +193,7 @@ const sections: SidebarSection[] = [
 
 const sectionDescriptions: Record<string, string> = {
   general: 'Manage general server configuration.',
+  audit: 'Review changes made from this dashboard.',
   automod: 'Configure automatic moderation rules',
   logging: 'Set up event logging channels.',
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
@@ -283,23 +298,35 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
       </aside>
 
       <main className="server-content">
-        <h1 className="server-content-title">
-          {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
+        <header className="server-content-header">
+          <h1 className="server-content-title">
+            {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
+          </h1>
           {sectionDescriptions[activeItem] && (
             <p className="server-content-desc">{sectionDescriptions[activeItem]}</p>
           )}
-        </h1>
+        </header>
         <div className="server-content-body">
           {activeItem === 'general' && <PrefixSettings guildId={guild.guild_id} />}
+          {activeItem === 'audit' && <AuditLogSettings guildId={guild.guild_id} />}
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
           {activeItem === 'autorole' && <AutoroleSettings guildId={guild.guild_id} />}
           {activeItem === 'voicemaster' && <VoicemasterSettings guildId={guild.guild_id} />}
+          {activeItem === 'welcome' && (
+            <WelcomeSettings
+              guildId={guild.guild_id}
+              guildName={guild.name}
+              guildIconUrl={guild.icon_url}
+            />
+          )}
           {activeItem !== 'general' &&
+            activeItem !== 'audit' &&
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&
             activeItem !== 'autorole' &&
-            activeItem !== 'voicemaster' && (
+            activeItem !== 'voicemaster' &&
+            activeItem !== 'welcome' && (
               <p className="server-content-placeholder">Settings for this section coming soon.</p>
             )}
         </div>
