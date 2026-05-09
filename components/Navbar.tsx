@@ -12,7 +12,13 @@ export default function Navbar() {
   const [navHidden, setNavHidden] = useState(false)
   const lastScrollY = useRef(0)
 
+  const isDashboard = pathname.startsWith('/dashboard')
+
   useEffect(() => {
+    if (isDashboard) {
+      setNavHidden(false)
+      return
+    }
     const handleScroll = () => {
       const sy = window.scrollY
       if (sy > lastScrollY.current && sy > 80 && !menuOpen) {
@@ -24,7 +30,7 @@ export default function Navbar() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [menuOpen])
+  }, [menuOpen, isDashboard])
 
   const closeMenu = () => {
     setMenuOpen(false)
@@ -39,6 +45,56 @@ export default function Navbar() {
 
   const isActive = (page: string) =>
     page === 'home' ? pathname === '/' : pathname.startsWith('/' + page)
+
+  if (isDashboard) {
+    const isOnGuildPage = /^\/dashboard\/\d+/.test(pathname)
+    return (
+      <nav className="navbar navbar-dashboard">
+        <div className="nav-dashboard-inner">
+          <div className="nav-dashboard-left">
+            <Link href="/" className="nav-brand">
+              <img src="/img/evict.webp" alt="evict" className="nav-avatar" />
+              <span>evict</span>
+            </Link>
+            <span className="nav-dashboard-divider" aria-hidden />
+            <Link
+              href="/dashboard"
+              className={`nav-dashboard-crumb${
+                pathname === '/dashboard' ? ' active' : ''
+              }`}
+            >
+              Dashboard
+            </Link>
+            {isOnGuildPage && (
+              <>
+                <span className="nav-dashboard-sep">/</span>
+                <span className="nav-dashboard-crumb active">Server</span>
+              </>
+            )}
+          </div>
+          <div className="nav-dashboard-right">
+            <a
+              href={DOCS_URL}
+              target="_blank"
+              rel="noopener"
+              className="nav-dashboard-link"
+            >
+              Docs
+            </a>
+            <a
+              href={SUPPORT_URL}
+              target="_blank"
+              rel="noopener"
+              className="nav-dashboard-link"
+            >
+              Support
+            </a>
+            <UserMenu />
+          </div>
+        </div>
+      </nav>
+    )
+  }
 
   return (
     <nav className={`navbar${navHidden ? ' nav-hidden' : ''}`}>

@@ -125,6 +125,22 @@ export interface GuildMember {
   permissions: string
 }
 
+export interface VoicemasterDeleteResult {
+  ok?: boolean
+  channel_id?: string
+  error?: string
+}
+
+export async function deleteVoicemasterChannel(
+  guildId: string,
+  channelId: string
+): Promise<VoicemasterDeleteResult> {
+  return clusterPost<VoicemasterDeleteResult>(
+    `/guild/${guildId}/voicemaster/channels/${channelId}/delete`,
+    {}
+  )
+}
+
 export async function fetchGuildMember(
   guildId: string,
   userId: string

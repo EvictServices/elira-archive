@@ -39,7 +39,6 @@ export default async function DashboardPage() {
     }
   }
 
-  // Fetch member counts for guilds missing them
   const enriched = await Promise.all(
     guilds.map(async (g) => {
       if (g.member_count > 0) return g
@@ -52,6 +51,17 @@ export default async function DashboardPage() {
     })
   )
 
+  const managedIds = new Set(enriched.map((g) => g.id))
+  const inviteGuilds = discordGuilds
+    .filter((dg) => adminGuildIds.has(dg.id) && !managedIds.has(dg.id))
+    .map((dg) => ({
+      id: dg.id,
+      name: dg.name,
+      icon_url: dg.icon
+        ? `https://cdn.discordapp.com/icons/${dg.id}/${dg.icon}.webp?size=128`
+        : null,
+    }))
+
   return (
     <DashboardView
       user={{
@@ -60,6 +70,7 @@ export default async function DashboardPage() {
         avatar: session.avatar,
       }}
       guilds={enriched}
+      inviteGuilds={inviteGuilds}
     />
   )
 }

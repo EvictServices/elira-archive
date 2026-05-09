@@ -6,6 +6,7 @@ import PrefixSettings from '@/components/settings/PrefixSettings'
 import AntinukeSettings from '@/components/settings/AntinukeSettings'
 import LoggingSettings from '@/components/settings/LoggingSettings'
 import AutoroleSettings from '@/components/settings/AutoroleSettings'
+import VoicemasterSettings from '@/components/settings/VoicemasterSettings'
 
 interface Guild {
   guild_id: string
@@ -293,10 +294,12 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
           {activeItem === 'autorole' && <AutoroleSettings guildId={guild.guild_id} />}
+          {activeItem === 'voicemaster' && <VoicemasterSettings guildId={guild.guild_id} />}
           {activeItem !== 'general' &&
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&
-            activeItem !== 'autorole' && (
+            activeItem !== 'autorole' &&
+            activeItem !== 'voicemaster' && (
               <p className="server-content-placeholder">Settings for this section coming soon.</p>
             )}
         </div>

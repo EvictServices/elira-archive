@@ -5,6 +5,7 @@ import {
   getDangerousPermissions,
   permissionLabel,
 } from '@/lib/discord/permissions'
+import { useConfirm } from '@/components/ConfirmModal'
 
 interface AutoroleEntry {
   role_id: string
@@ -56,6 +57,7 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
   const [newRoleId, setNewRoleId] = useState<string>('')
   const [newAction, setNewAction] = useState<'add' | 'remove'>('add')
   const [newDelay, setNewDelay] = useState<string>('')
+  const { confirm, modal: confirmModal } = useConfirm()
 
   useEffect(() => {
     Promise.all([
@@ -146,9 +148,17 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
     callApi('remove', { role_id: entry.role_id, action: entry.action }, `rm:${entry.role_id}:${entry.action}`)
   }
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (!settings || settings.roles.length === 0) return
-    if (!confirm('Remove all auto roles for this server?')) return
+    const ok = await confirm({
+      title: 'Clear all auto roles?',
+      description:
+        'Every configured auto role will be removed. New members joining the server will no longer receive any roles automatically.',
+      confirmLabel: 'Clear all',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    })
+    if (!ok) return
     callApi('clear', {}, 'clear')
   }
 
@@ -212,6 +222,7 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
   )
 
   return (
+    <>
     <div className="autorole-settings">
       {error && <p className="settings-error">{error}</p>}
 
@@ -393,6 +404,8 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
         )}
       </div>
     </div>
+    {confirmModal}
+    </>
   )
 }
 
