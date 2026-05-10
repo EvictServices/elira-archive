@@ -1,6 +1,7 @@
 import pool from '@/lib/db'
 import redis from '@/lib/redis'
 import { xxh32 } from '@/lib/hash'
+import { isValidGuildSnowflake } from '@/lib/discord'
 
 export interface AntinukeModule {
   threshold: number
@@ -128,6 +129,10 @@ export async function getAntinukeSettings(guildId: string): Promise<AntinukeSett
  * authorized against current data, not a cached row.
  */
 export async function isAntinukeAdmin(guildId: string, userId: string): Promise<boolean> {
+  if (!isValidGuildSnowflake(guildId) || !isValidGuildSnowflake(userId)) {
+    return false
+  }
+
   const res = await pool.query(
     'SELECT trusted_admins FROM antinuke WHERE guild_id = $1',
     [guildId]

@@ -1,13 +1,22 @@
 const DISCORD_API = 'https://discord.com/api/v10'
 
-export const DISCORD_AUTH_URL = buildAuthUrl()
+/** Discord guild / user snowflake in URL or JSON (17–20 digits). */
+const GUILD_OR_USER_SNOWFLAKE_RE = /^\d{17,20}$/
 
-function buildAuthUrl() {
+export function isValidGuildSnowflake(id: string): boolean {
+  return typeof id === 'string' && GUILD_OR_USER_SNOWFLAKE_RE.test(id.trim())
+}
+
+/**
+ * Build Discord OAuth authorize URL with a per-request `state` (required for CSRF protection).
+ */
+export function buildDiscordAuthorizeUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: process.env.DISCORD_CLIENT_ID ?? '',
     redirect_uri: process.env.DISCORD_REDIRECT_URI ?? '',
     response_type: 'code',
     scope: 'identify guilds email',
+    state,
   })
   return `https://discord.com/oauth2/authorize?${params}`
 }
@@ -79,16 +88,15 @@ export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGu
 
 const ADMINISTRATOR = BigInt(0x8)
 
+/**
+ * True if the bearer token belongs to the guild owner or a member with the Administrator permission.
+ * Always uses a live Discord `/users/@me/guilds` response (no cache) so revoked roles take effect immediately.
+ */
 export async function hasGuildAdmin(accessToken: string, guildId: string): Promise<boolean> {
-  const { default: redis } = await import('@/lib/redis')
-  const cacheKey = `dashboard:guild_admin:${guildId}:${accessToken.slice(-8)}`
-  const cached = await redis.get(cacheKey)
-  if (cached !== null) return cached === '1'
+  if (!isValidGuildSnowflake(guildId)) return false
 
   const guilds = await fetchDiscordGuilds(accessToken)
-  const guild = guilds.find((g) => g.id === guildId)
-  const allowed = guild ? guild.owner || (BigInt(guild.permissions) & ADMINISTRATOR) !== BigInt(0) : false
-
-  await redis.set(cacheKey, allowed ? '1' : '0', 'EX', 120)
-  return allowed
+  const guild = guilds.find((g) => g.id === guildId.trim())
+  if (!guild) return false
+  return guild.owner || (BigInt(guild.permissions) & ADMINISTRATOR) !== BigInt(0)
 }
