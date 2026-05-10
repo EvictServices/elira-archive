@@ -10,8 +10,6 @@ function guildsCacheKey(accessToken: string) {
   return createHash('sha256').update(accessToken).digest('hex')
 }
 
-const guildsInflight = new Map<string, Promise<DiscordGuild[]>>()
-
 const GUILD_OR_USER_SNOWFLAKE_RE = /^\d{17,20}$/
 
 export function isValidGuildSnowflake(id: string): boolean {
@@ -106,6 +104,8 @@ export interface DiscordGuild {
   owner: boolean
   permissions: string
 }
+
+const guildsInflight = new Map<string, Promise<DiscordGuild[]>>()
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
