@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { jwtVerify } from 'jose'
 
 const PROTECTED_PATHS = ['/dashboard']
+const SESSION_ID_RE = /^[a-f0-9]{64}$/
 
-function getSecret() {
-  const secret = process.env.SESSION_SECRET
-  if (!secret) return null
-  return new TextEncoder().encode(secret)
-}
-
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   const isProtected = PROTECTED_PATHS.some(
@@ -18,24 +12,24 @@ export async function middleware(req: NextRequest) {
 
   if (!isProtected) return NextResponse.next()
 
-  const token = req.cookies.get('session')?.value
-  if (!token) {
+  const sid = req.cookies.get('session')?.value
+  if (!sid) {
     return NextResponse.redirect(new URL('/api/auth/login', req.url))
   }
 
-  const secret = getSecret()
-  if (!secret) {
-    return NextResponse.redirect(new URL('/', req.url))
-  }
-
-  try {
-    await jwtVerify(token, secret)
-    return NextResponse.next()
-  } catch {
+  if (sid.includes('.')) {
     const res = NextResponse.redirect(new URL('/api/auth/login', req.url))
     res.cookies.delete('session')
     return res
   }
+
+  if (!SESSION_ID_RE.test(sid)) {
+    const res = NextResponse.redirect(new URL('/api/auth/login', req.url))
+    res.cookies.delete('session')
+    return res
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {

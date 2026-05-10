@@ -26,18 +26,20 @@ export async function GET(req: NextRequest) {
     const tokenData = await exchangeCode(code)
     const user = await fetchDiscordUser(tokenData.access_token)
 
-    const token = await createSession({
+    const sessionId = await createSession({
       userId: user.id,
       username: user.username,
       avatar: user.avatar,
       discriminator: user.discriminator,
       accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+      expiresIn: tokenData.expires_in,
       email: user.email ?? null,
     })
 
     const res = NextResponse.redirect(new URL('/dashboard', req.url))
     res.cookies.set(oauthStateCookieClear())
-    res.cookies.set(sessionCookieOptions(token))
+    res.cookies.set(sessionCookieOptions(sessionId))
     return res
   } catch (err) {
     console.error('Auth callback error:', err)
