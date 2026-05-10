@@ -406,8 +406,8 @@ body.nav-open {
 }
 
 /* Dashboard top bar (same component family as .site-nav) */
-.site-nav--dashboard {
-  transform: none !important;
+.site-nav.site-nav--dashboard {
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .site-nav--dashboard .site-nav__bar {
   height: 64px;
@@ -466,8 +466,10 @@ body.nav-open {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
+
 .site-nav__dash-link {
   font-size: 0.8rem;
   font-weight: 500;
@@ -3046,6 +3048,11 @@ body.nav-open {
   padding-left: 280px;
 }
 
+/** Fixed row under site nav (≤1024px): Sections left, server name right — keeps main navbar clean */
+.server-settings-mobile-bar {
+  display: none;
+}
+
 body:has(.server-layout) > footer {
   display: none;
 }
@@ -3058,7 +3065,9 @@ body:has(.server-layout) > footer {
   width: 280px;
   min-width: 280px;
   border-right: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(18, 18, 18, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -5068,20 +5077,6 @@ body:has(.server-layout) > footer {
   font-size: 0.9rem;
 }
 
-.server-mobile-toolbar {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: -8px -16px 16px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.35);
-  position: sticky;
-  top: -1px;
-  z-index: 45;
-}
-
 .server-mobile-menu-trigger {
   display: inline-flex;
   align-items: center;
@@ -5104,51 +5099,124 @@ body:has(.server-layout) > footer {
   border-color: var(--border-hover);
 }
 
-.server-mobile-toolbar-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-  flex: 1;
-  text-align: right;
-  opacity: 0.85;
+.server-mobile-menu-trigger--close {
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fecaca;
 }
 
+.server-mobile-menu-trigger--close:hover {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #fff;
+}
+
+/*
+ * Backdrop: DOM mounts whenever drawer state is open; hide except mobile + open layout.
+ * Avoids relying on JS media hooks so SSR/CSS match narrow viewports immediately.
+ */
 .server-sidebar-backdrop {
-  display: none;
-}
-
-/** Catches stray touches after the drawer closes (same gesture lift lands on Menu). */
-.server-mobile-ghost-shield {
-  position: fixed;
-  top: 64px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 75;
-  touch-action: none;
-  background: transparent;
+  display: none !important;
 }
 
 @media (max-width: 1024px) {
+  /* Grey glass strip — same language as `.site-nav__bar`; bottom border only on sub-bar for flush attach */
+  .site-nav.site-nav--dashboard {
+    background: rgba(18, 18, 18, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: none;
+  }
+
+  /* Guild dashboard — body grey (#1a1a1a); sub-bar flush under navbar (gap 0) */
   .server-layout {
+    --server-settings-subbar-gap: 0px;
+    --server-settings-subbar-height: 46px;
     flex-direction: column;
     padding-left: 0;
+    padding-top: calc(64px + var(--server-settings-subbar-gap) + var(--server-settings-subbar-height));
+    transition: padding-top 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 100vh;
   }
 
-  .server-mobile-toolbar {
+  /*
+   * Guild settings mobile: scroll down hides fixed navbar + sub-bar (Navbar toggles
+   * body.guild-settings-mobile-scroll-away). Bars slide up; content padding tightens.
+   */
+  body.guild-settings-mobile-scroll-away .site-nav.site-nav--dashboard {
+    transform: translateY(-100%);
+    pointer-events: none;
+  }
+
+  body.guild-settings-mobile-scroll-away .server-settings-mobile-bar {
+    transform: translateY(calc(-64px - var(--server-settings-subbar-gap) - 100%));
+    pointer-events: none;
+  }
+
+  body.guild-settings-mobile-scroll-away .server-layout {
+    padding-top: 16px;
+  }
+
+  body.guild-settings-mobile-scroll-away .server-layout > aside.server-sidebar {
+    top: 0;
+  }
+
+  body.guild-settings-mobile-scroll-away
+    .server-layout.server-layout--mobile-nav-open
+    .server-sidebar-backdrop {
+    top: 0;
+  }
+
+  .server-settings-mobile-bar {
     display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    position: fixed;
+    top: calc(64px + var(--server-settings-subbar-gap));
+    left: 0;
+    right: 0;
+    z-index: 950;
+    box-sizing: border-box;
+    min-height: var(--server-settings-subbar-height);
+    padding: 8px 14px;
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+    background: rgba(18, 18, 18, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .server-sidebar.server-sidebar--mobile-drawer {
+  .server-settings-mobile-bar__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1 1 auto;
+    letter-spacing: -0.02em;
+    text-align: right;
+  }
+
+  .server-settings-mobile-bar .server-mobile-menu-trigger {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    gap: 0;
+  }
+
+  /*
+   * Drawer layout from CSS only (no --mobile-drawer class): matches SSR before hydration,
+   * so phones never flash the full desktop sidebar beside content + “second menu”.
+   */
+  .server-layout > aside.server-sidebar {
+    animation: none;
     position: fixed;
-    top: 64px;
+    top: calc(64px + var(--server-settings-subbar-gap) + var(--server-settings-subbar-height));
     left: 0;
     bottom: 0;
-    /* Narrower drawer + leave a strip of content visible (less cramped than ~88vw) */
     width: min(272px, calc(100vw - 44px));
     max-width: calc(100vw - 44px);
     min-width: 0;
@@ -5159,23 +5227,23 @@ body:has(.server-layout) > footer {
     transform: translateX(-102%);
     transition: transform 0.28s ease, box-shadow 0.28s ease;
     z-index: 70;
-    background: rgba(12, 12, 14, 0.97);
+    background: rgba(18, 18, 18, 0.82);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     box-shadow: none;
     pointer-events: none;
   }
 
-  .server-sidebar.server-sidebar--mobile-drawer.server-sidebar--mobile-open {
+  .server-layout > aside.server-sidebar.server-sidebar--mobile-open {
     transform: translateX(0);
     box-shadow: 12px 0 40px rgba(0, 0, 0, 0.55);
     pointer-events: auto;
   }
 
-  .server-sidebar-backdrop {
-    display: block;
+  .server-layout.server-layout--mobile-nav-open .server-sidebar-backdrop {
+    display: block !important;
     position: fixed;
-    top: 64px;
+    top: calc(64px + var(--server-settings-subbar-gap) + var(--server-settings-subbar-height));
     left: 0;
     right: 0;
     bottom: 0;
@@ -5190,13 +5258,14 @@ body:has(.server-layout) > footer {
   }
 
   .server-content {
-    padding: 16px 14px 24px;
+    padding: 24px 14px 24px;
     width: 100%;
   }
 
   .server-content-header {
     margin-bottom: 16px;
     padding-bottom: 12px;
+    margin-top: 0;
   }
 
   .server-content-title {
@@ -5258,6 +5327,12 @@ body:has(.server-layout) > footer {
 
   .sidebar-user {
     padding: 10px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .server-sidebar-backdrop {
+    display: none !important;
   }
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import AppProviders from '@/components/AppProviders'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ScrollRevealInit from '@/components/ScrollRevealInit'
@@ -33,11 +34,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        <div className="page">{children}</div>
-        <Footer />
-        <ScrollRevealInit />
-        <CursorEffects />
+        <AppProviders>
+          <Navbar />
+          <div className="page">{children}</div>
+          <Footer />
+          <ScrollRevealInit />
+          <CursorEffects />
+        </AppProviders>
       </body>
     </html>
   )

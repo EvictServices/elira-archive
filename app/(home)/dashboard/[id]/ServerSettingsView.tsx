@@ -1,11 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import {
-  armDashboardSidebarMenuCooldown,
-  isDashboardSidebarMenuOpenBlocked,
-} from '@/lib/dashboard_sidebar_touch'
+import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavContext'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 import PrefixSettings from '@/components/settings/PrefixSettings'
 import AntinukeSettings from '@/components/settings/AntinukeSettings'
@@ -206,9 +203,8 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
   const pathname = usePathname()
   const router = useRouter()
   const isMobile = useMediaQuery('(max-width: 1024px)')
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  /** Absorbs the lift-phase touch after closing the drawer so it cannot hit the Menu control. */
-  const [ghostShield, setGhostShield] = useState(false)
+  const { mobileNavOpen, closeMobileNav, toggleMobileNav } = useGuildSettingsMobileNav()
+  const swipeCloseRef = useRef<{ x: number } | null>(null)
 
   const filteredSections = canAccessAntinuke
     ? sections
@@ -223,20 +219,6 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
   const toggleSection = (label: string) => {
     setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }))
   }
-
-  const closeMobileNav = useCallback(() => {
-    armDashboardSidebarMenuCooldown()
-    setMobileNavOpen(false)
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches) {
-      setGhostShield(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!ghostShield) return
-    const id = window.setTimeout(() => setGhostShield(false), 700)
-    return () => window.clearTimeout(id)
-  }, [ghostShield])
 
   const navigateToTab = useCallback(
     (itemId: string) => {
@@ -256,8 +238,8 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
   }, [closeMobileNav, router])
 
   useEffect(() => {
-    setMobileNavOpen(false)
-  }, [activeTab, pathname])
+    closeMobileNav()
+  }, [activeTab, pathname, closeMobileNav])
 
   useEffect(() => {
     if (!isMobile || !mobileNavOpen) return
@@ -277,21 +259,41 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
     return () => window.removeEventListener('keydown', onKey)
   }, [mobileNavOpen, closeMobileNav])
 
-  const sidebarClass = [
-    'server-sidebar',
-    isMobile && 'server-sidebar--mobile-drawer',
-    isMobile && mobileNavOpen && 'server-sidebar--mobile-open',
-  ]
+  const sidebarClass = ['server-sidebar', mobileNavOpen && 'server-sidebar--mobile-open']
     .filter(Boolean)
     .join(' ')
 
   return (
     <div
       className={
-        'server-layout' + (isMobile && mobileNavOpen ? ' server-layout--mobile-nav-open' : '')
+        'server-layout' + (mobileNavOpen ? ' server-layout--mobile-nav-open' : '')
       }
     >
-      {isMobile && mobileNavOpen && (
+      <div className="server-settings-mobile-bar">
+        <button
+          type="button"
+          className={`server-mobile-menu-trigger${mobileNavOpen ? ' server-mobile-menu-trigger--close' : ''}`}
+          onClick={toggleMobileNav}
+          aria-expanded={mobileNavOpen}
+          aria-controls="server-settings-sidebar"
+          aria-label={mobileNavOpen ? 'Close server menu' : 'Open server menu'}
+        >
+          {mobileNavOpen ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+          )}
+        </button>
+        <span className="server-settings-mobile-bar__title">{guild.name}</span>
+      </div>
+      {mobileNavOpen && (
         <button
           type="button"
           className="server-sidebar-backdrop"
@@ -299,16 +301,26 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
           onClick={closeMobileNav}
         />
       )}
-      {isMobile && ghostShield && (
-        <div
-          className="server-mobile-ghost-shield"
-          aria-hidden
-          onPointerDown={(e) => e.preventDefault()}
-          onPointerUp={(e) => e.preventDefault()}
-          onClick={(e) => e.preventDefault()}
-        />
-      )}
-      <aside className={sidebarClass} id="server-settings-sidebar">
+      <aside
+        className={sidebarClass}
+        id="server-settings-sidebar"
+        onTouchStart={(e) => {
+          if (typeof window === 'undefined' || !window.matchMedia('(max-width: 1024px)').matches) {
+            return
+          }
+          swipeCloseRef.current = { x: e.touches[0].clientX }
+        }}
+        onTouchEnd={(e) => {
+          if (typeof window === 'undefined' || !window.matchMedia('(max-width: 1024px)').matches) {
+            return
+          }
+          const start = swipeCloseRef.current
+          swipeCloseRef.current = null
+          if (!start || !mobileNavOpen) return
+          const end = e.changedTouches[0].clientX
+          if (end - start.x < -56) closeMobileNav()
+        }}
+      >
         <button
           type="button"
           className="server-sidebar-back-chip"
@@ -404,28 +416,6 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
       </aside>
 
       <main className="server-content">
-        {(!isMobile || !mobileNavOpen) && (
-          <div className="server-mobile-toolbar">
-            <span className="server-mobile-toolbar-title">{guild.name}</span>
-            <button
-              type="button"
-              className="server-mobile-menu-trigger"
-              onClick={() => {
-                if (isDashboardSidebarMenuOpenBlocked()) return
-                setMobileNavOpen(true)
-              }}
-              aria-expanded={mobileNavOpen}
-              aria-controls="server-settings-sidebar"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <line x1="4" y1="6" x2="20" y2="6" />
-                <line x1="4" y1="12" x2="20" y2="12" />
-                <line x1="4" y1="18" x2="20" y2="18" />
-              </svg>
-              <span>Menu</span>
-            </button>
-          </div>
-        )}
         <header className="server-content-header">
           <h1 className="server-content-title">
             {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}

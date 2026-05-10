@@ -49,7 +49,6 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
 
   return (
     <ServerSettingsView
-      key={`${id}-${tab}`}
       guild={guild}
       activeTab={tab}
       canAccessAntinuke={canAccessAntinuke}

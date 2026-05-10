@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { INVITE_URL, SUPPORT_URL, DOCS_URL } from '@/lib/constants'
+import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavContext'
 import UserMenu from '@/components/UserMenu'
+
+const GUILD_SETTINGS_SCROLL_CLASS = 'guild-settings-mobile-scroll-away'
 
 const MAIN_LINKS: { href: string; page: string; label: string; external?: boolean }[] = [
   { href: '/', page: 'home', label: 'Home' },
@@ -19,8 +22,49 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [navHidden, setNavHidden] = useState(false)
   const lastScrollY = useRef(0)
+  const guildMobileScrollLastY = useRef(0)
+  const { mobileNavOpen: guildDrawerOpen } = useGuildSettingsMobileNav()
 
   const isDashboard = pathname.startsWith('/dashboard')
+
+  /** Guild server settings (mobile): hide top bars on scroll down, show on scroll up / top */
+  useEffect(() => {
+    const isGuildSettings = /^\/dashboard\/\d+/.test(pathname)
+    if (!isGuildSettings) {
+      document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
+      return
+    }
+
+    const mq = window.matchMedia('(max-width: 1024px)')
+
+    const tick = () => {
+      if (!mq.matches || guildDrawerOpen) {
+        document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
+        guildMobileScrollLastY.current = window.scrollY
+        return
+      }
+      const y = window.scrollY
+      if (y < 12) {
+        document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
+      } else if (y > guildMobileScrollLastY.current && y > 56) {
+        document.body.classList.add(GUILD_SETTINGS_SCROLL_CLASS)
+      } else if (y < guildMobileScrollLastY.current) {
+        document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
+      }
+      guildMobileScrollLastY.current = y
+    }
+
+    guildMobileScrollLastY.current = window.scrollY
+    window.addEventListener('scroll', tick, { passive: true })
+    mq.addEventListener('change', tick)
+    tick()
+
+    return () => {
+      window.removeEventListener('scroll', tick)
+      mq.removeEventListener('change', tick)
+      document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
+    }
+  }, [pathname, guildDrawerOpen])
 
   useEffect(() => {
     if (isDashboard) {
@@ -57,7 +101,10 @@ export default function Navbar() {
   if (isDashboard) {
     const isOnGuildPage = /^\/dashboard\/\d+/.test(pathname)
     return (
-      <header className="site-nav site-nav--dashboard" role="banner">
+      <header
+        className="site-nav site-nav--dashboard"
+        role="banner"
+      >
         <div className="site-nav__shell site-nav__shell--dashboard">
           <div className="site-nav__dash-left">
             <Link href="/" className="site-nav__brand">
