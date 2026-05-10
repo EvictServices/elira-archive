@@ -108,6 +108,7 @@ const EVENT_ICONS: Record<string, React.ReactNode> = {
 export default function LoggingSettings({ guildId }: { guildId: string }) {
   const [settings, setSettings] = useState<Settings | null>(null)
   const [guildChannels, setGuildChannels] = useState<GuildChannel[]>([])
+  const [guildCategories, setGuildCategories] = useState<GuildChannel[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -116,10 +117,12 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
     Promise.all([
       fetch(`/api/settings/${guildId}/logging`).then((r) => r.json()),
       fetch(`/api/settings/${guildId}/channels`).then((r) => r.json()),
+      fetch(`/api/settings/${guildId}/channels?type=category`).then((r) => r.json()),
     ])
-      .then(([settingsData, channelsData]) => {
+      .then(([settingsData, channelsData, categoriesData]) => {
         setSettings(settingsData)
         if (Array.isArray(channelsData)) setGuildChannels(channelsData)
+        if (Array.isArray(categoriesData)) setGuildCategories(categoriesData)
       })
       .catch(() => setError('Failed to load logging settings'))
       .finally(() => setLoading(false))
@@ -185,6 +188,7 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
             index={i}
             channelId={eventChannelMap[event]}
             channels={guildChannels}
+            categories={guildCategories}
             saving={saving === event}
             onSetChannel={(channelId) => setEventChannel(event, channelId)}
           />
@@ -199,6 +203,7 @@ function EventCard({
   index,
   channelId,
   channels,
+  categories,
   saving,
   onSetChannel,
 }: {
@@ -206,6 +211,7 @@ function EventCard({
   index: number
   channelId: string | null
   channels: GuildChannel[]
+  categories: GuildChannel[]
   saving: boolean
   onSetChannel: (channelId: string | null) => void
 }) {
@@ -241,6 +247,7 @@ function EventCard({
           <label>Channel</label>
           <ChannelDropdown
             channels={channels}
+            categories={categories}
             value={channelId || ''}
             onChange={(id) => onSetChannel(id || null)}
             placeholder="Select a channel"

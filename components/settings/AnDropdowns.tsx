@@ -235,7 +235,7 @@ export function ChannelDropdown({
               )}
             </button>
           )}
-          {channels.length === 0 && (
+          {channels.length === 0 && !emptyOption && (
             <div className="an-dropdown-item" style={{ opacity: 0.4, cursor: 'default' }}>
               None available
             </div>

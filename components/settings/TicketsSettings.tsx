@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useConfirm } from '@/components/ConfirmModal'
-import { Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
+import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 
 interface TicketConfigPublic {
   guild_id: string
@@ -215,14 +215,13 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
               <div className="an-module-body">
                 <div className="an-edit-field">
                   <label>Channel</label>
-                  <Dropdown
+                  <ChannelDropdown
+                    channels={textChannels}
+                    categories={categories}
                     value={data.logs_channel_id ?? ''}
+                    emptyOption={{ label: 'Disabled' }}
                     placeholder="Select a channel"
                     saving={saving === 'logs'}
-                    options={[
-                      { value: '', label: 'Disabled' },
-                      ...textChannels.map((c) => ({ value: c.id, label: `#${c.name}` })),
-                    ]}
                     onChange={(v) =>
                       patch(
                         { op: 'set_logs_channel', channel_id: v === '' ? null : v },

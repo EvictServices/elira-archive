@@ -288,6 +288,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
             <label>{joinToCreateName ? `Currently: ${joinToCreateName}` : 'Pick a voice channel'}</label>
             <ChannelDropdown
               channels={voiceChannels}
+              categories={categories}
               value={configuration.channel_id ?? ''}
               onChange={(id) => id && patch({ channel_id: id }, 'channel')}
               placeholder="Select a voice channel"
