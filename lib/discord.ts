@@ -1,4 +1,16 @@
+import { createHash } from 'crypto'
+import redis from '@/lib/redis'
+
 const DISCORD_API = 'https://discord.com/api/v10'
+
+const GUILDS_CACHE_PREFIX = 'discord:guilds:'
+const GUILDS_CACHE_TTL_SEC = 90
+
+function guildsCacheKey(accessToken: string) {
+  return createHash('sha256').update(accessToken).digest('hex')
+}
+
+const guildsInflight = new Map<string, Promise<DiscordGuild[]>>()
 
 const GUILD_OR_USER_SNOWFLAKE_RE = /^\d{17,20}$/
 
@@ -99,24 +111,32 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
 
-function retryAfterMs(res: Response, capMs: number): number {
+function discordBackoffMs(res: Response, capMs: number): number {
   const raw = res.headers.get('retry-after')
-  if (!raw) return Math.min(1500, capMs)
-  const sec = Number(raw)
-  if (!Number.isNaN(sec) && sec >= 0) {
-    return Math.min(Math.ceil(sec * 1000), capMs)
+  if (raw) {
+    const sec = Number(raw)
+    if (!Number.isNaN(sec) && sec >= 0) {
+      return Math.min(Math.ceil(sec * 1000) + 200, capMs)
+    }
+    const when = Date.parse(raw)
+    if (!Number.isNaN(when)) {
+      return Math.min(Math.max(0, when - Date.now()) + 200, capMs)
+    }
   }
-  const when = Date.parse(raw)
-  if (!Number.isNaN(when)) {
-    return Math.min(Math.max(0, when - Date.now()), capMs)
+  const resetAfter = res.headers.get('x-ratelimit-reset-after')
+  if (resetAfter) {
+    const sec = Number(resetAfter)
+    if (!Number.isNaN(sec) && sec >= 0) {
+      return Math.min(Math.ceil(sec * 1000) + 200, capMs)
+    }
   }
-  return Math.min(1500, capMs)
+  return Math.min(2000, capMs)
 }
 
-const GUILD_FETCH_MAX_ATTEMPTS = 4
-const GUILD_FETCH_RETRY_WAIT_CAP_MS = 12_000
+const GUILD_FETCH_MAX_ATTEMPTS = 6
+const GUILD_FETCH_RETRY_WAIT_CAP_MS = 25_000
 
-export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGuild[]> {
+async function fetchDiscordGuildsFromNetwork(accessToken: string): Promise<DiscordGuild[]> {
   let lastStatus = 0
 
   for (let attempt = 0; attempt < GUILD_FETCH_MAX_ATTEMPTS; attempt++) {
@@ -131,7 +151,7 @@ export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGu
     lastStatus = res.status
     const retryable = res.status === 429 || res.status === 503
     if (retryable && attempt < GUILD_FETCH_MAX_ATTEMPTS - 1) {
-      await sleep(retryAfterMs(res, GUILD_FETCH_RETRY_WAIT_CAP_MS))
+      await sleep(discordBackoffMs(res, GUILD_FETCH_RETRY_WAIT_CAP_MS))
       continue
     }
 
@@ -139,6 +159,38 @@ export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGu
   }
 
   throw new Error(`Discord guilds fetch failed: ${lastStatus}`)
+}
+
+export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGuild[]> {
+  const key = guildsCacheKey(accessToken)
+  const redisKey = `${GUILDS_CACHE_PREFIX}${key}`
+
+  try {
+    const cached = await redis.get(redisKey)
+    if (cached) {
+      return JSON.parse(cached) as DiscordGuild[]
+    }
+  } catch {
+  }
+
+  let pending = guildsInflight.get(key)
+  if (!pending) {
+    pending = (async () => {
+      try {
+        const guilds = await fetchDiscordGuildsFromNetwork(accessToken)
+        try {
+          await redis.set(redisKey, JSON.stringify(guilds), 'EX', GUILDS_CACHE_TTL_SEC)
+        } catch {
+        }
+        return guilds
+      } finally {
+        guildsInflight.delete(key)
+      }
+    })()
+    guildsInflight.set(key, pending)
+  }
+
+  return pending
 }
 
 const ADMINISTRATOR = BigInt(0x8)
@@ -150,7 +202,12 @@ export async function hasGuildAdmin(accessToken: string, guildId: string): Promi
   try {
     guilds = await fetchDiscordGuilds(accessToken)
   } catch (e) {
-    console.error('hasGuildAdmin: guild list fetch failed', e)
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('429')) {
+      console.warn('hasGuildAdmin: Discord guilds still rate limited after backoff; retry shortly')
+    } else {
+      console.error('hasGuildAdmin: guild list fetch failed', e)
+    }
     return false
   }
 
