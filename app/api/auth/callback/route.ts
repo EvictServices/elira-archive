@@ -6,6 +6,7 @@ import {
   sessionCookieOptions,
   OAUTH_STATE_COOKIE,
 } from '@/lib/auth'
+import { authRateLimitCallback, clientIpFromRequest } from '@/lib/auth_ratelimit'
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code')
@@ -14,6 +15,12 @@ export async function GET(req: NextRequest) {
 
   if (!code) {
     return NextResponse.redirect(new URL('/', req.url))
+  }
+
+  if (!(await authRateLimitCallback(clientIpFromRequest(req)))) {
+    const res = NextResponse.redirect(new URL('/?error=rate_limit', req.url))
+    res.cookies.set(oauthStateCookieClear())
+    return res
   }
 
   if (!state || !expected || state !== expected) {
@@ -35,6 +42,7 @@ export async function GET(req: NextRequest) {
       refreshToken: tokenData.refresh_token,
       expiresIn: tokenData.expires_in,
       email: user.email ?? null,
+      userAgent: req.headers.get('user-agent'),
     })
 
     const res = NextResponse.redirect(new URL('/dashboard', req.url))

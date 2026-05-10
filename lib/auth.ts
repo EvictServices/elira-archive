@@ -1,14 +1,18 @@
-import { randomBytes } from 'crypto'
-import { cookies } from 'next/headers'
+import { createHash, randomBytes } from 'crypto'
+import { cookies, headers } from 'next/headers'
 import redis from '@/lib/redis'
 import { exchangeRefreshToken } from '@/lib/discord'
+import { SESSION_COOKIE } from '@/lib/session_meta'
+import {
+  getSessionSecret,
+  parseSignedSessionCookie,
+  sessionCookieBase,
+  signSessionCookieValue,
+} from '@/lib/session_cookie_node'
 
-const SESSION_COOKIE = 'session'
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7
 const SESSION_KEY_PREFIX = 'sess:'
 const REFRESH_BUFFER_MS = 5 * 60 * 1000
-
-const SESSION_ID_RE = /^[a-f0-9]{64}$/
 
 type StoredSession = {
   userId: string
@@ -19,6 +23,8 @@ type StoredSession = {
   accessToken: string
   refreshToken: string
   accessTokenExpiresAt: number
+  /** SHA-256 hex of User-Agent at login; mismatch invalidates session. */
+  uaFingerprint: string
 }
 
 export interface Session {
@@ -33,14 +39,15 @@ export interface Session {
 export type SessionCreateInput = Session & {
   refreshToken: string
   expiresIn: number
+  userAgent: string | null
 }
 
 function sessionKey(id: string) {
   return `${SESSION_KEY_PREFIX}${id}`
 }
 
-export function isValidSessionId(value: string | undefined): value is string {
-  return typeof value === 'string' && SESSION_ID_RE.test(value)
+function hashUserAgent(ua: string | null): string {
+  return createHash('sha256').update(ua ?? '', 'utf8').digest('hex')
 }
 
 export async function createSession(data: SessionCreateInput): Promise<string> {
@@ -55,6 +62,7 @@ export async function createSession(data: SessionCreateInput): Promise<string> {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
     accessTokenExpiresAt,
+    uaFingerprint: hashUserAgent(data.userAgent),
   }
   await redis.set(sessionKey(id), JSON.stringify(stored), 'EX', SESSION_MAX_AGE)
   return id
@@ -74,6 +82,10 @@ async function loadAndMaybeRefresh(id: string): Promise<StoredSession | null> {
   } catch {
     await redis.del(sessionKey(id))
     return null
+  }
+
+  if (!stored.uaFingerprint) {
+    stored.uaFingerprint = ''
   }
 
   const needsRefresh =
@@ -100,14 +112,38 @@ async function loadAndMaybeRefresh(id: string): Promise<StoredSession | null> {
   return stored
 }
 
+function tryParseSessionCookie(raw: string | undefined | null): string | null {
+  try {
+    const secret = getSessionSecret()
+    return parseSignedSessionCookie(raw, secret)
+  } catch {
+    return null
+  }
+}
+
 export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies()
-  const sid = cookieStore.get(SESSION_COOKIE)?.value
-  if (!sid || !isValidSessionId(sid)) return null
+  const raw = cookieStore.get(SESSION_COOKIE)?.value
+  const sid = tryParseSessionCookie(raw)
+  if (!sid) return null
 
   try {
     const stored = await loadAndMaybeRefresh(sid)
     if (!stored) return null
+
+    if (stored.uaFingerprint) {
+      const h = await headers()
+      const current = hashUserAgent(h.get('user-agent'))
+      if (current !== stored.uaFingerprint) {
+        try {
+          await redis.del(sessionKey(sid))
+        } catch {
+          // ignore
+        }
+        return null
+      }
+    }
+
     return {
       userId: stored.userId,
       username: stored.username,
@@ -123,8 +159,9 @@ export async function getSession(): Promise<Session | null> {
 
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies()
-  const sid = cookieStore.get(SESSION_COOKIE)?.value
-  if (!sid || !isValidSessionId(sid)) return
+  const raw = cookieStore.get(SESSION_COOKIE)?.value
+  const sid = tryParseSessionCookie(raw)
+  if (!sid) return
   try {
     await redis.del(sessionKey(sid))
   } catch {
@@ -132,24 +169,32 @@ export async function destroySession(): Promise<void> {
   }
 }
 
-export function sessionCookieOptions(sessionId: string) {
+export function sessionCookieOptions(rawSessionId: string) {
+  const secret = getSessionSecret()
+  const value = signSessionCookieValue(rawSessionId, secret)
   return {
-    name: SESSION_COOKIE,
-    value: sessionId,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
-    path: '/',
+    ...sessionCookieBase(),
+    value,
     maxAge: SESSION_MAX_AGE,
   }
 }
 
 export function clearSessionCookie() {
   return {
-    name: SESSION_COOKIE,
+    ...sessionCookieBase(),
+    value: '',
+    maxAge: 0,
+  }
+}
+
+/** Clear pre-__Host `session` cookie after hardening deploy (production only). */
+export function clearLegacySessionCookie() {
+  if (process.env.NODE_ENV !== 'production') return null
+  return {
+    name: 'session',
     value: '',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     sameSite: 'lax' as const,
     path: '/',
     maxAge: 0,
