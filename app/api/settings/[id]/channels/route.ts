@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
 import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
+import {
+  isDiscordCategoryChannel,
+  isDiscordTextChannel,
+  isDiscordVoiceChannel,
+} from '@/lib/guild_channel_type'
 
 const TYPE_FILTERS: Record<string, (c: GuildChannel) => boolean> = {
-  text: (c) => c.type === 'text' || c.type === 'news' || c.type === 0 || c.type === 5,
-  voice: (c) => c.type === 'voice' || c.type === 'stage_voice' || c.type === 2 || c.type === 13,
-  category: (c) => c.type === 'category' || c.type === 4,
+  text: isDiscordTextChannel,
+  voice: isDiscordVoiceChannel,
+  category: isDiscordCategoryChannel,
   all: () => true,
 }
 

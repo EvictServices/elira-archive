@@ -22,7 +22,20 @@ export default async function DashboardPage() {
       .map((dg) => dg.id)
   )
 
-  const guilds: MutualGuild[] = clusterGuilds.filter((g) => adminGuildIds.has(g.id))
+  /** Cluster may return the same guild more than once (e.g. per-shard); keep one row per id. */
+  const clusterAdminGuilds = clusterGuilds.filter((g) => adminGuildIds.has(g.id))
+  const byId = new Map<string, MutualGuild>()
+  for (const g of clusterAdminGuilds) {
+    const prev = byId.get(g.id)
+    if (!prev) {
+      byId.set(g.id, g)
+    } else {
+      const a = g.member_count ?? 0
+      const b = prev.member_count ?? 0
+      if (a > b) byId.set(g.id, g)
+    }
+  }
+  const guilds: MutualGuild[] = [...byId.values()]
 
   // Add Discord guilds with admin that the cluster missed (inactive shards)
   const includedIds = new Set(guilds.map((g) => g.id))

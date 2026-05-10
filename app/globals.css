@@ -3068,18 +3068,46 @@ body:has(.server-layout) > footer {
   animation: slideInLeft 0.3s ease both;
   z-index: 50;
 }
-.server-back {
-  display: inline-flex;
+/** Full-width chip: matches sidebar guild card / dashboard inputs — clear “back” without orphan icon */
+.server-sidebar-back-chip {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  opacity: 0.5;
-  text-decoration: none;
-  font-size: 0.8rem;
-  transition: opacity var(--ease);
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--ease), border-color var(--ease), color var(--ease);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.server-back:hover {
-  opacity: 1;
+
+.server-sidebar-back-chip:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.server-sidebar-back-chip:active {
+  transform: scale(0.99);
+}
+
+.server-sidebar-back-chip-chevron {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.server-sidebar-back-chip-label {
+  letter-spacing: -0.02em;
 }
 
 .sidebar-guild {
@@ -3212,6 +3240,8 @@ body:has(.server-layout) > footer {
   cursor: pointer;
   transition: background var(--ease), opacity var(--ease), color var(--ease), transform 0.15s ease;
   text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .sidebar-item:active {
   transform: scale(0.97);
@@ -5038,24 +5068,196 @@ body:has(.server-layout) > footer {
   font-size: 0.9rem;
 }
 
-@media (max-width: 768px) {
+.server-mobile-toolbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -8px -16px 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.35);
+  position: sticky;
+  top: -1px;
+  z-index: 45;
+}
+
+.server-mobile-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--ease), border-color var(--ease);
+  touch-action: manipulation;
+}
+
+.server-mobile-menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border-hover);
+}
+
+.server-mobile-toolbar-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+  text-align: right;
+  opacity: 0.85;
+}
+
+.server-sidebar-backdrop {
+  display: none;
+}
+
+/** Catches stray touches after the drawer closes (same gesture lift lands on Menu). */
+.server-mobile-ghost-shield {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 75;
+  touch-action: none;
+  background: transparent;
+}
+
+@media (max-width: 1024px) {
   .server-layout {
     flex-direction: column;
     padding-left: 0;
   }
-  .server-sidebar {
-    width: 100%;
-    min-width: 100%;
-    position: relative;
-    top: 0;
-    bottom: auto;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 16px;
+
+  .server-mobile-toolbar {
+    display: flex;
   }
+
+  .server-sidebar.server-sidebar--mobile-drawer {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    bottom: 0;
+    /* Narrower drawer + leave a strip of content visible (less cramped than ~88vw) */
+    width: min(272px, calc(100vw - 44px));
+    max-width: calc(100vw - 44px);
+    min-width: 0;
+    height: auto;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    padding: 16px;
+    transform: translateX(-102%);
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+    z-index: 70;
+    background: rgba(12, 12, 14, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  .server-sidebar.server-sidebar--mobile-drawer.server-sidebar--mobile-open {
+    transform: translateX(0);
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.55);
+    pointer-events: auto;
+  }
+
+  .server-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 65;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.52);
+    cursor: pointer;
+    animation: fadeIn 0.2s ease both;
+  }
+
   .server-content {
-    padding: 24px 16px;
+    padding: 16px 14px 24px;
+    width: 100%;
+  }
+
+  .server-content-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .server-content-title {
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+
+  .server-content-desc {
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+
+  .server-content-body {
+    padding: 16px 14px;
+    border-radius: var(--r-sm);
+  }
+
+  .an-modules {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .an-module {
+    padding: 14px 12px;
+    border-radius: var(--r-sm);
+  }
+
+  .an-module:hover {
+    transform: none;
+  }
+
+  .an-module-header {
+    margin-bottom: 8px;
+  }
+
+  .an-module-name {
+    font-size: 0.82rem;
+  }
+
+  .an-module-desc {
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+
+  .an-module-body {
+    margin-top: 12px;
+    padding-top: 12px;
+    gap: 10px;
+  }
+
+  .sidebar-guild {
+    padding: 10px;
+  }
+
+  .sidebar-item {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+  }
+
+  .sidebar-user {
+    padding: 10px;
   }
 }
 

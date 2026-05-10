@@ -525,7 +525,7 @@ function ScriptEditorModal({
               <h3 id="welcome-modal-message-label" className="welcome-modal-h3">
                 Message
               </h3>
-              <p className="welcome-modal-hint">Embed, content, variables, and buttons — same as the site embed builder.</p>
+              <p className="welcome-modal-hint">Embed, content, variables, and buttons.</p>
 
               <div className="embed-grid welcome-modal-embed-grid">
                 <div className="welcome-modal-embed-col">

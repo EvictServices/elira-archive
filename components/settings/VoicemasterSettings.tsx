@@ -120,7 +120,9 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
 
   const channelsById = useMemo(() => {
     const map = new Map<string, GuildChannel>()
-    for (const c of [...categories, ...voiceChannels, ...textChannels]) map.set(c.id, c)
+    for (const c of [...categories, ...voiceChannels, ...textChannels]) {
+      map.set(String(c.id).trim(), c)
+    }
     return map
   }, [categories, voiceChannels, textChannels])
 
@@ -253,10 +255,10 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
   }
 
   const categoryName = configuration.category_id
-    ? channelsById.get(configuration.category_id)?.name
+    ? channelsById.get(String(configuration.category_id).trim())?.name
     : null
   const joinToCreateName = configuration.channel_id
-    ? channelsById.get(configuration.channel_id)?.name
+    ? channelsById.get(String(configuration.channel_id).trim())?.name
     : null
   const defaultRole = configuration.role_id
     ? rolesById.get(configuration.role_id)

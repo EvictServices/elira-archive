@@ -10,7 +10,11 @@ export const CLUSTER_API_BASE =
 const CLUSTER_API = CLUSTER_API_BASE
 
 function safeParse<T>(text: string): T {
-  const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
+  /** Quote large numeric snowflakes so JSON.parse does not lose precision (parent_id, etc.). */
+  const safe = text.replace(
+    /"(id|guild_id|owner_id|parent_id|parentId|channel_id|category_id)":\s*(\d{15,})/g,
+    '"$1":"$2"'
+  )
   return JSON.parse(safe) as T
 }
 
@@ -81,16 +85,64 @@ export interface GuildChannel {
   parent_id: string | null
 }
 
+function normalizeSnowflakeInput(v: unknown): string {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'bigint') return String(v)
+  if (typeof v === 'number' && Number.isFinite(v)) return String(Math.trunc(v))
+  if (typeof v === 'string') {
+    const t = v.trim()
+    if (!t || t === 'null' || t === 'undefined') return ''
+    return t
+  }
+  return String(v).trim()
+}
+
+/**
+ * Cluster/API may use camelCase (`parentId`) or omit `parent_id`; dashboard UI expects `parent_id`.
+ * Mirrors client parsing in SystemMessagesSettings (`parentIdFromChannelRow`).
+ */
+export function normalizeGuildChannel(raw: GuildChannel | Record<string, unknown>): GuildChannel {
+  const o = raw as Record<string, unknown>
+  const pickParent = (v: unknown): string | null => {
+    if (v === undefined || v === null) return null
+    if (typeof v === 'object' && v !== null && 'id' in v) {
+      const s = normalizeSnowflakeInput((v as { id: unknown }).id)
+      return s || null
+    }
+    const s = normalizeSnowflakeInput(v)
+    return s || null
+  }
+  const parent_id =
+    pickParent(o.parent_id) ??
+    pickParent(o.parentId) ??
+    pickParent(o.category_id) ??
+    pickParent(o.categoryId) ??
+    pickParent(o.parent)
+
+  const idRaw = normalizeSnowflakeInput(o.id)
+  const id = idRaw || String(o.id ?? '')
+
+  return {
+    id,
+    name: typeof o.name === 'string' ? o.name : String(o.name ?? ''),
+    type: (o.type ?? 0) as number | string,
+    position: typeof o.position === 'number' ? o.position : Number(o.position) || 0,
+    parent_id,
+  }
+}
+
 export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[]> {
-  const cacheKey = `dashboard:channels:${guildId}`
+  const cacheKey = `dashboard:channels:v3:${guildId}`
   const cached = await redis.get(cacheKey)
   if (cached) {
-    return JSON.parse(cached) as GuildChannel[]
+    const parsed = JSON.parse(cached) as GuildChannel[]
+    return parsed.map(normalizeGuildChannel)
   }
 
   const channels = await clusterGet<GuildChannel[]>(`/guild/${guildId}/channels`)
-  await redis.set(cacheKey, JSON.stringify(channels), 'EX', 120)
-  return channels
+  const normalized = channels.map(normalizeGuildChannel)
+  await redis.set(cacheKey, JSON.stringify(normalized), 'EX', 120)
+  return normalized
 }
 
 export interface GuildRole {

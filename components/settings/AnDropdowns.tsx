@@ -5,15 +5,23 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 export interface AnGuildChannel {
   id: string
   name: string
-  parent_id?: string | null
+  /** May be string or number from JSON before normalization */
+  parent_id?: string | number | null
+}
+
+function snowflakeKey(id: string | number | null | undefined): string {
+  if (id == null || id === '') return ''
+  if (typeof id === 'number' && Number.isFinite(id)) return String(Math.trunc(id))
+  return String(id).trim()
 }
 
 function categoryLookupLabel(
-  parentId: string | null | undefined,
+  parentId: string | number | null | undefined,
   categoryById: Map<string, string>
 ): string {
-  if (parentId == null || parentId === '') return 'Uncategorized'
-  return categoryById.get(parentId) ?? 'Uncategorized'
+  const key = snowflakeKey(parentId)
+  if (!key) return 'Uncategorized'
+  return categoryById.get(key) ?? 'Uncategorized'
 }
 
 export interface AnGuildRole {
@@ -133,13 +141,14 @@ export function ChannelDropdown({
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const selected = channels.find((c) => c.id === value)
+  const selected = channels.find((c) => snowflakeKey(c.id) === snowflakeKey(value))
 
   const categoryById = useMemo(() => {
     const m = new Map<string, string>()
     if (!categories?.length) return m
     for (const c of categories) {
-      m.set(c.id, c.name)
+      const id = snowflakeKey(c.id)
+      if (id) m.set(id, c.name)
     }
     return m
   }, [categories])
@@ -242,10 +251,12 @@ export function ChannelDropdown({
           )}
           {channels.map((c) => (
             <button
-              key={c.id}
-              className={`an-dropdown-item an-dropdown-item--channel${c.id === value ? ' active' : ''}`}
+              key={snowflakeKey(c.id) || c.id}
+              className={`an-dropdown-item an-dropdown-item--channel${
+                snowflakeKey(c.id) === snowflakeKey(value) ? ' active' : ''
+              }`}
               onClick={() => {
-                onChange(c.id)
+                onChange(typeof c.id === 'string' ? c.id : snowflakeKey(c.id))
                 setOpen(false)
               }}
               type="button"
@@ -261,7 +272,7 @@ export function ChannelDropdown({
                       {categoryLookupLabel(c.parent_id, categoryById)}
                     </span>
                   </span>
-                  {c.id === value && (
+                  {snowflakeKey(c.id) === snowflakeKey(value) && (
                     <svg
                       width="14"
                       height="14"
@@ -283,7 +294,7 @@ export function ChannelDropdown({
                     {prefix}
                     {c.name}
                   </span>
-                  {c.id === value && (
+                  {snowflakeKey(c.id) === snowflakeKey(value) && (
                     <svg
                       width="14"
                       height="14"

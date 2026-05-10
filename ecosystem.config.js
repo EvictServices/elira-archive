@@ -1,9 +1,9 @@
 module.exports = {
   apps: [
     {
-      name: 'elira',
+      name: 'elira-dashboard',
       script: 'node_modules/.bin/next',
-      args: 'start -p 3000',
+      args: 'start -p 4002',
       cwd: '/root/elira',
       instances: 1,
       exec_mode: 'fork',
@@ -15,8 +15,8 @@ module.exports = {
       env: {
         NODE_ENV: 'production'
       },
-      error_file: '~/.pm2/logs/elira-error.log',
-      out_file: '~/.pm2/logs/elira-out.log',
+      error_file: '~/.pm2/logs/elira-dashboard-error.log',
+      out_file: '~/.pm2/logs/elira-dashboard-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       combine_logs: true,
       merge_logs: true

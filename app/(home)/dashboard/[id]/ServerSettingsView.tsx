@@ -1,7 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import {
+  armDashboardSidebarMenuCooldown,
+  isDashboardSidebarMenuOpenBlocked,
+} from '@/lib/dashboard_sidebar_touch'
+import { useMediaQuery } from '@/lib/useMediaQuery'
 import PrefixSettings from '@/components/settings/PrefixSettings'
 import AntinukeSettings from '@/components/settings/AntinukeSettings'
 import LoggingSettings from '@/components/settings/LoggingSettings'
@@ -198,6 +203,13 @@ const sectionDescriptions: Record<string, string> = {
 
 export default function ServerSettingsView({ guild, user, activeTab, canAccessAntinuke }: { guild: Guild; user: User; activeTab: string; canAccessAntinuke: boolean }) {
   const activeItem = activeTab
+  const pathname = usePathname()
+  const router = useRouter()
+  const isMobile = useMediaQuery('(max-width: 1024px)')
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  /** Absorbs the lift-phase touch after closing the drawer so it cannot hit the Menu control. */
+  const [ghostShield, setGhostShield] = useState(false)
+
   const filteredSections = canAccessAntinuke
     ? sections
     : sections.map((s) => ({
@@ -212,15 +224,115 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
     setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }))
   }
 
+  const closeMobileNav = useCallback(() => {
+    armDashboardSidebarMenuCooldown()
+    setMobileNavOpen(false)
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches) {
+      setGhostShield(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!ghostShield) return
+    const id = window.setTimeout(() => setGhostShield(false), 700)
+    return () => window.clearTimeout(id)
+  }, [ghostShield])
+
+  const navigateToTab = useCallback(
+    (itemId: string) => {
+      closeMobileNav()
+      const href =
+        itemId === 'general'
+          ? `/dashboard/${guild.guild_id}/general`
+          : `/dashboard/${guild.guild_id}/${itemId}`
+      router.push(href)
+    },
+    [closeMobileNav, guild.guild_id, router]
+  )
+
+  const goBackToServers = useCallback(() => {
+    closeMobileNav()
+    router.push('/dashboard')
+  }, [closeMobileNav, router])
+
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [activeTab, pathname])
+
+  useEffect(() => {
+    if (!isMobile || !mobileNavOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [isMobile, mobileNavOpen])
+
+  useEffect(() => {
+    if (!mobileNavOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMobileNav()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mobileNavOpen, closeMobileNav])
+
+  const sidebarClass = [
+    'server-sidebar',
+    isMobile && 'server-sidebar--mobile-drawer',
+    isMobile && mobileNavOpen && 'server-sidebar--mobile-open',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className="server-layout">
-      <aside className="server-sidebar">
-        <Link href="/dashboard" className="server-back">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
+    <div
+      className={
+        'server-layout' + (isMobile && mobileNavOpen ? ' server-layout--mobile-nav-open' : '')
+      }
+    >
+      {isMobile && mobileNavOpen && (
+        <button
+          type="button"
+          className="server-sidebar-backdrop"
+          aria-label="Close menu"
+          onClick={closeMobileNav}
+        />
+      )}
+      {isMobile && ghostShield && (
+        <div
+          className="server-mobile-ghost-shield"
+          aria-hidden
+          onPointerDown={(e) => e.preventDefault()}
+          onPointerUp={(e) => e.preventDefault()}
+          onClick={(e) => e.preventDefault()}
+        />
+      )}
+      <aside className={sidebarClass} id="server-settings-sidebar">
+        <button
+          type="button"
+          className="server-sidebar-back-chip"
+          onClick={goBackToServers}
+          aria-label="Back to all servers"
+        >
+          <svg
+            className="server-sidebar-back-chip-chevron"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 18l-6-6 6-6"
+            />
           </svg>
-          Back to servers
-        </Link>
+          <span className="server-sidebar-back-chip-label">Servers</span>
+        </button>
 
         <div className="sidebar-guild">
           {guild.icon_url ? (
@@ -257,14 +369,16 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
               <div className={`sidebar-section-items${openSections[section.label] ? ' open' : ''}`}>
                 <div className="sidebar-section-items-inner">
                   {section.items.map((item) => (
-                    <Link
+                    <button
                       key={item.id}
+                      type="button"
                       className={`sidebar-item${activeItem === item.id ? ' active' : ''}`}
-                      href={`/dashboard/${guild.guild_id}/${item.id === 'general' ? '' : item.id}`}
+                      aria-current={activeItem === item.id ? 'page' : undefined}
+                      onClick={() => navigateToTab(item.id)}
                     >
                       {item.icon}
                       <span>{item.label}</span>
-                    </Link>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -290,6 +404,28 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
       </aside>
 
       <main className="server-content">
+        {(!isMobile || !mobileNavOpen) && (
+          <div className="server-mobile-toolbar">
+            <span className="server-mobile-toolbar-title">{guild.name}</span>
+            <button
+              type="button"
+              className="server-mobile-menu-trigger"
+              onClick={() => {
+                if (isDashboardSidebarMenuOpenBlocked()) return
+                setMobileNavOpen(true)
+              }}
+              aria-expanded={mobileNavOpen}
+              aria-controls="server-settings-sidebar"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="18" x2="20" y2="18" />
+              </svg>
+              <span>Menu</span>
+            </button>
+          </div>
+        )}
         <header className="server-content-header">
           <h1 className="server-content-title">
             {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
