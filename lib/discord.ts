@@ -95,16 +95,50 @@ export interface DiscordGuild {
   permissions: string
 }
 
-export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGuild[]> {
-  const res = await fetch(`${DISCORD_API}/users/@me/guilds`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
 
-  if (!res.ok) {
+function retryAfterMs(res: Response, capMs: number): number {
+  const raw = res.headers.get('retry-after')
+  if (!raw) return Math.min(1500, capMs)
+  const sec = Number(raw)
+  if (!Number.isNaN(sec) && sec >= 0) {
+    return Math.min(Math.ceil(sec * 1000), capMs)
+  }
+  const when = Date.parse(raw)
+  if (!Number.isNaN(when)) {
+    return Math.min(Math.max(0, when - Date.now()), capMs)
+  }
+  return Math.min(1500, capMs)
+}
+
+const GUILD_FETCH_MAX_ATTEMPTS = 4
+const GUILD_FETCH_RETRY_WAIT_CAP_MS = 12_000
+
+export async function fetchDiscordGuilds(accessToken: string): Promise<DiscordGuild[]> {
+  let lastStatus = 0
+
+  for (let attempt = 0; attempt < GUILD_FETCH_MAX_ATTEMPTS; attempt++) {
+    const res = await fetch(`${DISCORD_API}/users/@me/guilds`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+
+    if (res.ok) {
+      return res.json() as Promise<DiscordGuild[]>
+    }
+
+    lastStatus = res.status
+    const retryable = res.status === 429 || res.status === 503
+    if (retryable && attempt < GUILD_FETCH_MAX_ATTEMPTS - 1) {
+      await sleep(retryAfterMs(res, GUILD_FETCH_RETRY_WAIT_CAP_MS))
+      continue
+    }
+
     throw new Error(`Discord guilds fetch failed: ${res.status}`)
   }
 
-  return res.json() as Promise<DiscordGuild[]>
+  throw new Error(`Discord guilds fetch failed: ${lastStatus}`)
 }
 
 const ADMINISTRATOR = BigInt(0x8)
@@ -112,7 +146,14 @@ const ADMINISTRATOR = BigInt(0x8)
 export async function hasGuildAdmin(accessToken: string, guildId: string): Promise<boolean> {
   if (!isValidGuildSnowflake(guildId)) return false
 
-  const guilds = await fetchDiscordGuilds(accessToken)
+  let guilds: DiscordGuild[]
+  try {
+    guilds = await fetchDiscordGuilds(accessToken)
+  } catch (e) {
+    console.error('hasGuildAdmin: guild list fetch failed', e)
+    return false
+  }
+
   const guild = guilds.find((g) => g.id === guildId.trim())
   if (!guild) return false
   return guild.owner || (BigInt(guild.permissions) & ADMINISTRATOR) !== BigInt(0)
