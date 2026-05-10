@@ -1,5 +1,11 @@
 import pool from '@/lib/db'
 import redis from '@/lib/redis'
+import { CLUSTER_API_BASE } from '@/lib/cluster'
+
+function clusterJsonParse<T>(text: string): T {
+  const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
+  return JSON.parse(safe) as T
+}
 
 export const REGIONS = [
   'brazil',
@@ -289,4 +295,115 @@ export async function updateChannelOwner(
     [channelId, ownerId]
   )
   await invalidateChannelCache(channelId)
+}
+
+/** Bot/cluster: disconnect members and delete the Discord voice channel (VoiceMaster temp channel). */
+export interface VoicemasterChannelDeleteResult {
+  ok: boolean
+  error?: string
+  /** Bot-reported count of members disconnected from the voice channel. */
+  disconnected_count?: number
+  /** Bot-reported user IDs disconnected (when the cluster returns them). */
+  disconnected_user_ids?: string[]
+}
+
+function normalizeDisconnectedUserIds(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const ids = raw.map((x) => String(x).trim()).filter(Boolean)
+  return ids.length ? ids : undefined
+}
+
+function parseVoicemasterDeleteBody(
+  text: string,
+  resOk: boolean,
+  httpStatus: number
+): VoicemasterChannelDeleteResult | null {
+  if (!text.trim()) return null
+  try {
+    const raw = clusterJsonParse<Record<string, unknown>>(text)
+    const okFlag: boolean | undefined =
+      typeof raw.ok === 'boolean'
+        ? raw.ok
+        : raw.success === true
+          ? true
+          : raw.status === 'ok'
+            ? true
+            : undefined
+    if (okFlag === undefined && !resOk) {
+      const msg =
+        typeof raw.error === 'string'
+          ? raw.error
+          : typeof raw.message === 'string'
+            ? raw.message
+            : typeof raw.detail === 'string'
+              ? raw.detail
+              : `Cluster API failed (${httpStatus})`
+      return { ok: false, error: msg }
+    }
+    if (okFlag === undefined) return null
+    const alt =
+      normalizeDisconnectedUserIds(raw.disconnected_user_ids) ??
+      normalizeDisconnectedUserIds(raw.disconnected_users) ??
+      normalizeDisconnectedUserIds(raw.user_ids)
+    let count = raw.disconnected_count
+    if (typeof count !== 'number' && alt) count = alt.length
+    return {
+      ok: okFlag,
+      error: typeof raw.error === 'string' ? raw.error : undefined,
+      disconnected_count: typeof count === 'number' ? count : undefined,
+      disconnected_user_ids: alt,
+    }
+  } catch {
+    if (!resOk) {
+      return { ok: false, error: 'Invalid response from cluster' }
+    }
+    return null
+  }
+}
+
+export async function deleteVoicemasterChannel(
+  guildId: string,
+  channelId: string
+): Promise<VoicemasterChannelDeleteResult> {
+  const body = JSON.stringify({ channel_id: channelId, guild_id: guildId })
+  const primaryPath = `/guild/${guildId}/voicemaster/channel/delete`
+  const fallbackPath = `/guild/${guildId}/voicemaster/delete_channel`
+
+  async function tryPath(path: string): Promise<{ res: Response; text: string }> {
+    const res = await fetch(`${CLUSTER_API_BASE}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body,
+      cache: 'no-store',
+    })
+    const text = await res.text()
+    return { res, text }
+  }
+
+  try {
+    let { res, text } = await tryPath(primaryPath)
+    if (res.status === 404) {
+      ;({ res, text } = await tryPath(fallbackPath))
+    }
+
+    const parsed = parseVoicemasterDeleteBody(text, res.ok, res.status)
+    if (parsed) return parsed
+
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: `Cluster API failed (${res.status})`,
+      }
+    }
+    return { ok: true }
+  } catch (e) {
+    return {
+      ok: false,
+      error:
+        e instanceof Error ? e.message : 'Could not reach cluster (check CLUSTER_API_URL)',
+    }
+  }
 }

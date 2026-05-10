@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ResolvedDiscordUser } from '@/lib/cluster'
+interface ResolvedDiscordUser {
+  user_id: string
+  username: string
+  avatar: string | null
+}
 
 interface Module {
   threshold: number
@@ -405,11 +409,13 @@ function SnowflakeUserColumn({
         />
         <button
           type="button"
-          className="btn btn-ghost an-access-add-btn"
+          className="system-messages-icon-btn system-messages-plus-btn"
           onClick={add}
           disabled={disabled || !input.trim()}
+          aria-label={`Add to ${title}`}
+          title={`Add to ${title}`}
         >
-          Add
+          +
         </button>
       </div>
       {localError && <p className="an-access-local-error">{localError}</p>}
@@ -444,12 +450,13 @@ function SnowflakeUserColumn({
                 </div>
                 <button
                   type="button"
-                  className="an-access-chip-remove"
+                  className="system-messages-icon-btn system-messages-minus-btn"
+                  aria-label={`Remove user ${id} from ${title}`}
                   title="Remove"
                   disabled={disabled}
                   onClick={() => onChange(ids.filter((x) => x !== id))}
                 >
-                  ×
+                  -
                 </button>
               </li>
             )

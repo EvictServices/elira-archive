@@ -39,6 +39,10 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
     redirect(`/dashboard/${id}/general`)
   }
 
+  if (tab === 'welcome' || tab === 'autorole') {
+    redirect(`/dashboard/${id}/system`)
+  }
+
   if (tab === 'antinuke' && !canAccessAntinuke) {
     redirect(`/dashboard/${id}/general`)
   }

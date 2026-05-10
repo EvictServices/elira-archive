@@ -1,5 +1,6 @@
 import pool from '@/lib/db'
 
+/** Rows read like elara `extensions/cfg/system/greet/etc/settings` `get_greet_messages`. */
 export interface WelcomeMessageRow {
   channel_id: string
   template: string
@@ -47,6 +48,7 @@ export async function upsertWelcomeMessage(
     throw new Error(`You can only have up to ${MAX_WELCOME_CHANNELS} welcome messages. Remove one first.`)
   }
 
+  // Same INSERT/ON CONFLICT as `Settings.set_greet_message` in greet/etc/settings/__init__.py
   await pool.query(
     `INSERT INTO welcome_message (guild_id, channel_id, template)
      VALUES ($1::bigint, $2::bigint, $3)

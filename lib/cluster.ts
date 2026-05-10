@@ -1,12 +1,16 @@
 import redis from '@/lib/redis'
 
-const CLUSTER_API = 'http://localhost:8000'
+/** Base URL for the bot/cluster HTTP API (no trailing slash). */
+export const CLUSTER_API_BASE =
+  (typeof process !== 'undefined' &&
+    process.env.CLUSTER_API_URL &&
+    String(process.env.CLUSTER_API_URL).replace(/\/$/, '')) ||
+  'http://127.0.0.1:8000'
+
+const CLUSTER_API = CLUSTER_API_BASE
 
 function safeParse<T>(text: string): T {
-  const safe = text.replace(
-    /"(id|guild_id|owner_id|user_id)":\s*(\d{15,})/g,
-    '"$1":"$2"'
-  )
+  const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
   return JSON.parse(safe) as T
 }
 
@@ -77,67 +81,14 @@ export interface GuildChannel {
   parent_id: string | null
 }
 
-/** Elara IPC uses `category_id`; dashboard code expects `parent_id`. */
-function optionalSnowflake(v: unknown): string | null {
-  if (v === null || v === undefined) return null
-  if (typeof v === 'bigint') return String(v)
-  if (typeof v === 'number' && Number.isFinite(v)) return String(Math.trunc(v))
-  if (typeof v === 'string') {
-    const t = v.trim()
-    if (!t || t === 'null' || t === 'undefined') return null
-    return t
-  }
-  return String(v).trim() || null
-}
-
-/**
- * Elara serializes `str(channel.type)` (discord.py). Normalize so TYPE_FILTERS in
- * settings routes match (`text`, `news`, numeric codes, etc.).
- */
-function normalizeChannelTypeFromCluster(t: unknown): number | string {
-  if (typeof t === 'number' && !Number.isNaN(t)) return t
-  if (typeof t !== 'string') return String(t ?? '')
-  const s = t.trim()
-  const enumStrip = /^ChannelType\.(\w+)$/i.exec(s)
-  if (enumStrip) return enumStrip[1].toLowerCase()
-  const n = parseInt(s, 10)
-  if (!Number.isNaN(n) && String(n) === s) return n
-  return s
-}
-
-function normalizeGuildChannelsFromCluster(raw: unknown): GuildChannel[] {
-  if (!Array.isArray(raw)) return []
-  const out: GuildChannel[] = []
-  for (const row of raw) {
-    if (!row || typeof row !== 'object') continue
-    const o = row as Record<string, unknown>
-    const id = optionalSnowflake(o.id)
-    if (!id) continue
-    const parent_id =
-      optionalSnowflake(o.parent_id) ??
-      optionalSnowflake(o.parentId) ??
-      optionalSnowflake(o.category_id) ??
-      optionalSnowflake(o.categoryId)
-    out.push({
-      id,
-      name: typeof o.name === 'string' ? o.name : String(o.name ?? ''),
-      type: normalizeChannelTypeFromCluster(o.type),
-      position: Number(o.position) || 0,
-      parent_id,
-    })
-  }
-  return out
-}
-
 export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[]> {
-  const cacheKey = `dashboard:channels:v2:${guildId}`
+  const cacheKey = `dashboard:channels:${guildId}`
   const cached = await redis.get(cacheKey)
   if (cached) {
     return JSON.parse(cached) as GuildChannel[]
   }
 
-  const raw = await clusterGet<unknown>(`/guild/${guildId}/channels`)
-  const channels = normalizeGuildChannelsFromCluster(raw)
+  const channels = await clusterGet<GuildChannel[]>(`/guild/${guildId}/channels`)
   await redis.set(cacheKey, JSON.stringify(channels), 'EX', 120)
   return channels
 }
@@ -181,22 +132,6 @@ export interface GuildMember {
   permissions: string
 }
 
-export interface VoicemasterDeleteResult {
-  ok?: boolean
-  channel_id?: string
-  error?: string
-}
-
-export async function deleteVoicemasterChannel(
-  guildId: string,
-  channelId: string
-): Promise<VoicemasterDeleteResult> {
-  return clusterPost<VoicemasterDeleteResult>(
-    `/guild/${guildId}/voicemaster/channels/${channelId}/delete`,
-    {}
-  )
-}
-
 export async function fetchGuildMember(
   guildId: string,
   userId: string
@@ -214,35 +149,4 @@ export async function fetchGuildMember(
   } catch {
     return null
   }
-}
-
-/** Resolved via cluster bulk user lookup (bot cache). */
-export interface ResolvedDiscordUser {
-  user_id: string
-  username: string
-  display_name: string | null
-  avatar: string | null
-}
-
-export async function fetchResolvedUsers(
-  userIds: string[]
-): Promise<ResolvedDiscordUser[]> {
-  const unique = [...new Set(userIds)].slice(0, 100)
-  if (unique.length === 0) return []
-
-  const raw = await clusterPost<
-    Array<{
-      user_id: number | string
-      username: string
-      display_name?: string | null
-      avatar?: string | null
-    }>
-  >('/users/find', { user_ids: unique })
-
-  return raw.map((u) => ({
-    user_id: String(u.user_id),
-    username: u.username,
-    display_name: u.display_name ?? null,
-    avatar: u.avatar ?? null,
-  }))
 }

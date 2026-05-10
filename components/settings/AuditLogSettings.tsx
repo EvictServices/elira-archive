@@ -37,6 +37,10 @@ const ACTION_TITLE: Record<string, string> = {
   'voicemaster.temp_channels.delete_bulk': 'Temp voice channels',
   'welcome.upsert': 'Welcome message',
   'welcome.delete': 'Welcome message',
+  'boost.upsert': 'Boost message',
+  'boost.delete': 'Boost message',
+  'goodbye.upsert': 'Leave message',
+  'goodbye.delete': 'Leave message',
 }
 
 const ACTION_CATEGORY: Record<string, string> = {
@@ -61,8 +65,12 @@ const ACTION_CATEGORY: Record<string, string> = {
   'voicemaster.temp_channel.owner': 'VoiceMaster',
   'voicemaster.temp_channel.delete': 'VoiceMaster',
   'voicemaster.temp_channels.delete_bulk': 'VoiceMaster',
-  'welcome.upsert': 'Welcome',
-  'welcome.delete': 'Welcome',
+  'welcome.upsert': 'System messages',
+  'welcome.delete': 'System messages',
+  'boost.upsert': 'System messages',
+  'boost.delete': 'System messages',
+  'goodbye.upsert': 'System messages',
+  'goodbye.delete': 'System messages',
 }
 
 function categoryForAction(action: string): string {
@@ -136,18 +144,65 @@ function buildChangeBlurb(action: string, detail: Record<string, unknown>): stri
       return typeof d.channel_id === 'string' && typeof d.owner_id === 'string'
         ? `Channel ${d.channel_id.slice(0, 8)}… → owner ${d.owner_id.slice(0, 8)}…`
         : 'Ownership updated'
-    case 'voicemaster.temp_channel.delete':
-      return typeof d.channel_id === 'string' ? `Channel ${d.channel_id}` : 'Deleted'
-    case 'voicemaster.temp_channels.delete_bulk':
-      return typeof d.count === 'number'
-        ? `${d.count} channel(s) · ${String(d.mode ?? '')}`
-        : 'Bulk delete'
+    case 'voicemaster.temp_channel.delete': {
+      const base =
+        typeof d.channel_id === 'string' ? `Channel ${d.channel_id}` : 'Deleted'
+      if (d.mode === 'hard' && typeof d.disconnected_members === 'number') {
+        const src =
+          d.disconnected_members_source === 'bot'
+            ? 'bot'
+            : d.disconnected_members_source === 'channel_snapshot'
+              ? 'snapshot'
+              : ''
+        const suffix = src ? ` · disconnected ${d.disconnected_members} (${src})` : ` · disconnected ${d.disconnected_members}`
+        return base + suffix
+      }
+      return base
+    }
+    case 'voicemaster.temp_channels.delete_bulk': {
+      const base =
+        typeof d.count === 'number'
+          ? `${d.count} channel(s) · ${String(d.mode ?? '')}`
+          : 'Bulk delete'
+      if (
+        d.mode === 'hard' &&
+        typeof d.disconnected_members_total === 'number' &&
+        d.disconnected_members_total > 0
+      ) {
+        return `${base} · ~${d.disconnected_members_total} member disconnect(s)`
+      }
+      return base
+    }
     case 'welcome.upsert':
       if (typeof d.from_channel_id === 'string' && typeof d.channel_id === 'string') {
         return `Moved ${d.from_channel_id.slice(0, 8)}… → ${d.channel_id.slice(0, 8)}…`
       }
       return typeof d.channel_id === 'string' ? `Channel ${d.channel_id}` : 'Updated'
     case 'welcome.delete':
+      return typeof d.channel_id === 'string' ? `Channel ${d.channel_id}` : 'Updated'
+    case 'boost.upsert':
+      if (typeof d.from_channel_id === 'string' && typeof d.channel_id === 'string') {
+        return `Moved ${d.from_channel_id.slice(0, 8)}… → ${d.channel_id.slice(0, 8)}…`
+      }
+      return typeof d.channel_id === 'string' ? `Channel ${d.channel_id}` : 'Updated'
+    case 'boost.delete':
+      return typeof d.channel_id === 'string' ? `Channel ${d.channel_id}` : 'Updated'
+    case 'goodbye.upsert': {
+      const base =
+        typeof d.from_channel_id === 'string' && typeof d.channel_id === 'string'
+          ? `Moved ${d.from_channel_id.slice(0, 8)}… → ${d.channel_id.slice(0, 8)}…`
+          : typeof d.channel_id === 'string'
+            ? `Channel ${d.channel_id}`
+            : 'Updated'
+      if ('delete_after' in d && d.delete_after !== undefined) {
+        const da = d.delete_after
+        const suffix =
+          da === null ? ' · auto-delete cleared' : typeof da === 'number' ? ` · delete after ${da}s` : ''
+        return base + suffix
+      }
+      return base
+    }
+    case 'goodbye.delete':
       return typeof d.channel_id === 'string' ? `Channel ${d.channel_id}` : 'Updated'
     default:
       return Object.keys(d).length === 0 ? 'Saved' : 'See details'
@@ -174,6 +229,7 @@ const DETAIL_LABELS: Record<string, string> = {
   region: 'Region',
   bitrate: 'Bitrate',
   mode: 'Mode',
+  delete_after: 'Delete after (seconds)',
 }
 
 function formatDetailValue(v: unknown): string {

@@ -65,3 +65,31 @@ export function clearSessionCookie() {
     maxAge: 0,
   }
 }
+
+/** Short-lived CSRF token for Discord OAuth (validated in /api/auth/callback). */
+export const OAUTH_STATE_COOKIE = 'oauth_state'
+const OAUTH_STATE_MAX_AGE = 600 // 10 minutes
+
+export function oauthStateCookieSet(value: string) {
+  return {
+    name: OAUTH_STATE_COOKIE,
+    value,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: OAUTH_STATE_MAX_AGE,
+  }
+}
+
+export function oauthStateCookieClear() {
+  return {
+    name: OAUTH_STATE_COOKIE,
+    value: '',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: 0,
+  }
+}

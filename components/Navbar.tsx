@@ -6,6 +6,14 @@ import { usePathname } from 'next/navigation'
 import { INVITE_URL, SUPPORT_URL, DOCS_URL } from '@/lib/constants'
 import UserMenu from '@/components/UserMenu'
 
+const MAIN_LINKS: { href: string; page: string; label: string; external?: boolean }[] = [
+  { href: '/', page: 'home', label: 'Home' },
+  { href: '/commands', page: 'commands', label: 'Commands' },
+  { href: '/embeds', page: 'embeds', label: 'Embeds' },
+  { href: '/updates', page: 'updates', label: 'Updates' },
+  { href: '/status', page: 'status', label: 'Status' },
+]
+
 export default function Navbar() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -49,102 +57,161 @@ export default function Navbar() {
   if (isDashboard) {
     const isOnGuildPage = /^\/dashboard\/\d+/.test(pathname)
     return (
-      <nav className="navbar navbar-dashboard">
-        <div className="nav-dashboard-inner">
-          <div className="nav-dashboard-left">
-            <Link href="/" className="nav-brand">
-              <img src="/img/evict.webp" alt="evict" className="nav-avatar" />
-              <span>evict</span>
+      <header className="site-nav site-nav--dashboard" role="banner">
+        <div className="site-nav__shell site-nav__shell--dashboard">
+          <div className="site-nav__dash-left">
+            <Link href="/" className="site-nav__brand">
+              <img src="/img/evict.webp" alt="" className="site-nav__logo" width={28} height={28} />
+              <span className="site-nav__wordmark">evict</span>
             </Link>
-            <span className="nav-dashboard-divider" aria-hidden />
+            <span className="site-nav__dash-rule" aria-hidden />
             <Link
               href="/dashboard"
-              className={`nav-dashboard-crumb${
-                pathname === '/dashboard' ? ' active' : ''
-              }`}
+              className={`site-nav__crumb${pathname === '/dashboard' ? ' is-active' : ''}`}
             >
               Dashboard
             </Link>
             {isOnGuildPage && (
               <>
-                <span className="nav-dashboard-sep">/</span>
-                <span className="nav-dashboard-crumb active">Server</span>
+                <span className="site-nav__crumb-sep" aria-hidden>
+                  /
+                </span>
+                <span className="site-nav__crumb is-active">Server</span>
               </>
             )}
           </div>
-          <div className="nav-dashboard-right">
-            <a
-              href={DOCS_URL}
-              target="_blank"
-              rel="noopener"
-              className="nav-dashboard-link"
-            >
+          <div className="site-nav__dash-right">
+            <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" className="site-nav__dash-link">
               Docs
             </a>
-            <a
-              href={SUPPORT_URL}
-              target="_blank"
-              rel="noopener"
-              className="nav-dashboard-link"
-            >
+            <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="site-nav__dash-link">
               Support
             </a>
-            <UserMenu />
+            <UserMenu variant="dashboard" />
           </div>
         </div>
-      </nav>
+      </header>
     )
   }
 
   return (
-    <nav className={`navbar${navHidden ? ' nav-hidden' : ''}`}>
-      <div className="nav-inner">
-        <Link href="/" className="nav-brand" onClick={closeMenu}>
-          <img src="/img/evict.webp" alt="evict" className="nav-avatar" />
-          <span>evict</span>
-        </Link>
+    <header
+      className={`site-nav${navHidden ? ' site-nav--hidden' : ''}${menuOpen ? ' site-nav--drawer-open' : ''}`}
+      role="banner"
+    >
+      <div className="site-nav__bar">
+        <div className="site-nav__shell">
+          <Link href="/" className="site-nav__brand" onClick={closeMenu}>
+            <img src="/img/evict.webp" alt="" className="site-nav__logo" width={28} height={28} />
+            <span className="site-nav__wordmark">evict</span>
+          </Link>
 
-        <div className={`nav-menu${menuOpen ? ' open' : ''}`}>
-          <div className="nav-menu-section">
-            <span className="nav-menu-label">Pages</span>
-            <div className="nav-pill">
-              <Link href="/" className={isActive('home') ? 'active' : ''} onClick={closeMenu}>Home</Link>
-              <Link href="/commands" className={isActive('commands') ? 'active' : ''} onClick={closeMenu}>Commands</Link>
-              <Link href="/embeds" className={isActive('embeds') ? 'active' : ''} onClick={closeMenu}>Embeds</Link>
-              <a href={DOCS_URL} target="_blank" rel="noopener" className="mobile-only" onClick={closeMenu}>Docs</a>
-              <Link href="/updates" className={isActive('updates') ? 'active' : ''} onClick={closeMenu}>Updates</Link>
-              <Link href="/status" className={isActive('status') ? 'active' : ''} onClick={closeMenu}>Status</Link>
-              <UserMenu />
-            </div>
-          </div>
+          <nav
+            className={`site-nav__drawer${menuOpen ? ' is-open' : ''}`}
+            aria-label="Main navigation"
+            id="site-nav-drawer"
+          >
+            <ul className="site-nav__list">
+              {MAIN_LINKS.map(({ href, page, label }) => (
+                <li key={page}>
+                  <Link
+                    href={href}
+                    className={`site-nav__link${isActive(page) ? ' is-active' : ''}`}
+                    onClick={closeMenu}
+                    aria-current={isActive(page) ? 'page' : undefined}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+              <li className="site-nav__item--mobile-only">
+                <a
+                  href={DOCS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="site-nav__link site-nav__link--external"
+                  onClick={closeMenu}
+                >
+                  Docs
+                </a>
+              </li>
+            </ul>
 
-          <div className="nav-menu-section">
-            <span className="nav-menu-label">Quick Links</span>
-            <div className="nav-right">
-              <a href={SUPPORT_URL} target="_blank" rel="noopener" className="nav-btn nav-btn-ghost" onClick={closeMenu}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.658 0 8.258 8.258 0 0 0-.412-.833.051.051 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.052.052 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612Zm5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612Z"/>
+            <div className="site-nav__drawer-footer">
+              <a
+                href={SUPPORT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="site-nav__btn site-nav__btn--outline"
+                onClick={closeMenu}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+                  <path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.658 0 8.258 8.258 0 0 0-.412-.833.051.051 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.052.052 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612Zm5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612Z" />
                 </svg>
                 Support Server
               </a>
-              <a href={INVITE_URL} target="_blank" rel="noopener" className="nav-btn nav-btn-solid" onClick={closeMenu}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+              <a
+                href={INVITE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="site-nav__btn site-nav__btn--primary"
+                onClick={closeMenu}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
                 </svg>
                 Add to Server
               </a>
+              <div className="site-nav__drawer-account">
+                <UserMenu variant="marketing" onNavigate={closeMenu} />
+              </div>
             </div>
-          </div>
-        </div>
+          </nav>
 
-        <button
-          className={`nav-hamburger${menuOpen ? ' active' : ''}`}
-          aria-label="Toggle menu"
-          onClick={toggleMenu}
-        >
-          <span /><span /><span />
-        </button>
+          <div className="site-nav__desktop-cta">
+            <a
+              href={SUPPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-nav__btn site-nav__btn--outline site-nav__btn--compact"
+            >
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+                <path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.658 0 8.258 8.258 0 0 0-.412-.833.051.051 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.052.052 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612Zm5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612Z" />
+              </svg>
+              Support
+            </a>
+            <a
+              href={INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-nav__btn site-nav__btn--primary site-nav__btn--compact"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+              Add to Server
+            </a>
+            <UserMenu variant="marketing" />
+          </div>
+
+          <button
+            type="button"
+            className={`site-nav__burger${menuOpen ? ' is-active' : ''}`}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="site-nav-drawer"
+            onClick={toggleMenu}
+          >
+            <span className="site-nav__burger-line" />
+            <span className="site-nav__burger-line" />
+            <span className="site-nav__burger-line" />
+          </button>
+        </div>
       </div>
-    </nav>
+    </header>
   )
 }

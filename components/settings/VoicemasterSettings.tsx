@@ -23,6 +23,8 @@ interface VmChannel {
   bitrate: number | null
   user_limit: number | null
   exists: boolean
+  owner_username?: string | null
+  owner_avatar?: string | null
 }
 
 interface GuildChannel {
@@ -513,45 +515,107 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
               No active VoiceMaster channels right now.
             </p>
           ) : (
-            <div className="autorole-list">
+            <div className="vm-active-channels">
               {channels.map((ch) => {
                 const fallback = channelsById.get(ch.channel_id)
-                const name = ch.name ?? fallback?.name ?? null
+                const displayName = ch.name ?? fallback?.name ?? null
                 const key = `channel:${ch.channel_id}`
-                const meta: string[] = []
+                const busy = saving === key
+                const ownerResolved = !!ch.owner_username?.trim()
+                const ownerLabel =
+                  ch.owner_username?.trim() ||
+                  (ch.owner_id ? 'Unknown member' : null)
+                const ownerInitial = (
+                  ch.owner_username?.trim()?.[0] ||
+                  ch.owner_id?.[0] ||
+                  '?'
+                ).toUpperCase()
+
+                const statParts: string[] = []
                 if (ch.exists) {
                   if (ch.member_count != null) {
-                    meta.push(
-                      `${ch.member_count}${ch.user_limit ? `/${ch.user_limit}` : ''} connected`
+                    statParts.push(
+                      `${ch.member_count} connected${ch.user_limit ? ` (max ${ch.user_limit})` : ''}`
                     )
                   }
                   if (ch.bitrate != null) {
-                    meta.push(`${Math.round(ch.bitrate / 1000)} kbps`)
+                    statParts.push(`${Math.round(ch.bitrate / 1000)} kbps`)
                   }
-                } else {
-                  meta.push('not in Discord')
                 }
-                if (ch.owner_id) {
-                  meta.push(`owner ${ch.owner_id}`)
-                } else {
-                  meta.push('no owner')
-                }
+
                 return (
-                  <div key={ch.channel_id} className="autorole-row">
-                    <span className="autorole-role">
-                      <span className="autorole-role-name">
-                        {name ?? `Channel · ${ch.channel_id}`}
-                      </span>
-                    </span>
-                    <span className="autorole-delay">{meta.join(' · ')}</span>
-                    <button
-                      className="autorole-remove-btn"
-                      onClick={() => handleDeleteChannel(ch.channel_id)}
-                      disabled={saving === key}
-                      title="Disconnect members and delete the voice channel"
-                    >
-                      {saving === key ? '…' : 'Delete'}
-                    </button>
+                  <div
+                    key={ch.channel_id}
+                    className={`vm-active-channel-card${!ch.exists ? ' vm-active-channel-stale' : ''}`}
+                  >
+                    <div className="vm-active-channel-body">
+                      <div className="vm-active-channel-top">
+                        <span className="vm-active-channel-name">
+                          {displayName ? `#${displayName}` : 'Temporary voice channel'}
+                        </span>
+                        {!ch.exists && (
+                          <span className="vm-active-channel-badge">Not in Discord</span>
+                        )}
+                      </div>
+                      <div className="vm-active-channel-id" title="Channel ID">
+                        {ch.channel_id}
+                      </div>
+                      {statParts.length > 0 && (
+                        <div className="vm-active-channel-stats">{statParts.join(' · ')}</div>
+                      )}
+                      {!ch.exists && (
+                        <p className="settings-hint" style={{ margin: 0, fontSize: '0.76rem' }}>
+                          Not visible in this server — remove to clear the tracking record.
+                        </p>
+                      )}
+                      {ch.owner_id ? (
+                        <div className="vm-active-channel-owner-row">
+                          {ch.owner_avatar ? (
+                            <img
+                              src={ch.owner_avatar}
+                              alt=""
+                              className="vm-active-channel-owner-avatar"
+                            />
+                          ) : (
+                            <div
+                              className="vm-active-channel-owner-avatar-ph"
+                              aria-hidden
+                            >
+                              {ownerInitial}
+                            </div>
+                          )}
+                          <div className="vm-active-channel-owner-text">
+                            <span className="vm-active-channel-owner-label">Owner</span>
+                            <span className="vm-active-channel-owner-name">{ownerLabel}</span>
+                            {ch.owner_id && (ownerResolved || ownerLabel === 'Unknown member') && (
+                              <span className="vm-active-channel-owner-id">{ch.owner_id}</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="vm-active-channel-owner-missing">No owner on record</div>
+                      )}
+                    </div>
+                    <div className="vm-active-channel-actions">
+                      <button
+                        type="button"
+                        className="system-messages-icon-btn system-messages-minus-btn"
+                        onClick={() => handleDeleteChannel(ch.channel_id)}
+                        disabled={busy}
+                        aria-label={
+                          ch.exists
+                            ? `Delete voice channel #${displayName ?? ch.channel_id}`
+                            : `Remove tracking entry for channel ${ch.channel_id}`
+                        }
+                        title={
+                          ch.exists
+                            ? 'Disconnect members and delete the voice channel'
+                            : 'Remove tracking entry'
+                        }
+                      >
+                        -
+                      </button>
+                    </div>
                   </div>
                 )
               })}

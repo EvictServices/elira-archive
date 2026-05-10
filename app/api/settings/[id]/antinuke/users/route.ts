@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { isAntinukeAdmin } from '@/lib/settings/antinuke'
-import { fetchResolvedUsers } from '@/lib/cluster'
+import { fetchUserInfoBatch } from '@/lib/fetchUsers'
 
 const SNOWFLAKE_RE = /^\d{17,20}$/
 
@@ -36,17 +36,19 @@ export async function POST(
     (v): v is string => typeof v === 'string' && SNOWFLAKE_RE.test(v.trim())
   )
 
-  try {
-    const users = await fetchResolvedUsers(filtered)
-    const usersMap: Record<string, (typeof users)[number]> = {}
-    for (const u of users) {
-      usersMap[u.user_id] = u
+  const batch = await fetchUserInfoBatch(filtered)
+  const users: Record<
+    string,
+    { user_id: string; username: string; avatar: string | null }
+  > = {}
+  for (const id of filtered) {
+    const info = batch.get(id)
+    if (!info) continue
+    users[id] = {
+      user_id: id,
+      username: info.username?.trim() || 'Unknown user',
+      avatar: info.avatar?.trim() ? info.avatar.trim() : null,
     }
-    return NextResponse.json({ users: usersMap })
-  } catch {
-    return NextResponse.json(
-      { error: 'Could not resolve users from the bot' },
-      { status: 502 }
-    )
   }
+  return NextResponse.json({ users })
 }

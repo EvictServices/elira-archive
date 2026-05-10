@@ -8,7 +8,7 @@ import LoggingSettings from '@/components/settings/LoggingSettings'
 import AutoroleSettings from '@/components/settings/AutoroleSettings'
 import VoicemasterSettings from '@/components/settings/VoicemasterSettings'
 import AuditLogSettings from '@/components/settings/AuditLogSettings'
-import WelcomeSettings from '@/components/settings/WelcomeSettings'
+import SystemMessagesSettings from '@/components/settings/SystemMessagesSettings'
 
 interface Guild {
   guild_id: string
@@ -129,20 +129,11 @@ const sections: SidebarSection[] = [
     label: 'Engagement',
     items: [
       {
-        id: 'welcome',
-        label: 'Welcome',
+        id: 'system',
+        label: 'System Messages',
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-          </svg>
-        ),
-      },
-      {
-        id: 'autorole',
-        label: 'Autorole',
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" />
           </svg>
         ),
       },
@@ -197,8 +188,7 @@ const sectionDescriptions: Record<string, string> = {
   automod: 'Configure automatic moderation rules',
   logging: 'Set up event logging channels.',
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
-  welcome: 'Customize welcome messages for new members.',
-  autorole: 'Automatically assign roles to new members.',
+  system: 'Welcome, boost, and leave messages, plus automatic roles when members join.',
   starboard: 'Highlight popular messages in a starboard channel.',
   music: 'Configure music playback settings.',
   voicemaster: 'Create temporary voice channels on demand.',
@@ -311,22 +301,23 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
           {activeItem === 'audit' && <AuditLogSettings guildId={guild.guild_id} />}
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
-          {activeItem === 'autorole' && <AutoroleSettings guildId={guild.guild_id} />}
           {activeItem === 'voicemaster' && <VoicemasterSettings guildId={guild.guild_id} />}
-          {activeItem === 'welcome' && (
-            <WelcomeSettings
-              guildId={guild.guild_id}
-              guildName={guild.name}
-              guildIconUrl={guild.icon_url}
-            />
+          {activeItem === 'system' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+              <SystemMessagesSettings
+                guildId={guild.guild_id}
+                guildName={guild.name}
+                guildIconUrl={guild.icon_url}
+              />
+              <AutoroleSettings guildId={guild.guild_id} />
+            </div>
           )}
           {activeItem !== 'general' &&
             activeItem !== 'audit' &&
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&
-            activeItem !== 'autorole' &&
             activeItem !== 'voicemaster' &&
-            activeItem !== 'welcome' && (
+            activeItem !== 'system' && (
               <p className="server-content-placeholder">Settings for this section coming soon.</p>
             )}
         </div>

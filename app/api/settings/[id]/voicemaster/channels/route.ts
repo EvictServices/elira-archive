@@ -5,13 +5,12 @@ import {
   getChannels,
   deleteChannel,
   deleteChannels,
-  updateChannelOwner,
-} from '@/lib/settings/voicemaster'
-import {
-  fetchGuildChannels,
   deleteVoicemasterChannel,
-  type GuildChannel,
-} from '@/lib/cluster'
+  updateChannelOwner,
+  type VoicemasterChannelDeleteResult,
+} from '@/lib/settings/voicemaster'
+import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
+import { fetchUserInfoBatch } from '@/lib/fetchUsers'
 import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 interface EnrichedChannel {
@@ -23,6 +22,8 @@ interface EnrichedChannel {
   bitrate: number | null
   user_limit: number | null
   exists: boolean
+  owner_username: string | null
+  owner_avatar: string | null
 }
 
 async function enrich(guildId: string, base: { channel_id: string; owner_id: string | null; guild_id: string }[]): Promise<EnrichedChannel[]> {
@@ -34,6 +35,15 @@ async function enrich(guildId: string, base: { channel_id: string; owner_id: str
   }
   const liveById = new Map(live.map((c) => [String(c.id), c]))
 
+  const ownerIds = [
+    ...new Set(
+      base
+        .map((r) => r.owner_id)
+        .filter((id): id is string => typeof id === 'string' && id.trim() !== '')
+    ),
+  ]
+  const userMap = await fetchUserInfoBatch(ownerIds)
+
   return base.map((row) => {
     const ch = liveById.get(row.channel_id) as
       | (GuildChannel & {
@@ -42,6 +52,8 @@ async function enrich(guildId: string, base: { channel_id: string; owner_id: str
           user_limit?: number
         })
       | undefined
+    const oid = row.owner_id?.trim() ? row.owner_id : null
+    const u = oid ? userMap.get(oid) : undefined
     return {
       guild_id: row.guild_id,
       channel_id: row.channel_id,
@@ -51,8 +63,32 @@ async function enrich(guildId: string, base: { channel_id: string; owner_id: str
       bitrate: ch?.bitrate ?? null,
       user_limit: ch?.user_limit ?? null,
       exists: !!ch,
+      owner_username: u?.username?.trim() || null,
+      owner_avatar: u?.avatar?.trim() ? u.avatar.trim() : null,
     }
   })
+}
+
+/** Guild channel index from cluster (member counts + presence). Used to skip the bot when a channel is already gone. */
+async function loadGuildVoiceState(guildId: string): Promise<{
+  loaded: boolean
+  channelIds: Set<string>
+  memberCounts: Map<string, number>
+}> {
+  try {
+    const live = await fetchGuildChannels(guildId)
+    const channelIds = new Set<string>()
+    const memberCounts = new Map<string, number>()
+    for (const c of live) {
+      const cid = String(c.id)
+      channelIds.add(cid)
+      const n = (c as GuildChannel & { member_count?: number }).member_count
+      memberCounts.set(cid, typeof n === 'number' && !Number.isNaN(n) ? n : 0)
+    }
+    return { loaded: true, channelIds, memberCounts }
+  } catch {
+    return { loaded: false, channelIds: new Set(), memberCounts: new Map() }
+  }
 }
 
 export async function GET(
@@ -133,22 +169,53 @@ export async function DELETE(
   if (Array.isArray(body?.channel_ids)) {
     const ids = body.channel_ids.map((cid: unknown) => String(cid))
     const failures: string[] = []
+    let disconnectedMembersTotal = 0
+    const disconnectedUserIds: string[] = []
     if (mode === 'hard') {
+      const guildVo = await loadGuildVoiceState(id)
+      const snapshot = guildVo.memberCounts
       for (const cid of ids) {
-        try {
-          const result = await deleteVoicemasterChannel(id, cid)
-          if (!result?.ok) failures.push(cid)
-        } catch {
-          failures.push(cid)
+        const absent = guildVo.loaded && !guildVo.channelIds.has(cid)
+        if (absent) {
+          continue
+        }
+        const result = await deleteVoicemasterChannel(id, cid)
+        if (!result?.ok) failures.push(cid)
+        else {
+          const fromBot =
+            typeof result.disconnected_count === 'number'
+              ? result.disconnected_count
+              : result.disconnected_user_ids?.length
+          const fallback = snapshot.get(cid)
+          const n =
+            typeof fromBot === 'number'
+              ? fromBot
+              : typeof fallback === 'number'
+                ? fallback
+                : undefined
+          if (typeof n === 'number' && !Number.isNaN(n)) disconnectedMembersTotal += n
+          if (result.disconnected_user_ids?.length) {
+            disconnectedUserIds.push(...result.disconnected_user_ids)
+          }
         }
       }
+      const okIds = ids.filter((cid: string) => !failures.includes(cid))
+      if (okIds.length > 0) await deleteChannels(okIds)
     } else {
       await deleteChannels(ids)
     }
-    recordDashboardAudit(session, id, 'voicemaster.temp_channels.delete_bulk', {
+    const bulkDetail: Record<string, unknown> = {
       count: ids.length,
       mode,
-    })
+    }
+    if (mode === 'hard') {
+      bulkDetail.disconnected_members_total = disconnectedMembersTotal
+      const uniqueUsers = [...new Set(disconnectedUserIds)]
+      if (uniqueUsers.length > 0) {
+        bulkDetail.disconnected_user_ids = uniqueUsers.slice(0, 200)
+      }
+    }
+    recordDashboardAudit(session, id, 'voicemaster.temp_channels.delete_bulk', bulkDetail)
     const channels = await enrich(id, await getChannels(id))
     return NextResponse.json({
       channels,
@@ -166,37 +233,57 @@ export async function DELETE(
     )
   }
 
+  const deleteDetail: Record<string, unknown> = {
+    channel_id: channelId,
+    mode,
+  }
+
   if (mode === 'hard') {
-    try {
-      const result = await deleteVoicemasterChannel(id, channelId)
+    const guildVo = await loadGuildVoiceState(id)
+    const snapshot = guildVo.memberCounts
+    const reportedInChannel = snapshot.get(channelId)
+    const absent = guildVo.loaded && !guildVo.channelIds.has(channelId)
+
+    let result: VoicemasterChannelDeleteResult | null = null
+    if (absent) {
+      deleteDetail.bot_skipped = 'channel_not_in_guild'
+    } else {
+      result = await deleteVoicemasterChannel(id, channelId)
       if (!result?.ok) {
         return NextResponse.json(
           {
             error:
               result?.error ||
-              "Couldn't reach the bot to disconnect members. Make sure the bot is online.",
+              "Couldn't reach the bot to disconnect members. Set CLUSTER_API_URL if the bot API isn't on this host, or use soft delete.",
           },
           { status: 502 }
         )
       }
-    } catch (err) {
-      return NextResponse.json(
-        {
-          error:
-            (err as Error).message ||
-            "Couldn't reach the bot to disconnect members.",
-        },
-        { status: 502 }
-      )
+      const fromBot =
+        typeof result.disconnected_count === 'number'
+          ? result.disconnected_count
+          : result.disconnected_user_ids?.length
+      const disconnectedMembers =
+        typeof fromBot === 'number'
+          ? fromBot
+          : typeof reportedInChannel === 'number'
+            ? reportedInChannel
+            : undefined
+      if (typeof disconnectedMembers === 'number' && !Number.isNaN(disconnectedMembers)) {
+        deleteDetail.disconnected_members = disconnectedMembers
+        deleteDetail.disconnected_members_source =
+          typeof fromBot === 'number' ? 'bot' : 'channel_snapshot'
+      }
+      if (result.disconnected_user_ids?.length) {
+        deleteDetail.disconnected_user_ids = result.disconnected_user_ids.slice(0, 100)
+      }
     }
+    await deleteChannel(channelId)
   } else {
     await deleteChannel(channelId)
   }
 
-  recordDashboardAudit(session, id, 'voicemaster.temp_channel.delete', {
-    channel_id: channelId,
-    mode,
-  })
+  recordDashboardAudit(session, id, 'voicemaster.temp_channel.delete', deleteDetail)
 
   const channels = await enrich(id, await getChannels(id))
   return NextResponse.json({ channels })
