@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ChannelDropdown } from '@/components/settings/AnDropdowns'
 
 interface LoggingChannel {
   channel_id: string
@@ -242,69 +243,11 @@ function EventCard({
             channels={channels}
             value={channelId || ''}
             onChange={(id) => onSetChannel(id || null)}
+            placeholder="Select a channel"
             saving={saving}
           />
         </div>
       </div>
-    </div>
-  )
-}
-
-function ChannelDropdown({
-  channels,
-  value,
-  onChange,
-  saving,
-}: {
-  channels: GuildChannel[]
-  value: string
-  onChange: (value: string) => void
-  saving?: boolean
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const selected = channels.find((c) => c.id === value)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  return (
-    <div className={`an-dropdown${open ? ' open' : ''}${saving ? ' saving' : ''}`} ref={ref}>
-      <button className="an-dropdown-trigger" onClick={() => !saving && setOpen(!open)} type="button" disabled={saving}>
-        <span>{saving ? 'Saving...' : selected ? `#${selected.name}` : 'Select a channel'}</span>
-        <svg className="an-dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div className="an-dropdown-menu" style={{ maxHeight: 200, overflowY: 'auto' }}>
-          {channels.length === 0 && (
-            <div className="an-dropdown-item" style={{ opacity: 0.4, cursor: 'default' }}>
-              No channels available
-            </div>
-          )}
-          {channels.map((ch) => (
-            <button
-              key={ch.id}
-              className={`an-dropdown-item${ch.id === value ? ' active' : ''}`}
-              onClick={() => { onChange(ch.id); setOpen(false) }}
-              type="button"
-            >
-              #{ch.name}
-              {ch.id === value && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

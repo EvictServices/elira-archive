@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Dropdown } from '@/components/settings/AnDropdowns'
 interface ResolvedDiscordUser {
   user_id: string
   username: string
@@ -562,58 +563,6 @@ function ModuleCard({
             </button>
           </div>
           {dirty && <p className="settings-hint">You have unsaved changes</p>}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function Dropdown({
-  value,
-  options,
-  onChange,
-}: {
-  value: string
-  options: { value: string; label: string }[]
-  onChange: (value: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const selected = options.find((o) => o.value === value)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  return (
-    <div className={`an-dropdown${open ? ' open' : ''}`} ref={ref}>
-      <button className="an-dropdown-trigger" onClick={() => setOpen(!open)} type="button">
-        <span>{selected?.label}</span>
-        <svg className="an-dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div className="an-dropdown-menu">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              className={`an-dropdown-item${opt.value === value ? ' active' : ''}`}
-              onClick={() => { onChange(opt.value); setOpen(false) }}
-              type="button"
-            >
-              {opt.label}
-              {opt.value === value && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              )}
-            </button>
-          ))}
         </div>
       )}
     </div>

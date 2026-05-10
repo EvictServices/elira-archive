@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   getDangerousPermissions,
   permissionLabel,
 } from '@/lib/discord/permissions'
 import { useConfirm } from '@/components/ConfirmModal'
+import { Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 
 interface AutoroleEntry {
   role_id: string
@@ -406,159 +407,5 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
     </div>
     {confirmModal}
     </>
-  )
-}
-
-function Dropdown({
-  value,
-  options,
-  onChange,
-}: {
-  value: string
-  options: { value: string; label: string }[]
-  onChange: (value: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const selected = options.find((o) => o.value === value)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  return (
-    <div className={`an-dropdown${open ? ' open' : ''}`} ref={ref}>
-      <button className="an-dropdown-trigger" onClick={() => setOpen(!open)} type="button">
-        <span>{selected?.label}</span>
-        <svg className="an-dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div className="an-dropdown-menu">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              className={`an-dropdown-item${opt.value === value ? ' active' : ''}`}
-              onClick={() => {
-                onChange(opt.value)
-                setOpen(false)
-              }}
-              type="button"
-            >
-              {opt.label}
-              {opt.value === value && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function RoleDropdown({
-  roles,
-  entries,
-  value,
-  onChange,
-  placeholder,
-}: {
-  roles: GuildRole[]
-  entries?: { role: GuildRole; disabled: boolean; reason?: string }[]
-  value: string
-  onChange: (value: string) => void
-  placeholder: string
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const items = entries ?? roles.map((role) => ({ role, disabled: false, reason: undefined }))
-  const selected = roles.find((r) => r.id === value)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  return (
-    <div className={`an-dropdown${open ? ' open' : ''}`} ref={ref}>
-      <button
-        className="an-dropdown-trigger"
-        onClick={() => setOpen(!open)}
-        type="button"
-      >
-        <span>
-          {selected ? (
-            <span className="autorole-role">
-              <span
-                className="autorole-role-dot"
-                style={
-                  selected.color
-                    ? { background: `#${selected.color.toString(16).padStart(6, '0')}` }
-                    : undefined
-                }
-              />
-              {selected.name}
-            </span>
-          ) : (
-            placeholder
-          )}
-        </span>
-        <svg className="an-dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div className="an-dropdown-menu" style={{ maxHeight: 240, overflowY: 'auto' }}>
-          {items.length === 0 && (
-            <div className="an-dropdown-item" style={{ opacity: 0.4, cursor: 'default' }}>
-              No assignable roles
-            </div>
-          )}
-          {items.map(({ role, disabled, reason }) => {
-            const hex = role.color ? `#${role.color.toString(16).padStart(6, '0')}` : null
-            return (
-              <button
-                key={role.id}
-                className={`an-dropdown-item${role.id === value ? ' active' : ''}${disabled ? ' disabled' : ''}`}
-                onClick={() => {
-                  if (disabled) return
-                  onChange(role.id)
-                  setOpen(false)
-                }}
-                title={disabled ? reason : undefined}
-                disabled={disabled}
-                type="button"
-              >
-                <span className="autorole-role">
-                  <span
-                    className="autorole-role-dot"
-                    style={hex ? { background: hex } : undefined}
-                  />
-                  {role.name}
-                </span>
-                {disabled && reason ? (
-                  <span className="autorole-disabled-reason">{reason}</span>
-                ) : role.id === value ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : null}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
   )
 }

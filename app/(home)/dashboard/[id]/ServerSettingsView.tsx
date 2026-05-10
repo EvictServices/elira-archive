@@ -9,6 +9,7 @@ import AutoroleSettings from '@/components/settings/AutoroleSettings'
 import VoicemasterSettings from '@/components/settings/VoicemasterSettings'
 import AuditLogSettings from '@/components/settings/AuditLogSettings'
 import SystemMessagesSettings from '@/components/settings/SystemMessagesSettings'
+import TicketsSettings from '@/components/settings/TicketsSettings'
 
 interface Guild {
   guild_id: string
@@ -303,6 +304,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
           {activeItem === 'voicemaster' && <VoicemasterSettings guildId={guild.guild_id} />}
+          {activeItem === 'tickets' && <TicketsSettings guildId={guild.guild_id} />}
           {activeItem === 'system' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
               <SystemMessagesSettings
@@ -318,6 +320,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&
             activeItem !== 'voicemaster' &&
+            activeItem !== 'tickets' &&
             activeItem !== 'system' && (
               <p className="server-content-placeholder">Settings for this section coming soon.</p>
             )}

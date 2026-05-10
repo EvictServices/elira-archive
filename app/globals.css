@@ -4774,6 +4774,93 @@ body:has(.server-layout) > footer {
   max-width: 100%;
 }
 
+.an-edit-field .an-dropdown {
+  width: 100%;
+}
+
+.an-edit-field textarea.settings-input {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.ticket-cmd {
+  font-size: 0.82em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  padding: 0.12em 0.4em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  opacity: 0.95;
+}
+
+.ticket-panel-link {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.ticket-panel-link:hover {
+  text-decoration: underline;
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ticket-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.ticket-row-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ticket-row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ticket-role-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.ticket-row-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticket-button-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
 .an-dropdown {
   position: relative;
 }
