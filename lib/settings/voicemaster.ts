@@ -1,6 +1,7 @@
 import pool from '@/lib/db'
 import redis from '@/lib/redis'
-import { CLUSTER_API_BASE } from '@/lib/cluster'
+import { CLUSTER_API_BASE, fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
+import { fetchUserInfoBatch } from '@/lib/fetchUsers'
 
 function clusterJsonParse<T>(text: string): T {
   const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
@@ -231,6 +232,65 @@ export async function getChannels(guildId: string): Promise<VoicemasterChannel[]
     [guildId]
   )
   return res.rows.map(rowToChannel)
+}
+
+export interface EnrichedVoicemasterChannel {
+  guild_id: string
+  channel_id: string
+  owner_id: string | null
+  name: string | null
+  member_count: number | null
+  bitrate: number | null
+  user_limit: number | null
+  exists: boolean
+  owner_username: string | null
+  owner_avatar: string | null
+}
+
+export async function getEnrichedChannels(
+  guildId: string
+): Promise<EnrichedVoicemasterChannel[]> {
+  const base = await getChannels(guildId)
+  let live: GuildChannel[] = []
+  try {
+    live = await fetchGuildChannels(guildId)
+  } catch {
+    live = []
+  }
+  const liveById = new Map(live.map((c) => [String(c.id), c]))
+
+  const ownerIds = [
+    ...new Set(
+      base
+        .map((r) => r.owner_id)
+        .filter((id): id is string => typeof id === 'string' && id.trim() !== '')
+    ),
+  ]
+  const userMap = await fetchUserInfoBatch(ownerIds)
+
+  return base.map((row) => {
+    const ch = liveById.get(row.channel_id) as
+      | (GuildChannel & {
+          member_count?: number
+          bitrate?: number
+          user_limit?: number
+        })
+      | undefined
+    const oid = row.owner_id?.trim() ? row.owner_id : null
+    const u = oid ? userMap.get(oid) : undefined
+    return {
+      guild_id: row.guild_id,
+      channel_id: row.channel_id,
+      owner_id: row.owner_id,
+      name: ch?.name ?? null,
+      member_count: ch?.member_count ?? null,
+      bitrate: ch?.bitrate ?? null,
+      user_limit: ch?.user_limit ?? null,
+      exists: !!ch,
+      owner_username: u?.username?.trim() || null,
+      owner_avatar: u?.avatar?.trim() ? u.avatar.trim() : null,
+    }
+  })
 }
 
 export async function getAllChannels(): Promise<VoicemasterChannel[]> {

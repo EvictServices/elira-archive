@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { ChannelDropdown } from '@/components/settings/AnDropdowns'
+import { fetchBundle } from '@/lib/bundleClient'
+import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
 
 interface LoggingChannel {
   channel_id: string
@@ -126,28 +128,29 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
   const [profilesLoading, setProfilesLoading] = useState(false)
 
   useEffect(() => {
-    const ctrl = new AbortController()
-    Promise.all([
-      fetch(`/api/settings/${guildId}/logging`, { signal: ctrl.signal }).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels`, { signal: ctrl.signal }).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=category`, { signal: ctrl.signal }).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=all`, { signal: ctrl.signal }).then((r) => r.json()),
-    ])
-      .then(([settingsData, channelsData, categoriesData, allData]) => {
-        if (ctrl.signal.aborted) return
-        setSettings(settingsData)
-        if (Array.isArray(channelsData)) setGuildChannels(channelsData)
-        if (Array.isArray(categoriesData)) setGuildCategories(categoriesData)
-        if (Array.isArray(allData)) setAllChannels(allData)
+    let cancelled = false
+    fetchBundle(guildId, ['logging', 'channels'])
+      .then((bundle) => {
+        if (cancelled) return
+        if (bundle.logging) setSettings(bundle.logging as Settings)
+        const all = Array.isArray(bundle.channels)
+          ? (bundle.channels as GuildChannel[])
+          : []
+        setAllChannels(all)
+        setGuildChannels(all.filter((c) => isDiscordTextChannel(c)))
+        setGuildCategories(all.filter((c) => isDiscordCategoryChannel(c)))
       })
-      .catch((err) => {
-        if (ctrl.signal.aborted || err?.name === 'AbortError') return
+      .catch(() => {
+        if (cancelled) return
         setError('Failed to load logging settings')
       })
       .finally(() => {
-        if (!ctrl.signal.aborted) setLoading(false)
+        if (cancelled) return
+        setLoading(false)
       })
-    return () => ctrl.abort()
+    return () => {
+      cancelled = true
+    }
   }, [guildId])
 
   const channelById = useMemo(() => {

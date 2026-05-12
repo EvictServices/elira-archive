@@ -7,6 +7,7 @@ import {
 } from '@/lib/discord/permissions'
 import { useConfirm } from '@/components/ConfirmModal'
 import { Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
+import { fetchBundle } from '@/lib/bundleClient'
 
 interface AutoroleEntry {
   role_id: string
@@ -61,20 +62,30 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
   const { confirm, modal: confirmModal } = useConfirm()
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/settings/${guildId}/autorole`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/roles`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/me`).then((r) => (r.ok ? r.json() : null)),
-    ])
-      .then(([settingsData, rolesData, meData]) => {
-        setSettings(settingsData)
-        if (Array.isArray(rolesData)) setRoles(rolesData)
+    let cancelled = false
+    fetchBundle(guildId, ['autorole', 'roles', 'me'])
+      .then((data) => {
+        if (cancelled) return
+        const settingsData = data.autorole as AutoroleSettingsData | null
+        const rolesData = data.roles
+        const meData = data.me
+        if (settingsData) setSettings(settingsData)
+        if (Array.isArray(rolesData)) setRoles(rolesData as GuildRole[])
         if (meData && typeof meData === 'object' && 'top_role_position' in meData) {
           setMe(meData as GuildMemberInfo)
         }
       })
-      .catch(() => setError('Failed to load autorole settings'))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (cancelled) return
+        setError('Failed to load autorole settings')
+      })
+      .finally(() => {
+        if (cancelled) return
+        setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [guildId])
 
   const rolesById = useMemo(() => {

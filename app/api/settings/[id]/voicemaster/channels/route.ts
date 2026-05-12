@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
 import {
   getChannels,
+  getEnrichedChannels,
   deleteChannel,
   deleteChannels,
   deleteVoicemasterChannel,
@@ -10,66 +11,8 @@ import {
   type VoicemasterChannelDeleteResult,
 } from '@/lib/settings/voicemaster'
 import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
-import { fetchUserInfoBatch } from '@/lib/fetchUsers'
 import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
-interface EnrichedChannel {
-  guild_id: string
-  channel_id: string
-  owner_id: string | null
-  name: string | null
-  member_count: number | null
-  bitrate: number | null
-  user_limit: number | null
-  exists: boolean
-  owner_username: string | null
-  owner_avatar: string | null
-}
-
-async function enrich(guildId: string, base: { channel_id: string; owner_id: string | null; guild_id: string }[]): Promise<EnrichedChannel[]> {
-  let live: GuildChannel[] = []
-  try {
-    live = await fetchGuildChannels(guildId)
-  } catch {
-    live = []
-  }
-  const liveById = new Map(live.map((c) => [String(c.id), c]))
-
-  const ownerIds = [
-    ...new Set(
-      base
-        .map((r) => r.owner_id)
-        .filter((id): id is string => typeof id === 'string' && id.trim() !== '')
-    ),
-  ]
-  const userMap = await fetchUserInfoBatch(ownerIds)
-
-  return base.map((row) => {
-    const ch = liveById.get(row.channel_id) as
-      | (GuildChannel & {
-          member_count?: number
-          bitrate?: number
-          user_limit?: number
-        })
-      | undefined
-    const oid = row.owner_id?.trim() ? row.owner_id : null
-    const u = oid ? userMap.get(oid) : undefined
-    return {
-      guild_id: row.guild_id,
-      channel_id: row.channel_id,
-      owner_id: row.owner_id,
-      name: ch?.name ?? null,
-      member_count: ch?.member_count ?? null,
-      bitrate: ch?.bitrate ?? null,
-      user_limit: ch?.user_limit ?? null,
-      exists: !!ch,
-      owner_username: u?.username?.trim() || null,
-      owner_avatar: u?.avatar?.trim() ? u.avatar.trim() : null,
-    }
-  })
-}
-
-/** Guild channel index from cluster (member counts + presence). Used to skip the bot when a channel is already gone. */
 async function loadGuildVoiceState(guildId: string): Promise<{
   loaded: boolean
   channelIds: Set<string>
@@ -106,7 +49,7 @@ export async function GET(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const channels = await enrich(id, await getChannels(id))
+  const channels = await getEnrichedChannels(id)
   return NextResponse.json(
     { channels },
     { headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' } }
@@ -144,7 +87,7 @@ export async function PATCH(
     channel_id: channelId,
     owner_id: ownerId,
   })
-  const channels = await enrich(id, await getChannels(id))
+  const channels = await getEnrichedChannels(id)
   return NextResponse.json({ channels })
 }
 
@@ -216,7 +159,7 @@ export async function DELETE(
       }
     }
     recordDashboardAudit(session, id, 'voicemaster.temp_channels.delete_bulk', bulkDetail)
-    const channels = await enrich(id, await getChannels(id))
+    const channels = await getEnrichedChannels(id)
     return NextResponse.json({
       channels,
       ...(failures.length > 0 && {
@@ -285,6 +228,6 @@ export async function DELETE(
 
   recordDashboardAudit(session, id, 'voicemaster.temp_channel.delete', deleteDetail)
 
-  const channels = await enrich(id, await getChannels(id))
+  const channels = await getEnrichedChannels(id)
   return NextResponse.json({ channels })
 }

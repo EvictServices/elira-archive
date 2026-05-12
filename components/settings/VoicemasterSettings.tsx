@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useConfirm } from '@/components/ConfirmModal'
 import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
+import { fetchBundle } from '@/lib/bundleClient'
+import {
+  isDiscordCategoryChannel,
+  isDiscordTextChannel,
+  isDiscordVoiceChannel,
+} from '@/lib/guild_channel_type'
 
 interface Configuration {
   guild_id: string
@@ -96,26 +102,39 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
   const { confirm, modal: confirmModal } = useConfirm()
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/settings/${guildId}/voicemaster`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/voicemaster/channels`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=category`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=voice`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=text`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/roles`).then((r) => r.json()),
+    let cancelled = false
+    fetchBundle(guildId, [
+      'voicemaster',
+      'voicemaster_channels',
+      'channels',
+      'roles',
     ])
-      .then(([cfg, ch, cats, voices, texts, rolesData]) => {
-        const config = (cfg?.configuration ?? null) as Configuration | null
+      .then((bundle) => {
+        if (cancelled) return
+        const config = (bundle.voicemaster?.configuration ?? null) as Configuration | null
         setConfiguration(config)
         setBitrateDraft(config?.bitrate ? String(Math.round(config.bitrate / 1000)) : '')
-        if (Array.isArray(ch?.channels)) setChannels(ch.channels)
-        if (Array.isArray(cats)) setCategories(cats)
-        if (Array.isArray(voices)) setVoiceChannels(voices)
-        if (Array.isArray(texts)) setTextChannels(texts)
-        if (Array.isArray(rolesData)) setRoles(rolesData)
+        const vmChannels = bundle.voicemaster_channels?.channels
+        if (Array.isArray(vmChannels)) setChannels(vmChannels as VmChannel[])
+        const all = Array.isArray(bundle.channels)
+          ? (bundle.channels as GuildChannel[])
+          : []
+        setCategories(all.filter((c) => isDiscordCategoryChannel(c)))
+        setVoiceChannels(all.filter((c) => isDiscordVoiceChannel(c)))
+        setTextChannels(all.filter((c) => isDiscordTextChannel(c)))
+        if (Array.isArray(bundle.roles)) setRoles(bundle.roles as GuildRole[])
       })
-      .catch(() => setError('Failed to load voicemaster settings'))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (cancelled) return
+        setError('Failed to load voicemaster settings')
+      })
+      .finally(() => {
+        if (cancelled) return
+        setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [guildId])
 
   const channelsById = useMemo(() => {

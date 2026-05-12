@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useConfirm } from '@/components/ConfirmModal'
 import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
+import { fetchBundle } from '@/lib/bundleClient'
+import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
 
 interface TicketConfigPublic {
   guild_id: string
@@ -69,25 +71,37 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
   const { confirm, modal: confirmModal } = useConfirm()
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/settings/${guildId}/tickets`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=text`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=category`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/roles`).then((r) => r.json()),
-    ])
-      .then(([ticketData, texts, cats, rolesData]) => {
-        setData(ticketData as TicketSettingsData)
-        if (ticketData?.config?.channel_name != null) {
-          setChannelNameDraft(ticketData.config.channel_name)
-        } else {
-          setChannelNameDraft('')
+    let cancelled = false
+    fetchBundle(guildId, ['tickets', 'channels', 'roles'])
+      .then((bundle) => {
+        if (cancelled) return
+        const ticketData = bundle.tickets as TicketSettingsData | null
+        if (ticketData) {
+          setData(ticketData)
+          if (ticketData.config?.channel_name != null) {
+            setChannelNameDraft(ticketData.config.channel_name)
+          } else {
+            setChannelNameDraft('')
+          }
         }
-        if (Array.isArray(texts)) setTextChannels(texts)
-        if (Array.isArray(cats)) setCategories(cats)
-        if (Array.isArray(rolesData)) setRoles(rolesData)
+        const allChannels = Array.isArray(bundle.channels)
+          ? (bundle.channels as GuildChannel[])
+          : []
+        setTextChannels(allChannels.filter((c) => isDiscordTextChannel(c)))
+        setCategories(allChannels.filter((c) => isDiscordCategoryChannel(c)))
+        if (Array.isArray(bundle.roles)) setRoles(bundle.roles as GuildRole[])
       })
-      .catch(() => setError('Failed to load ticket settings'))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (cancelled) return
+        setError('Failed to load ticket settings')
+      })
+      .finally(() => {
+        if (cancelled) return
+        setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [guildId])
 
   useEffect(() => {

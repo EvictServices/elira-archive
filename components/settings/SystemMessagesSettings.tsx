@@ -16,6 +16,7 @@ import {
 } from '@/app/(home)/embeds/lib/types'
 import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
 import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
+import { fetchBundle } from '@/lib/bundleClient'
 
 type MessageKind = 'welcome' | 'boost' | 'goodbye'
 
@@ -790,27 +791,25 @@ export default function SystemMessagesSettings({
     else setMessagesGoodbye(list as ScriptRow[])
   }, [])
 
-  const load = useCallback((signal?: AbortSignal) => {
+  const load = useCallback((isCancelled?: () => boolean) => {
     setLoading(true)
     setError(null)
-    const base = `/api/settings/${guildId}`
-    Promise.all([
-      fetch(`${base}/system`, { signal }).then((r) => r.json()),
-      fetch(`${base}/boost`, { signal }).then((r) => r.json()),
-      fetch(`${base}/goodbye`, { signal }).then((r) => r.json()),
-      fetch(`${base}/channels?type=all`, { signal }).then((r) => r.json()),
-    ])
-      .then(([w, b, g, raw]) => {
-        if (signal?.aborted) return
-        const listW: ScriptRow[] = Array.isArray(w.messages) ? w.messages : []
+    fetchBundle(guildId, ['system', 'boost', 'goodbye', 'channels'])
+      .then((data) => {
+        if (isCancelled?.()) return
+        const w = (data.system ?? {}) as { messages?: unknown; unavailable?: boolean }
+        const b = (data.boost ?? {}) as { messages?: unknown; unavailable?: boolean }
+        const g = (data.goodbye ?? {}) as { messages?: unknown; unavailable?: boolean }
+        const raw = data.channels ?? []
+        const listW: ScriptRow[] = Array.isArray(w.messages) ? (w.messages as ScriptRow[]) : []
         const listB: BoostRow[] = Array.isArray(b.messages)
-          ? b.messages.map((m: Record<string, unknown>) => ({
+          ? (b.messages as Record<string, unknown>[]).map((m) => ({
               channel_id: String(m.channel_id ?? ''),
               template: String(m.template ?? ''),
               delete_after: m.delete_after != null ? Number(m.delete_after) : null,
             }))
           : []
-        const listG: ScriptRow[] = Array.isArray(g.messages) ? g.messages : []
+        const listG: ScriptRow[] = Array.isArray(g.messages) ? (g.messages as ScriptRow[]) : []
         const all = parseGuildChannelsFromApi(raw)
         const cats: Record<string, string> = {}
         for (const c of all) {
@@ -828,19 +827,22 @@ export default function SystemMessagesSettings({
         setCategoryById(cats)
         setChannels(textList)
       })
-      .catch((err) => {
-        if (signal?.aborted || (err && (err.name === 'AbortError' || err.code === 20))) return
+      .catch(() => {
+        if (isCancelled?.()) return
         setError('Failed to load system messages')
       })
       .finally(() => {
-        if (!signal?.aborted) setLoading(false)
+        if (isCancelled?.()) return
+        setLoading(false)
       })
   }, [guildId])
 
   useEffect(() => {
-    const ctrl = new AbortController()
-    load(ctrl.signal)
-    return () => ctrl.abort()
+    let cancelled = false
+    load(() => cancelled)
+    return () => {
+      cancelled = true
+    }
   }, [load])
 
   const channelName = (id: string) => channels.find((c) => c.id === id)?.name ?? id
