@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChannelDropdown } from '@/components/settings/AnDropdowns'
 
 interface LoggingChannel {
@@ -20,6 +20,14 @@ interface Settings {
   channels: LoggingChannel[]
   ignored: string[]
 }
+
+interface ResolvedUser {
+  user_id: string
+  username: string
+  avatar: string | null
+}
+
+const SNOWFLAKE_RE = /^\d{17,20}$/
 
 const EVENT_TYPES = [
   'message',
@@ -109,24 +117,82 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
   const [settings, setSettings] = useState<Settings | null>(null)
   const [guildChannels, setGuildChannels] = useState<GuildChannel[]>([])
   const [guildCategories, setGuildCategories] = useState<GuildChannel[]>([])
+  const [allChannels, setAllChannels] = useState<GuildChannel[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [ignoreSaving, setIgnoreSaving] = useState<string | null>(null)
+  const [userProfiles, setUserProfiles] = useState<Record<string, ResolvedUser>>({})
+  const [profilesLoading, setProfilesLoading] = useState(false)
 
   useEffect(() => {
+    const ctrl = new AbortController()
     Promise.all([
-      fetch(`/api/settings/${guildId}/logging`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels`).then((r) => r.json()),
-      fetch(`/api/settings/${guildId}/channels?type=category`).then((r) => r.json()),
+      fetch(`/api/settings/${guildId}/logging`, { signal: ctrl.signal }).then((r) => r.json()),
+      fetch(`/api/settings/${guildId}/channels`, { signal: ctrl.signal }).then((r) => r.json()),
+      fetch(`/api/settings/${guildId}/channels?type=category`, { signal: ctrl.signal }).then((r) => r.json()),
+      fetch(`/api/settings/${guildId}/channels?type=all`, { signal: ctrl.signal }).then((r) => r.json()),
     ])
-      .then(([settingsData, channelsData, categoriesData]) => {
+      .then(([settingsData, channelsData, categoriesData, allData]) => {
+        if (ctrl.signal.aborted) return
         setSettings(settingsData)
         if (Array.isArray(channelsData)) setGuildChannels(channelsData)
         if (Array.isArray(categoriesData)) setGuildCategories(categoriesData)
+        if (Array.isArray(allData)) setAllChannels(allData)
       })
-      .catch(() => setError('Failed to load logging settings'))
-      .finally(() => setLoading(false))
+      .catch((err) => {
+        if (ctrl.signal.aborted || err?.name === 'AbortError') return
+        setError('Failed to load logging settings')
+      })
+      .finally(() => {
+        if (!ctrl.signal.aborted) setLoading(false)
+      })
+    return () => ctrl.abort()
   }, [guildId])
+
+  const channelById = useMemo(() => {
+    const m = new Map<string, GuildChannel>()
+    for (const c of allChannels) m.set(String(c.id), c)
+    return m
+  }, [allChannels])
+
+  const memberIgnoredIds = useMemo(() => {
+    if (!settings) return [] as string[]
+    return settings.ignored.filter((id) => !channelById.has(id))
+  }, [settings, channelById])
+
+  useEffect(() => {
+    if (memberIgnoredIds.length === 0) {
+      setUserProfiles({})
+      return
+    }
+    const ctrl = new AbortController()
+    setProfilesLoading(true)
+    fetch(`/api/settings/${guildId}/logging/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: memberIgnoredIds }),
+      signal: ctrl.signal,
+    })
+      .then(async (r) => {
+        if (!r.ok) return
+        const data = await r.json()
+        if (ctrl.signal.aborted) return
+        if (data.users && typeof data.users === 'object') {
+          const incoming = data.users as Record<string, ResolvedUser>
+          const pruned: Record<string, ResolvedUser> = {}
+          for (const id of memberIgnoredIds) {
+            if (incoming[id]) pruned[id] = incoming[id]
+          }
+          setUserProfiles(pruned)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ctrl.signal.aborted) setProfilesLoading(false)
+      })
+    return () => ctrl.abort()
+  }, [guildId, memberIgnoredIds])
 
   const eventChannelMap: Record<string, string | null> = {}
   if (settings) {
@@ -157,6 +223,55 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
       setError('Failed to save')
     } finally {
       setSaving(null)
+    }
+  }
+
+  const addIgnored = async (targetId: string) => {
+    if (!SNOWFLAKE_RE.test(targetId)) {
+      setError('Use a 17–20 digit Discord ID.')
+      return
+    }
+    if (settings?.ignored.includes(targetId)) return
+    setIgnoreSaving(targetId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/settings/${guildId}/logging`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_ignored', target_id: targetId }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || 'Failed to save')
+        return
+      }
+      setSettings(await res.json())
+    } catch {
+      setError('Failed to save')
+    } finally {
+      setIgnoreSaving(null)
+    }
+  }
+
+  const removeIgnored = async (targetId: string) => {
+    setIgnoreSaving(targetId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/settings/${guildId}/logging`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'remove_ignored', target_id: targetId }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || 'Failed to save')
+        return
+      }
+      setSettings(await res.json())
+    } catch {
+      setError('Failed to save')
+    } finally {
+      setIgnoreSaving(null)
     }
   }
 
@@ -194,6 +309,18 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
           />
         ))}
       </div>
+
+      <IgnoreSection
+        ignored={settings.ignored}
+        channelById={channelById}
+        allChannels={allChannels}
+        categories={guildCategories}
+        userProfiles={userProfiles}
+        profilesLoading={profilesLoading}
+        savingId={ignoreSaving}
+        onAdd={addIgnored}
+        onRemove={removeIgnored}
+      />
     </div>
   )
 }
@@ -256,5 +383,193 @@ function EventCard({
         </div>
       </div>
     </div>
+  )
+}
+
+function IgnoreSection({
+  ignored,
+  channelById,
+  allChannels,
+  categories,
+  userProfiles,
+  profilesLoading,
+  savingId,
+  onAdd,
+  onRemove,
+}: {
+  ignored: string[]
+  channelById: Map<string, GuildChannel>
+  allChannels: GuildChannel[]
+  categories: GuildChannel[]
+  userProfiles: Record<string, ResolvedUser>
+  profilesLoading: boolean
+  savingId: string | null
+  onAdd: (id: string) => void
+  onRemove: (id: string) => void
+}) {
+  const [manualId, setManualId] = useState('')
+  const [localError, setLocalError] = useState<string | null>(null)
+
+  const ignoredSet = useMemo(() => new Set(ignored), [ignored])
+
+  const availableChannels = useMemo(
+    () => allChannels.filter((c) => !ignoredSet.has(String(c.id))),
+    [allChannels, ignoredSet]
+  )
+
+  const submitManual = () => {
+    const t = manualId.trim()
+    setLocalError(null)
+    if (!t) return
+    if (!SNOWFLAKE_RE.test(t)) {
+      setLocalError('Use a 17–20 digit Discord ID.')
+      return
+    }
+    if (ignoredSet.has(t)) {
+      setLocalError('Already ignored.')
+      return
+    }
+    onAdd(t)
+    setManualId('')
+  }
+
+  return (
+    <section className="an-access" aria-labelledby="logging-ignore-heading">
+      <header className="server-content-header">
+        <h2 id="logging-ignore-heading" className="server-content-title">
+          Ignored targets
+        </h2>
+        <p className="server-content-desc">
+          Members and channels listed here won&apos;t trigger any logs.
+        </p>
+      </header>
+      <div className="an-access-panel">
+        <div className="logging-ignore-controls">
+          <div className="logging-ignore-control">
+            <label className="logging-ignore-label">Channel</label>
+            <ChannelDropdown
+              channels={availableChannels}
+              categories={categories}
+              value=""
+              onChange={(id) => {
+                if (id) onAdd(id)
+              }}
+              placeholder="Ignore a channel..."
+              saving={false}
+            />
+          </div>
+          <div className="logging-ignore-control">
+            <label className="logging-ignore-label">User ID</label>
+            <div className="an-access-add">
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="Member ID"
+                value={manualId}
+                onChange={(e) => {
+                  setLocalError(null)
+                  setManualId(e.target.value.replace(/\D/g, '').slice(0, 20))
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    submitManual()
+                  }
+                }}
+                className="settings-input an-access-input"
+              />
+              <button
+                type="button"
+                className="system-messages-icon-btn system-messages-plus-btn"
+                onClick={submitManual}
+                disabled={!manualId.trim()}
+                aria-label="Add user to ignore list"
+                title="Ignore this user"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+        {localError && <p className="an-access-local-error">{localError}</p>}
+        <ul className="an-access-chips" aria-label="Ignored targets">
+          {ignored.length === 0 ? (
+            <li className="an-access-empty">Nothing ignored yet</li>
+          ) : (
+            ignored.map((id) => {
+              const channel = channelById.get(id)
+              const user = userProfiles[id]
+              const removing = savingId === id
+              if (channel) {
+                return (
+                  <li key={id} className="an-access-chip">
+                    <div className="an-access-chip-main">
+                      <div
+                        className="an-access-chip-avatar an-access-chip-avatar-placeholder"
+                        aria-hidden
+                      >
+                        #
+                      </div>
+                      <div className="an-access-chip-text">
+                        <span className="an-access-chip-name">#{channel.name}</span>
+                        <span className="an-access-chip-id">Channel · {id}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="system-messages-icon-btn system-messages-minus-btn"
+                      aria-label={`Stop ignoring #${channel.name}`}
+                      title="Remove"
+                      disabled={removing}
+                      onClick={() => onRemove(id)}
+                    >
+                      -
+                    </button>
+                  </li>
+                )
+              }
+
+              const name = user?.username?.trim()
+                ? user.username
+                : profilesLoading
+                  ? 'Loading…'
+                  : 'Unknown user'
+              return (
+                <li key={id} className="an-access-chip">
+                  <div className="an-access-chip-main">
+                    {user?.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={user.avatar} alt="" className="an-access-chip-avatar" />
+                    ) : (
+                      <div
+                        className="an-access-chip-avatar an-access-chip-avatar-placeholder"
+                        aria-hidden
+                      >
+                        {(name[0] || '?').toUpperCase()}
+                      </div>
+                    )}
+                    <div className="an-access-chip-text">
+                      <span className="an-access-chip-name">{name}</span>
+                      <span className="an-access-chip-id">Member · {id}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="system-messages-icon-btn system-messages-minus-btn"
+                    aria-label={`Stop ignoring ${name}`}
+                    title="Remove"
+                    disabled={removing}
+                    onClick={() => onRemove(id)}
+                  >
+                    -
+                  </button>
+                </li>
+              )
+            })
+          )}
+        </ul>
+      </div>
+    </section>
   )
 }
