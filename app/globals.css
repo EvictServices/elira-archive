@@ -2931,34 +2931,99 @@ body.nav-open {
   flex-shrink: 0;
 }
 
+.guild-card-banner {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity var(--ease);
+}
+.guild-card-has-banner {
+  background: var(--bg-secondary);
+}
+.guild-card-has-banner > .guild-card-icon,
+.guild-card-has-banner > .guild-card-body,
+.guild-card-has-banner > .guild-card-arrow,
+.guild-card-has-banner > .guild-card-invite-btn {
+  position: relative;
+  z-index: 1;
+}
+.guild-card-has-banner .guild-members {
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 0.85;
+}
+
 .guild-card-invite {
+  cursor: default;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0.005) 100%);
   border-style: dashed;
+  overflow: hidden;
+}
+.guild-card-invite::before {
+  opacity: 0.25;
 }
 .guild-card-invite:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.025) 100%);
-  border-style: solid;
-  border-color: rgba(255, 255, 255, 0.22);
+  transform: none;
+  border-style: dashed;
+  border-color: var(--border-hover);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 14px 28px -18px rgba(255, 255, 255, 0.2),
+    0 10px 26px -12px rgba(0, 0, 0, 0.5);
 }
-.guild-card-invite-cta {
-  color: var(--text-secondary);
-  opacity: 0.55;
+.guild-card-invite.guild-card-has-banner:hover {
+  background: var(--bg-secondary);
+}
+.guild-card-invite:hover::before {
+  opacity: 0.45;
+  transform: none;
+}
+.guild-card-invite .guild-name {
+  position: relative;
+  z-index: 1;
+}
+.guild-card-invite .guild-members {
   text-transform: none;
   letter-spacing: 0.01em;
-  font-size: 0.74rem;
-}
-.guild-card-arrow-add {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
+  font-size: 0.72rem;
   opacity: 0.7;
 }
-.guild-card-invite:hover .guild-card-arrow-add {
+.guild-card-invite-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
   background: #ffffff;
   color: #000000;
-  border-color: #ffffff;
-  opacity: 1;
-  transform: scale(1.05);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 8px 22px -10px rgba(255, 255, 255, 0.35),
+    0 4px 12px -4px rgba(0, 0, 0, 0.5);
+  transition: transform var(--ease), box-shadow var(--ease), background var(--ease);
+}
+.guild-card-invite-btn:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 14px 30px -10px rgba(255, 255, 255, 0.55),
+    0 8px 18px -4px rgba(0, 0, 0, 0.55);
+}
+.guild-card-invite-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .dashboard-footer {
@@ -3128,6 +3193,33 @@ body:has(.server-layout) > footer {
   background: var(--bg-card);
   border: 1px solid var(--border);
   animation: fadeIn 0.3s ease 0.1s both;
+}
+.sidebar-guild--with-banner {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+.sidebar-guild-banner {
+  position: relative;
+  height: 64px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.sidebar-guild-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, var(--bg-card) 100%);
+  pointer-events: none;
+}
+.sidebar-guild-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sidebar-guild--with-banner .sidebar-guild-row {
+  padding: 10px 12px 12px;
 }
 .sidebar-guild-icon {
   width: 40px;
@@ -3469,14 +3561,6 @@ body:has(.server-layout) > footer {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.audit-log-toolbar {
-  margin-top: 10px;
-}
-
-.audit-log-refresh {
-  padding-inline: 14px;
 }
 
 .audit-log-code {

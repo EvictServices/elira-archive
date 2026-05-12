@@ -14,6 +14,7 @@ interface Guild {
   id: string
   name: string
   icon_url: string | null
+  banner_url?: string | null
   member_count: number
 }
 
@@ -21,6 +22,7 @@ interface InviteGuild {
   id: string
   name: string
   icon_url: string | null
+  banner_url?: string | null
 }
 
 function avatarUrl(user: DashboardUser) {
@@ -48,6 +50,13 @@ function compactNumber(n: number): string {
 
 function inviteHref(guildId: string) {
   return `${INVITE_URL}&guild_id=${guildId}&disable_guild_select=true`
+}
+
+function bannerBackdropStyle(bannerUrl: string | null | undefined) {
+  if (!bannerUrl) return undefined
+  return {
+    backgroundImage: `linear-gradient(135deg, rgba(8,8,10,0.78) 0%, rgba(8,8,10,0.55) 55%, rgba(8,8,10,0.78) 100%), url(${bannerUrl})`,
+  } as const
 }
 
 export default function DashboardView({
@@ -93,9 +102,6 @@ export default function DashboardView({
               />
             </span>
             <div className="dashboard-hero-text">
-              <span className="section-badge dashboard-hero-badge">
-                <span className="dashboard-hero-badge-dot" /> Dashboard
-              </span>
               <h1 className="dashboard-hero-title">
                 Welcome back, <span className="dashboard-hero-name">{user.username}</span>
               </h1>
@@ -276,9 +282,16 @@ export default function DashboardView({
             <Link
               key={guild.id}
               href={`/dashboard/${guild.id}`}
-              className="guild-card"
+              className={`guild-card${guild.banner_url ? ' guild-card-has-banner' : ''}`}
               style={{ animationDelay: `${Math.min(idx * 0.04, 0.4)}s` }}
             >
+              {guild.banner_url && (
+                <div
+                  className="guild-card-banner"
+                  style={bannerBackdropStyle(guild.banner_url)}
+                  aria-hidden
+                />
+              )}
               <div className="guild-card-icon">
                 {guild.icon_url ? (
                   <img
@@ -337,19 +350,23 @@ export default function DashboardView({
 
           <div className="guild-grid">
             {inviteGuilds.map((guild, idx) => (
-              <a
+              <div
                 key={guild.id}
-                href={inviteHref(guild.id)}
-                target="_blank"
-                rel="noopener"
-                className="guild-card guild-card-invite"
+                className={`guild-card guild-card-invite${guild.banner_url ? ' guild-card-has-banner' : ''}`}
                 style={{ animationDelay: `${Math.min(idx * 0.04, 0.4)}s` }}
               >
+                {guild.banner_url && (
+                  <div
+                    className="guild-card-banner"
+                    style={bannerBackdropStyle(guild.banner_url)}
+                    aria-hidden
+                  />
+                )}
                 <div className="guild-card-icon">
                   {guild.icon_url ? (
                     <img
                       src={guild.icon_url}
-                      alt={guild.name}
+                      alt=""
                       className="guild-icon"
                     />
                   ) : (
@@ -360,11 +377,15 @@ export default function DashboardView({
                 </div>
                 <div className="guild-card-body">
                   <span className="guild-name">{guild.name}</span>
-                  <span className="guild-members guild-card-invite-cta">
-                    Tap to invite evict
-                  </span>
+                  <span className="guild-members">Bot not in this server</span>
                 </div>
-                <span className="guild-card-arrow guild-card-arrow-add" aria-hidden>
+                <a
+                  href={inviteHref(guild.id)}
+                  target="_blank"
+                  rel="noopener"
+                  className="guild-card-invite-btn"
+                  aria-label={`Invite evict to ${guild.name}`}
+                >
                   <svg
                     width="14"
                     height="14"
@@ -374,11 +395,13 @@ export default function DashboardView({
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    aria-hidden
                   >
                     <path d="M12 5v14M5 12h14" />
                   </svg>
-                </span>
-              </a>
+                  Invite
+                </a>
+              </div>
             ))}
           </div>
         </section>

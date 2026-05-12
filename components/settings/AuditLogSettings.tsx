@@ -456,11 +456,6 @@ export default function AuditLogSettings({ guildId }: { guildId: string }) {
           </p>
         )}
         {error && <p className="settings-error">{error}</p>}
-        <div className="audit-log-toolbar">
-          <button type="button" className="settings-save-btn audit-log-refresh" onClick={load}>
-            Refresh
-          </button>
-        </div>
       </div>
 
       {entries.length === 0 && !unavailable && !error ? (

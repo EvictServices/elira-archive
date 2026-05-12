@@ -35,25 +35,46 @@ export default async function DashboardPage() {
       if (a > b) byId.set(g.id, g)
     }
   }
-  const guilds: MutualGuild[] = [...byId.values()]
+  const confirmed: MutualGuild[] = [...byId.values()]
+  const confirmedIds = new Set(confirmed.map((g) => g.id))
 
-  // Add Discord guilds with admin that the cluster missed (inactive shards)
-  const includedIds = new Set(guilds.map((g) => g.id))
-  for (const dg of discordGuilds) {
-    if (adminGuildIds.has(dg.id) && !includedIds.has(dg.id)) {
-      guilds.push({
-        id: dg.id,
-        name: dg.name,
-        icon_url: dg.icon
-          ? `https://cdn.discordapp.com/icons/${dg.id}/${dg.icon}.webp?size=128`
-          : null,
-        member_count: 0,
-      })
-    }
+  /**
+   * Admin guilds the cluster didn't return could be either:
+   *   - bot IS in the guild but the shard was inactive (cluster missed it), or
+   *   - bot is NOT in the guild at all.
+   * Probe each via fetchGuild: success → recovered mutual; failure → invite candidate.
+   */
+  const missingAdminGuilds = discordGuilds.filter(
+    (dg) => adminGuildIds.has(dg.id) && !confirmedIds.has(dg.id)
+  )
+  const probeResults = await Promise.all(
+    missingAdminGuilds.map(async (dg) => {
+      try {
+        const full = await fetchGuild(dg.id)
+        const recovered: MutualGuild = {
+          id: dg.id,
+          name: dg.name,
+          icon_url: dg.icon
+            ? `https://cdn.discordapp.com/icons/${dg.id}/${dg.icon}.webp?size=128`
+            : null,
+          member_count: full.member_count || 0,
+        }
+        return { mutual: recovered as MutualGuild | null, invite: null as typeof dg | null }
+      } catch {
+        return { mutual: null as MutualGuild | null, invite: dg as typeof dg | null }
+      }
+    })
+  )
+
+  const recovered: MutualGuild[] = []
+  const inviteCandidates: typeof missingAdminGuilds = []
+  for (const r of probeResults) {
+    if (r.mutual) recovered.push(r.mutual)
+    else if (r.invite) inviteCandidates.push(r.invite)
   }
 
   const enriched = await Promise.all(
-    guilds.map(async (g) => {
+    confirmed.map(async (g) => {
       if (g.member_count > 0) return g
       try {
         const full = await fetchGuild(g.id)
@@ -64,16 +85,31 @@ export default async function DashboardPage() {
     })
   )
 
-  const managedIds = new Set(enriched.map((g) => g.id))
-  const inviteGuilds = discordGuilds
-    .filter((dg) => adminGuildIds.has(dg.id) && !managedIds.has(dg.id))
-    .map((dg) => ({
-      id: dg.id,
-      name: dg.name,
-      icon_url: dg.icon
-        ? `https://cdn.discordapp.com/icons/${dg.id}/${dg.icon}.webp?size=128`
-        : null,
-    }))
+  const bannerByGuildId = new Map<string, string>()
+  for (const dg of discordGuilds) {
+    if (dg.banner) {
+      const animated = dg.banner.startsWith('a_')
+      const ext = animated ? 'gif' : 'webp'
+      bannerByGuildId.set(
+        dg.id,
+        `https://cdn.discordapp.com/banners/${dg.id}/${dg.banner}.${ext}?size=512`
+      )
+    }
+  }
+
+  const guilds = [...enriched, ...recovered].map((g) => ({
+    ...g,
+    banner_url: bannerByGuildId.get(g.id) ?? null,
+  }))
+
+  const inviteGuilds = inviteCandidates.map((dg) => ({
+    id: dg.id,
+    name: dg.name,
+    icon_url: dg.icon
+      ? `https://cdn.discordapp.com/icons/${dg.id}/${dg.icon}.webp?size=128`
+      : null,
+    banner_url: bannerByGuildId.get(dg.id) ?? null,
+  }))
 
   return (
     <DashboardView
@@ -82,7 +118,7 @@ export default async function DashboardPage() {
         username: session.username,
         avatar: session.avatar,
       }}
-      guilds={enriched}
+      guilds={guilds}
       inviteGuilds={inviteGuilds}
     />
   )
