@@ -12,7 +12,13 @@ import {
   type EnrichedVoicemasterChannel,
 } from '@/lib/settings/voicemaster_types'
 
-export * from '@/lib/settings/voicemaster_types'
+export type {
+  Region,
+  VoicemasterConfiguration,
+  VoicemasterChannel,
+  EnrichedVoicemasterChannel,
+}
+export { REGIONS, MIN_BITRATE_KBPS, MAX_BITRATE_KBPS }
 
 function clusterJsonParse<T>(text: string): T {
   const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')

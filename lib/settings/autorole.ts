@@ -10,7 +10,8 @@ import {
   type AutoroleSettings,
 } from '@/lib/settings/autorole_types'
 
-export * from '@/lib/settings/autorole_types'
+export type { AutoroleAction, AutoroleEntry, AutoroleSettings }
+export { ACTIONS, MIN_DELAY, MAX_DELAY }
 
 function cacheKey(guildId: string): string {
   return xxh32(`autorole:${guildId}`)
