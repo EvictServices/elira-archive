@@ -35,18 +35,6 @@ export default async function ServerSettingsPage({ params }: { params: Promise<{
     fetchMutualGuilds(session.userId).then((g) => g.length).catch(() => 0),
   ])
 
-  if (tab === 'prefix') {
-    redirect(`/dashboard/${id}/general`)
-  }
-
-  if (tab === 'welcome' || tab === 'autorole') {
-    redirect(`/dashboard/${id}/system`)
-  }
-
-  if (tab === 'antinuke' && !canAccessAntinuke) {
-    redirect(`/dashboard/${id}/general`)
-  }
-
   return (
     <ServerSettingsView
       guild={guild}

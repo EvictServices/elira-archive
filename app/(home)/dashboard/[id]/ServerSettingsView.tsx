@@ -100,15 +100,6 @@ const sections: SidebarSection[] = [
     label: 'Moderation',
     items: [
       {
-        id: 'automod',
-        label: 'Auto Moderation',
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-        ),
-      },
-      {
         id: 'logging',
         label: 'Logging',
         icon: (
@@ -155,15 +146,6 @@ const sections: SidebarSection[] = [
     label: 'Features',
     items: [
       {
-        id: 'music',
-        label: 'Music',
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
-          </svg>
-        ),
-      },
-      {
         id: 'voicemaster',
         label: 'VoiceMaster',
         icon: (
@@ -188,12 +170,10 @@ const sections: SidebarSection[] = [
 const sectionDescriptions: Record<string, string> = {
   general: 'Manage general server configuration.',
   audit: 'Review changes made from this dashboard.',
-  automod: 'Configure automatic moderation rules',
   logging: 'Set up event logging channels.',
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
   system: 'Welcome, boost, and leave messages, plus automatic roles when members join.',
   starboard: 'Highlight popular messages in a starboard channel.',
-  music: 'Configure music playback settings.',
   voicemaster: 'Create temporary voice channels on demand.',
   tickets: 'Set up a support ticket system.',
 }
