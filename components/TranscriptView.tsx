@@ -86,14 +86,14 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
             style={{
               background: 'rgba(255,255,255,0.03)',
               border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '12px',
+              borderRadius: '10px',
               overflow: 'hidden',
             }}
           >
             <div
               style={{
                 background: 'rgba(255,255,255,0.03)',
-                padding: '1rem 1.5rem',
+                padding: '0.9rem 1.25rem',
                 borderBottom: '1px solid rgba(255,255,255,0.08)',
                 display: 'flex',
                 alignItems: 'center',
@@ -207,7 +207,7 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
                                     border: '1px solid rgba(255,255,255,0.06)',
                                     borderLeft: 'none',
                                     borderRadius: '0 4px 4px 0',
-                                    padding: '0.75rem 1rem',
+                                    padding: '0.65rem 0.85rem',
                                     flex: 1,
                                     minWidth: 0,
                                   }}
@@ -337,7 +337,7 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
                                   background: 'rgba(255,255,255,0.03)',
                                   border: '1px solid rgba(255,255,255,0.08)',
                                   borderRadius: '8px',
-                                  padding: '0.75rem',
+                                  padding: '0.65rem',
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '0.75rem',
@@ -361,7 +361,7 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
                 )
               })}
               {visibleCount < messages.length && (
-                <div ref={sentinelRef} style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <div ref={sentinelRef} style={{ padding: '1.25rem', textAlign: 'center' }}>
                   <span style={{ fontSize: '0.8rem', color: '#949ba4' }}>Loading more messages…</span>
                 </div>
               )}
@@ -415,7 +415,7 @@ export default function TranscriptView({ messages, users, attachments, embeds, c
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999,
-            padding: '2rem',
+            padding: '1.65rem',
           }}
           onClick={() => setImagePreview(null)}
         >

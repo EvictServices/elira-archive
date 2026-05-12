@@ -12,14 +12,14 @@ export default function Terms() {
           style={{
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '12px',
+            borderRadius: '10px',
             overflow: 'hidden',
           }}
         >
           <div
             style={{
               background: 'rgba(255,255,255,0.03)',
-              padding: '1rem 1.5rem',
+              padding: '0.9rem 1.25rem',
               borderBottom: '1px solid rgba(255,255,255,0.08)',
               display: 'flex',
               alignItems: 'center',
@@ -34,7 +34,7 @@ export default function Terms() {
             </span>
           </div>
 
-          <div style={{ padding: '1.5rem' }}>
+          <div style={{ padding: '1.3rem' }}>
             <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
               By visiting (&quot;Evict&quot;) or inviting (&quot;Evict Bot&quot;) to your Discord
               or logging into our website (&quot;evict.bot&quot;), you agree and consent to the terms displayed on this page,
@@ -55,7 +55,7 @@ export default function Terms() {
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 8,
-                padding: '1rem 1.25rem',
+                padding: '0.9rem 1.1rem',
                 marginBottom: '1.5rem',
               }}
             >
@@ -120,7 +120,7 @@ export default function Terms() {
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 8,
-                padding: '1rem 1.25rem',
+                padding: '0.9rem 1.1rem',
                 marginBottom: '1.5rem',
               }}
             >

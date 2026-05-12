@@ -36,32 +36,49 @@ export default function Navbar() {
     }
 
     const mq = window.matchMedia('(max-width: 1024px)')
+    let raf = 0
+    let ticking = false
 
-    const tick = () => {
+    const apply = () => {
+      ticking = false
       if (!mq.matches || guildDrawerOpen) {
         document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
-        guildMobileScrollLastY.current = window.scrollY
+        guildMobileScrollLastY.current = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0)
         return
       }
-      const y = window.scrollY
+      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0)
+      const prev = guildMobileScrollLastY.current
+      const delta = y - prev
+
       if (y < 12) {
         document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
-      } else if (y > guildMobileScrollLastY.current && y > 56) {
+      } else if (delta > 10 && y > 88) {
         document.body.classList.add(GUILD_SETTINGS_SCROLL_CLASS)
-      } else if (y < guildMobileScrollLastY.current) {
+      } else if (delta < -10) {
         document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
       }
       guildMobileScrollLastY.current = y
     }
 
-    guildMobileScrollLastY.current = window.scrollY
-    window.addEventListener('scroll', tick, { passive: true })
-    mq.addEventListener('change', tick)
-    tick()
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      raf = window.requestAnimationFrame(apply)
+    }
+
+    guildMobileScrollLastY.current = Math.max(
+      0,
+      window.scrollY || document.documentElement.scrollTop || 0
+    )
+    window.addEventListener('scroll', onScroll, { passive: true })
+    mq.addEventListener('change', apply)
+    apply()
 
     return () => {
-      window.removeEventListener('scroll', tick)
-      mq.removeEventListener('change', tick)
+      window.cancelAnimationFrame(raf)
+      ticking = false
+      window.removeEventListener('scroll', onScroll)
+      mq.removeEventListener('change', apply)
       document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
     }
   }, [pathname, guildDrawerOpen])

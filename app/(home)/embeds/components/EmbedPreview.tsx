@@ -22,7 +22,7 @@ export default function EmbedPreview({ data, context }: { data: EmbedData; conte
           display: 'flex', maxWidth: '520px', borderRadius: '4px', overflow: 'hidden',
           background: '#2b2d31', borderLeft: `4px solid ${data.color || '#2b2d31'}`,
         }}>
-          <div style={{ padding: '0.75rem 1rem', flex: 1, minWidth: 0 }}>
+          <div style={{ padding: '0.65rem 0.85rem', flex: 1, minWidth: 0 }}>
             {data.author.name && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
                 {data.author.icon_url && (
@@ -80,7 +80,7 @@ export default function EmbedPreview({ data, context }: { data: EmbedData; conte
           </div>
 
           {data.thumbnail && (
-            <div style={{ padding: '0.75rem 1rem 0.75rem 0', flexShrink: 0 }}>
+            <div style={{ padding: '0.65rem 0.85rem 0.65rem 0', flexShrink: 0 }}>
               <img src={resolveExampleImageUrl(data.thumbnail, context)} alt="" style={{ width: 80, height: 80, borderRadius: '4px', objectFit: 'cover' }} />
             </div>
           )}

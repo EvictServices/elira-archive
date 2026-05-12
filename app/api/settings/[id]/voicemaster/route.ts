@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
 import {
+  getConfiguration,
   createConfiguration,
   deleteConfiguration,
   updateCategory,

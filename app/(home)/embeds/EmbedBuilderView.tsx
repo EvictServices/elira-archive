@@ -11,7 +11,7 @@ import Autocomplete from './components/Autocomplete'
 const containerStyle = {
   background: 'rgba(255,255,255,0.025)',
   border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: '14px',
+  borderRadius: '12px',
   overflow: 'hidden' as const,
   boxShadow: '0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04) inset',
   transition: 'border-color 0.3s, box-shadow 0.3s',
@@ -19,7 +19,7 @@ const containerStyle = {
 
 const headerStyle = {
   background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
-  padding: '0.85rem 1.5rem',
+  padding: '0.75rem 1.25rem',
   borderBottom: '1px solid rgba(255,255,255,0.07)',
   display: 'flex',
   alignItems: 'center',
@@ -153,7 +153,7 @@ export default function EmbedBuilderView() {
         </div>
 
         <div data-reveal className="embed-grid">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className="embed-container" style={containerStyle}>
               <div style={headerStyle}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -162,7 +162,7 @@ export default function EmbedBuilderView() {
                 </div>
                 <span style={headerSub}>Build your embed</span>
               </div>
-              <div style={{ padding: '1.5rem', maxHeight: 'calc(100vh - 16rem)', overflowY: 'auto' }} onFocusCapture={handleEditorFocus}>
+              <div style={{ padding: '1.25rem', maxHeight: 'calc(100vh - 16rem)', overflowY: 'auto' }} onFocusCapture={handleEditorFocus}>
                 <EmbedEditor
                   data={data}
                   update={update}
@@ -186,7 +186,7 @@ export default function EmbedBuilderView() {
                 </div>
                 <span style={headerSub}>Click to insert</span>
               </div>
-              <div style={{ padding: '1rem' }}>
+              <div style={{ padding: '0.9rem' }}>
                 <VariablesPaginator onInsert={insertVariable} />
               </div>
             </div>
@@ -201,8 +201,8 @@ export default function EmbedBuilderView() {
                 </div>
                 <span style={headerSub}>Live embed preview</span>
               </div>
-              <div style={{ padding: '1rem' }}>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div style={{ padding: '0.9rem' }}>
+                <div style={{ display: 'flex', gap: '0.65rem' }}>
                   <img src="/img/evict.webp" alt="" style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
@@ -241,9 +241,9 @@ export default function EmbedBuilderView() {
                   {copied ? '✓ Copied!' : 'Copy'}
                 </button>
               </div>
-              <div style={{ padding: '1rem' }}>
+              <div style={{ padding: '0.9rem' }}>
                 <pre style={{
-                  background: 'rgba(0,0,0,0.35)', borderRadius: '10px', padding: '0.85rem',
+                  background: 'rgba(0,0,0,0.35)', borderRadius: '9px', padding: '0.75rem',
                   color: 'rgba(255,255,255,0.65)', fontSize: '0.78rem', fontFamily: '"SF Mono", "Fira Code", monospace',
                   whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: 0,
                   maxHeight: '200px', overflowY: 'auto', lineHeight: 1.7,

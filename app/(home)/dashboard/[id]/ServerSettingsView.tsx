@@ -7,6 +7,7 @@ import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavCo
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
 const PrefixSettings = dynamic(() => import('@/components/settings/PrefixSettings'))
+const GuildOverviewSettings = dynamic(() => import('@/components/settings/GuildOverviewSettings'))
 const AntinukeSettings = dynamic(() => import('@/components/settings/AntinukeSettings'))
 const LoggingSettings = dynamic(() => import('@/components/settings/LoggingSettings'))
 const AutoroleSettings = dynamic(() => import('@/components/settings/AutoroleSettings'))
@@ -76,11 +77,24 @@ const sections: SidebarSection[] = [
     label: 'Configuration',
     items: [
       {
-        id: 'general',
-        label: 'General',
+        id: 'overview',
+        label: 'Overview',
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+        ),
+      },
+      {
+        id: 'prefix',
+        label: 'Prefix',
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 7V4h16v3" />
+            <path d="M9 20h6" />
+            <path d="M12 4v16" />
           </svg>
         ),
       },
@@ -170,7 +184,8 @@ const sections: SidebarSection[] = [
 ]
 
 const sectionDescriptions: Record<string, string> = {
-  general: 'Manage general server configuration.',
+  overview: 'Server snapshot and command usage for this guild.',
+  prefix: 'Change the prefix used to run bot commands.',
   audit: 'Review changes made from this dashboard.',
   logging: 'Set up event logging channels.',
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
@@ -205,10 +220,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
   const navigateToTab = useCallback(
     (itemId: string) => {
       closeMobileNav()
-      const href =
-        itemId === 'general'
-          ? `/dashboard/${guild.guild_id}/general`
-          : `/dashboard/${guild.guild_id}/${itemId}`
+      const href = `/dashboard/${guild.guild_id}/${itemId}`
       router.push(href)
     },
     [closeMobileNav, guild.guild_id, router]
@@ -406,24 +418,37 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
         </div>
       </aside>
 
-      <main className="server-content">
-        <header className="server-content-header">
-          <h1 className="server-content-title">
-            {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
-          </h1>
-          {sectionDescriptions[activeItem] && (
-            <p className="server-content-desc">{sectionDescriptions[activeItem]}</p>
+      <main
+        className={['server-content', activeItem === 'overview' ? 'server-content--overview-fill' : '']
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {activeItem !== 'overview' && (
+          <header className="server-content-header">
+            <h1 className="server-content-title">
+              {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
+            </h1>
+            {sectionDescriptions[activeItem] && (
+              <p className="server-content-desc">{sectionDescriptions[activeItem]}</p>
+            )}
+          </header>
+        )}
+        <div
+          className={['server-content-body', activeItem === 'overview' ? 'server-content-body--overview-plain' : '']
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {activeItem === 'overview' && (
+            <GuildOverviewSettings guild={guild} mutualServerCount={user.serverCount} />
           )}
-        </header>
-        <div className="server-content-body">
-          {activeItem === 'general' && <PrefixSettings guildId={guild.guild_id} />}
+          {activeItem === 'prefix' && <PrefixSettings guildId={guild.guild_id} />}
           {activeItem === 'audit' && <AuditLogSettings guildId={guild.guild_id} />}
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
           {activeItem === 'voicemaster' && <VoicemasterSettings guildId={guild.guild_id} />}
           {activeItem === 'tickets' && <TicketsSettings guildId={guild.guild_id} />}
           {activeItem === 'system' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <SystemMessagesSettings
                 guildId={guild.guild_id}
                 guildName={guild.name}
@@ -439,7 +464,8 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
               <AutoroleSettings guildId={guild.guild_id} />
             </div>
           )}
-          {activeItem !== 'general' &&
+          {activeItem !== 'overview' &&
+            activeItem !== 'prefix' &&
             activeItem !== 'audit' &&
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&

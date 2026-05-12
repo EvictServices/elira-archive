@@ -38,7 +38,7 @@ export default function UpdatesView({ updates }: Props) {
             <div className="upd-sidebar-label">Releases</div>
             <div id="updates-timeline">
               {updates.length === 0 ? (
-                <div style={{ padding: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
+                <div style={{ padding: '1.65rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
                   No updates yet.
                 </div>
               ) : (

@@ -329,14 +329,14 @@ function WelcomeChannelDropdown({
 const containerStyle = {
   background: 'rgba(255,255,255,0.025)',
   border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: '14px',
+  borderRadius: '12px',
   overflow: 'hidden' as const,
   boxShadow: '0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04) inset',
 }
 
 const headerStyle = {
   background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
-  padding: '0.85rem 1.25rem',
+  padding: '0.75rem 1.05rem',
   borderBottom: '1px solid rgba(255,255,255,0.07)',
   display: 'flex',
   alignItems: 'center',
@@ -448,11 +448,32 @@ function ScriptEditorModal({
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
+
+    const scrollY = window.scrollY
+    const prev = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+    }
     document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.width = '100%'
+
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
+      document.body.style.overflow = prev.overflow
+      document.body.style.position = prev.position
+      document.body.style.top = prev.top
+      document.body.style.left = prev.left
+      document.body.style.right = prev.right
+      document.body.style.width = prev.width
+      window.scrollTo(0, scrollY)
     }
   }, [open, onClose])
 
@@ -559,7 +580,13 @@ function ScriptEditorModal({
                       <span style={headerSub}>Build message</span>
                     </div>
                     <div
-                      style={{ padding: '1.25rem', maxHeight: 'min(45vh, 420px)', overflowY: 'auto' }}
+                      style={{
+                        padding: '1.1rem',
+                        maxHeight: 'min(45vh, 420px)',
+                        overflowY: 'auto',
+                        overscrollBehavior: 'contain',
+                        touchAction: 'pan-y',
+                      }}
                       onFocusCapture={handleEditorFocus}
                     >
                       <EmbedEditor
@@ -594,7 +621,7 @@ function ScriptEditorModal({
                       </div>
                       <span style={headerSub}>Insert at cursor</span>
                     </div>
-                    <div style={{ padding: '1rem' }}>
+                    <div style={{ padding: '0.9rem' }}>
                       <VariablesPaginator onInsert={insertVariable} />
                     </div>
                   </div>
@@ -625,7 +652,7 @@ function ScriptEditorModal({
                       </div>
                       <span style={headerSub}>Approximate layout</span>
                     </div>
-                    <div style={{ padding: '1rem' }}>
+                    <div style={{ padding: '0.9rem' }}>
                       <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <img
                           src={previewAvatar}
@@ -662,7 +689,7 @@ function ScriptEditorModal({
                       <span style={headerTitle}>Stored script</span>
                       <span style={headerSub}>Saved format</span>
                     </div>
-                    <div style={{ padding: '1rem' }}>
+                    <div style={{ padding: '0.9rem' }}>
                       <pre className="welcome-script-pre welcome-modal-script-pre">
                         {(() => {
                           let s = generateScript(embed)

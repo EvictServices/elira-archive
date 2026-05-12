@@ -37,8 +37,8 @@ export default function TicketView({ ticketData, ticketId }: Props) {
           style={{
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '12px',
-            padding: '1.25rem 1.5rem',
+            borderRadius: '10px',
+            padding: '1.1rem 1.25rem',
             marginTop: '1.5rem',
           }}
         >

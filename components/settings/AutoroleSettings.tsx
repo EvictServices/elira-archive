@@ -219,39 +219,45 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
           Assign or remove a role automatically when a member joins. Delay is in seconds (1–160).
         </span>
         <div className="an-module-body">
-          <div className="an-edit-field">
-            <label>Role</label>
-            <RoleDropdown
-              roles={availableRoles}
-              entries={assignableRoles}
-              value={newRoleId}
-              onChange={setNewRoleId}
-              placeholder="Select a role"
-            />
-          </div>
-          <div className="an-edit-field">
-            <label>Action</label>
-            <Dropdown
-              value={newAction}
-              options={[
-                { value: 'add', label: 'Add to new members' },
-                { value: 'remove', label: 'Remove after delay' },
-              ]}
-              onChange={(v) => setNewAction(v as 'add' | 'remove')}
-            />
-          </div>
-          <div className="an-edit-field">
-            <label>Delay (seconds){newAction === 'remove' ? ' — required' : ' — optional'}</label>
-            <div className="settings-input-row">
-              <input
-                type="number"
-                min={MIN_DELAY}
-                max={MAX_DELAY}
-                value={newDelay}
-                onChange={(e) => setNewDelay(e.target.value)}
-                className="settings-input"
-                placeholder={newAction === 'remove' ? 'e.g. 60' : 'Leave blank for instant'}
-              />
+          <div className="autorole-add-fields">
+            <div className="autorole-add-box">
+              <div className="an-edit-field">
+                <label>Role</label>
+                <RoleDropdown
+                  roles={availableRoles}
+                  entries={assignableRoles}
+                  value={newRoleId}
+                  onChange={setNewRoleId}
+                  placeholder="Select a role"
+                />
+              </div>
+            </div>
+            <div className="autorole-add-box">
+              <div className="an-edit-field">
+                <label>Action</label>
+                <Dropdown
+                  value={newAction}
+                  options={[
+                    { value: 'add', label: 'Add to new members' },
+                    { value: 'remove', label: 'Remove after delay' },
+                  ]}
+                  onChange={(v) => setNewAction(v as 'add' | 'remove')}
+                />
+              </div>
+            </div>
+            <div className="autorole-add-box">
+              <div className="an-edit-field">
+                <label>Delay (seconds){newAction === 'remove' ? ' — required' : ' — optional'}</label>
+                <input
+                  type="number"
+                  min={MIN_DELAY}
+                  max={MAX_DELAY}
+                  value={newDelay}
+                  onChange={(e) => setNewDelay(e.target.value)}
+                  className="settings-input"
+                  placeholder={newAction === 'remove' ? 'e.g. 60' : 'Optional (1–160)'}
+                />
+              </div>
             </div>
           </div>
           <div className="settings-input-row">
@@ -266,127 +272,135 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
         </div>
       </div>
 
-      <div className="an-module enabled" style={{ animationDelay: '0.06s' }}>
-        <div className="an-module-header">
-          <span className="an-module-name">
-            Configured roles{settings.roles.length > 0 ? ` (${settings.roles.length})` : ''}
-          </span>
-          {settings.roles.length > 0 && (
-            <button
-              className="an-toggle-btn"
-              onClick={handleClear}
-              disabled={saving === 'clear'}
-            >
-              {saving === 'clear' ? 'Clearing...' : 'Clear all'}
-            </button>
-          )}
-        </div>
-        <span className="an-module-desc">
-          Roles currently scheduled to be applied or removed when members join.
-        </span>
-        <div className="an-module-body">
-          {settings.roles.length === 0 ? (
-            <p className="settings-hint" style={{ margin: 0 }}>
-              No auto roles configured yet.
-            </p>
-          ) : (
-            <div className="autorole-list">
-              {settings.roles.map((entry) => {
-                const role = rolesById.get(entry.role_id)
-                const hex = role ? colorHex(role.color) : null
-                const key = `rm:${entry.role_id}:${entry.action}`
-                return (
-                  <div key={`${entry.role_id}:${entry.action}`} className="autorole-row">
-                    <span className="autorole-role">
-                      <span
-                        className="autorole-role-dot"
-                        style={hex ? { background: hex } : undefined}
-                      />
-                      <span className="autorole-role-name">
-                        {role ? role.name : `Unknown role · ${entry.role_id}`}
-                      </span>
-                    </span>
-                    <span className={`autorole-pill autorole-pill-${entry.action}`}>
-                      {entry.action === 'add' ? 'Add' : 'Remove'}
-                    </span>
-                    <span className="autorole-delay">
-                      {entry.delay ? `after ${entry.delay}s` : 'instant'}
-                    </span>
-                    <button
-                      className="autorole-remove-btn"
-                      onClick={() => handleRemove(entry)}
-                      disabled={saving === key}
-                    >
-                      {saving === key ? '…' : 'Remove'}
-                    </button>
-                  </div>
-                )
-              })}
+      <div className="autorole-two-col">
+      <div className="autorole-pair-row">
+        <div className="autorole-pair-cell">
+          <div className="an-module enabled" style={{ animationDelay: '0.06s' }}>
+            <div className="an-module-header">
+              <span className="an-module-name">
+                Configured roles{settings.roles.length > 0 ? ` (${settings.roles.length})` : ''}
+              </span>
+              {settings.roles.length > 0 && (
+                <button
+                  className="an-toggle-btn"
+                  onClick={handleClear}
+                  disabled={saving === 'clear'}
+                >
+                  {saving === 'clear' ? 'Clearing...' : 'Clear all'}
+                </button>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-
-      <div
-        className={`an-module ${settings.reassign_roles ? 'enabled' : ''}`}
-        style={{ animationDelay: '0.09s' }}
-      >
-        <div className="an-module-header">
-          <span className="an-module-name">Reassign roles on rejoin</span>
-          <button
-            className={`an-toggle ${settings.reassign_roles ? 'on' : ''}`}
-            onClick={handleReassignToggle}
-            disabled={saving === 'reassign' || settings.roles.length === 0}
-          >
-            <span className="an-toggle-knob" />
-          </button>
-        </div>
-        <span className="an-module-desc">
-          Restore roles a member had before leaving when they rejoin the server. Requires at least
-          one configured auto role.
-        </span>
-        {settings.reassign_roles && (
-          <div className="an-module-body">
-            <div className="an-edit-field">
-              <label>Ignored roles</label>
-              <RoleDropdown
-                roles={unignoredRoles}
-                value=""
-                onChange={(id) => id && handleAddIgnore(id)}
-                placeholder="Add a role to ignore"
-              />
-            </div>
-            {settings.reassign_ignore_ids.length > 0 && (
-              <div className="autorole-list">
-                {settings.reassign_ignore_ids.map((roleId) => {
-                  const role = rolesById.get(roleId)
-                  const hex = role ? colorHex(role.color) : null
-                  const key = `unignore:${roleId}`
-                  return (
-                    <div key={roleId} className="autorole-row">
-                      <span className="autorole-role">
-                        <span
-                          className="autorole-role-dot"
-                          style={hex ? { background: hex } : undefined}
-                        />
-                        <span className="autorole-role-name">
-                          {role ? role.name : `Unknown role · ${roleId}`}
+            <span className="an-module-desc">
+              Roles currently scheduled to be applied or removed when members join.
+            </span>
+            <div className="an-module-body">
+              {settings.roles.length === 0 ? (
+                <p className="settings-hint" style={{ margin: 0 }}>
+                  No auto roles configured yet.
+                </p>
+              ) : (
+                <div className="autorole-list">
+                  {settings.roles.map((entry) => {
+                    const role = rolesById.get(entry.role_id)
+                    const hex = role ? colorHex(role.color) : null
+                    const key = `rm:${entry.role_id}:${entry.action}`
+                    return (
+                      <div key={`${entry.role_id}:${entry.action}`} className="autorole-row">
+                        <span className="autorole-role">
+                          <span
+                            className="autorole-role-dot"
+                            style={hex ? { background: hex } : undefined}
+                          />
+                          <span className="autorole-role-name">
+                            {role ? role.name : `Unknown role · ${entry.role_id}`}
+                          </span>
                         </span>
-                      </span>
-                      <button
-                        className="autorole-remove-btn"
-                        onClick={() => handleRemoveIgnore(roleId)}
-                        disabled={saving === key}
-                      >
-                        {saving === key ? '…' : 'Stop ignoring'}
-                      </button>
-                    </div>
-                  )
-                })}
+                        <span className={`autorole-pill autorole-pill-${entry.action}`}>
+                          {entry.action === 'add' ? 'Add' : 'Remove'}
+                        </span>
+                        <span className="autorole-delay">
+                          {entry.delay ? `after ${entry.delay}s` : 'instant'}
+                        </span>
+                        <button
+                          className="autorole-remove-btn"
+                          onClick={() => handleRemove(entry)}
+                          disabled={saving === key}
+                        >
+                          {saving === key ? '…' : 'Remove'}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="autorole-pair-cell">
+          <div
+            className={`an-module ${settings.reassign_roles ? 'enabled' : ''}`}
+            style={{ animationDelay: '0.09s' }}
+          >
+            <div className="an-module-header">
+              <span className="an-module-name">Reassign roles on rejoin</span>
+              <button
+                className={`an-toggle ${settings.reassign_roles ? 'on' : ''}`}
+                onClick={handleReassignToggle}
+                disabled={saving === 'reassign' || settings.roles.length === 0}
+              >
+                <span className="an-toggle-knob" />
+              </button>
+            </div>
+            <span className="an-module-desc">
+              Restore roles a member had before leaving when they rejoin the server. Requires at least
+              one configured auto role.
+            </span>
+            {settings.reassign_roles && (
+              <div className="an-module-body">
+                <div className="an-edit-field">
+                  <label>Ignored roles</label>
+                  <RoleDropdown
+                    roles={unignoredRoles}
+                    value=""
+                    onChange={(id) => id && handleAddIgnore(id)}
+                    placeholder="Add a role to ignore"
+                  />
+                </div>
+                {settings.reassign_ignore_ids.length > 0 && (
+                  <div className="autorole-list">
+                    {settings.reassign_ignore_ids.map((roleId) => {
+                      const role = rolesById.get(roleId)
+                      const hex = role ? colorHex(role.color) : null
+                      const key = `unignore:${roleId}`
+                      return (
+                        <div key={roleId} className="autorole-row">
+                          <span className="autorole-role">
+                            <span
+                              className="autorole-role-dot"
+                              style={hex ? { background: hex } : undefined}
+                            />
+                            <span className="autorole-role-name">
+                              {role ? role.name : `Unknown role · ${roleId}`}
+                            </span>
+                          </span>
+                          <button
+                            className="autorole-remove-btn"
+                            onClick={() => handleRemoveIgnore(roleId)}
+                            disabled={saving === key}
+                          >
+                            {saving === key ? '…' : 'Stop ignoring'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
+        </div>
+      </div>
       </div>
     </div>
     {confirmModal}

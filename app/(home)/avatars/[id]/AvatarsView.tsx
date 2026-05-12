@@ -81,7 +81,7 @@ function AvatarPopout({
       <div
         style={{
           background: '#1e1e1e',
-          borderRadius: '16px',
+          borderRadius: '13px',
           border: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
           maxWidth: '480px',
@@ -161,7 +161,7 @@ function AvatarPopout({
             </svg>
           </a>
         </div>
-        <div style={{ padding: '1.25rem' }}>
+        <div style={{ padding: '1.05rem' }}>
           <div
             style={{
               display: 'flex',
@@ -260,7 +260,7 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
             maxWidth: 'calc(160px * 5 + 1rem * 4)',
-            gap: '1rem',
+            gap: '0.85rem',
             marginTop: '2rem',
           }}
         >
@@ -271,7 +271,7 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
                 className="avatar-card"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
-                  borderRadius: '12px',
+                  borderRadius: '10px',
                   overflow: 'hidden',
                   border: '1px solid rgba(255,255,255,0.08)',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -314,7 +314,7 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
                 </div>
                 <div
                   style={{
-                    padding: '0.75rem',
+                    padding: '0.65rem',
                     textAlign: 'center',
                     background: 'rgba(0,0,0,0.3)',
                   }}
@@ -349,7 +349,7 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
             <button
               onClick={() => setVisibleCount((c) => Math.min(c + PAGE_SIZE, avatars.length))}
               style={{
-                padding: '0.75rem 2rem',
+                padding: '0.65rem 1.65rem',
                 background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '10px',

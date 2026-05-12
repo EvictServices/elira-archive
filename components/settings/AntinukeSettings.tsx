@@ -58,7 +58,7 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
   const exitIfForbidden = useCallback(
     (status: number) => {
       if (status === 403) {
-        router.replace(`/dashboard/${guildId}/general`)
+        router.replace(`/dashboard/${guildId}/overview`)
         return true
       }
       return false

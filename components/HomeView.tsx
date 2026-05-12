@@ -8,7 +8,7 @@ import AntinukeSection from '@/components/features/AntinukeSection'
 
 function Divider() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '34px 0' }}>
       <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent)' }} />
     </div>
   )
@@ -59,13 +59,13 @@ export default function HomeView() {
 
       <Divider />
 
-      <section style={{ padding: '40px 20px 80px' }} data-reveal>
+      <section style={{ padding: '34px 18px 68px' }} data-reveal>
         <div style={{
           maxWidth: 900, margin: '0 auto',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 16,
-          padding: '48px 40px',
-          display: 'flex', flexDirection: 'column', gap: 24,
+          borderRadius: 14,
+          padding: '40px 34px',
+          display: 'flex', flexDirection: 'column', gap: 20,
           background: 'rgba(255,255,255,0.02)',
         }}>
           <h2 style={{ color: '#fff', fontSize: '1.6rem', margin: 0 }}>
@@ -74,11 +74,11 @@ export default function HomeView() {
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.7, margin: 0 }}>
             Add Evict to your server and explore everything it offers&nbsp;&mdash; moderation, antinuke, music, social feeds, and more, all in one place.
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <a href={INVITE_URL} target="_blank" rel="noopener" style={{
               fontSize: '0.9rem',
               color: '#fff', textDecoration: 'none', textAlign: 'center',
-              padding: '14px 32px', borderRadius: 10,
+              padding: '12px 28px', borderRadius: 9,
               border: '1px solid rgba(255,255,255,0.15)',
               background: 'rgba(255,255,255,0.04)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -90,7 +90,7 @@ export default function HomeView() {
             <a href={SUPPORT_URL} target="_blank" rel="noopener" style={{
               fontSize: '0.9rem',
               color: '#fff', textDecoration: 'none', textAlign: 'center',
-              padding: '14px 32px', borderRadius: 10,
+              padding: '12px 28px', borderRadius: 9,
               border: '1px solid rgba(255,255,255,0.15)',
               background: 'rgba(255,255,255,0.04)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

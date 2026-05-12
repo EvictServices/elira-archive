@@ -18,6 +18,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ServerSettingsPage({ params }: { params: Promise<{ id: string; tab: string }> }) {
   const { id, tab } = await params
 
+  if (tab === 'general') {
+    redirect(`/dashboard/${id}/overview`)
+  }
+
   const [session, guild] = await Promise.all([
     getSession(),
     fetchGuild(id).catch(() => null),

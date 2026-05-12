@@ -49,14 +49,14 @@ export default function LeaderboardView({
           style={{
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '12px',
+            borderRadius: '10px',
             overflow: 'hidden',
           }}
         >
           <div
             style={{
               background: 'rgba(255,255,255,0.03)',
-              padding: '1rem 1.5rem',
+              padding: '0.9rem 1.25rem',
               borderBottom: '1px solid rgba(255,255,255,0.08)',
               display: 'flex',
               alignItems: 'center',
@@ -98,7 +98,7 @@ export default function LeaderboardView({
             </span>
           </div>
 
-          <div style={{ padding: '1rem 1.5rem', maxHeight: '70vh', overflowY: 'auto' }}>
+          <div style={{ padding: '0.9rem 1.25rem', maxHeight: '70vh', overflowY: 'auto' }}>
 
         {members.length === 0 ? (
           <div
@@ -126,7 +126,7 @@ export default function LeaderboardView({
                     display: 'flex',
                     alignItems: 'center',
                     gap: 12,
-                    padding: '10px 14px',
+                    padding: '8px 12px',
                     background:
                       rank === 1
                         ? 'rgba(255,215,0,0.08)'

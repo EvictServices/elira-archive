@@ -152,32 +152,34 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
     return m
   }, [allChannels])
 
-  const memberIgnoredIds = useMemo(() => {
-    if (!settings) return [] as string[]
-    return settings.ignored.filter((id) => !channelById.has(id))
+  const memberIgnoredIdsKey = useMemo(() => {
+    if (!settings) return ''
+    return settings.ignored
+      .filter((id) => !channelById.has(id))
+      .sort()
+      .join(',')
   }, [settings, channelById])
 
   useEffect(() => {
-    if (memberIgnoredIds.length === 0) {
+    if (!memberIgnoredIdsKey) {
       setUserProfiles({})
       return
     }
-    const ctrl = new AbortController()
+    const ids = memberIgnoredIdsKey.split(',')
+    let cancelled = false
     setProfilesLoading(true)
     fetch(`/api/settings/${guildId}/logging/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: memberIgnoredIds }),
-      signal: ctrl.signal,
+      body: JSON.stringify({ ids }),
     })
       .then(async (r) => {
-        if (!r.ok) return
         const data = await r.json()
-        if (ctrl.signal.aborted) return
-        if (data.users && typeof data.users === 'object') {
+        if (!r.ok) return
+        if (!cancelled && data.users && typeof data.users === 'object') {
           const incoming = data.users as Record<string, ResolvedUser>
           const pruned: Record<string, ResolvedUser> = {}
-          for (const id of memberIgnoredIds) {
+          for (const id of ids) {
             if (incoming[id]) pruned[id] = incoming[id]
           }
           setUserProfiles(pruned)
@@ -185,10 +187,12 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
       })
       .catch(() => {})
       .finally(() => {
-        if (!ctrl.signal.aborted) setProfilesLoading(false)
+        if (!cancelled) setProfilesLoading(false)
       })
-    return () => ctrl.abort()
-  }, [guildId, memberIgnoredIds])
+    return () => {
+      cancelled = true
+    }
+  }, [guildId, memberIgnoredIdsKey])
 
   const eventChannelMap: Record<string, string | null> = {}
   if (settings) {

@@ -15,10 +15,10 @@ function InputField({ label, value, onChange, placeholder, multiline }: {
     className: 'embed-input',
     style: {
       width: '100%',
-      padding: '0.55rem 0.8rem',
+      padding: '0.5rem 0.7rem',
       background: 'rgba(0,0,0,0.35)',
       border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: '10px',
+      borderRadius: '9px',
       color: '#fff',
       fontSize: '0.85rem',
       outline: 'none',
@@ -42,12 +42,12 @@ function Section({ title, children, defaultOpen }: {
 }) {
   const [open, setOpen] = useState(defaultOpen ?? false)
   return (
-    <div style={{ marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', overflow: 'hidden', background: 'rgba(0,0,0,0.1)' }}>
+    <div style={{ marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden', background: 'rgba(0,0,0,0.1)' }}>
       <button
         onClick={() => setOpen(!open)}
         className="embed-section-btn"
         style={{
-          width: '100%', padding: '0.7rem 0.9rem', background: open ? 'rgba(88,101,242,0.06)' : 'rgba(255,255,255,0.02)',
+          width: '100%', padding: '0.6rem 0.8rem', background: open ? 'rgba(88,101,242,0.06)' : 'rgba(255,255,255,0.02)',
           border: 'none', color: '#fff', fontSize: '0.85rem', fontWeight: 600,
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           transition: 'background 0.2s',
@@ -63,7 +63,7 @@ function Section({ title, children, defaultOpen }: {
           display: 'inline-block',
         }}>▼</span>
       </button>
-      {open && <div style={{ padding: '0.85rem', borderTop: '1px solid rgba(255,255,255,0.04)' }}>{children}</div>}
+      {open && <div style={{ padding: '0.72rem', borderTop: '1px solid rgba(255,255,255,0.04)' }}>{children}</div>}
     </div>
   )
 }
@@ -154,7 +154,7 @@ export default function EmbedEditor({
 
       <Section title={`Fields (${data.fields.length})`}>
         {data.fields.map((field, i) => (
-          <div key={i} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div key={i} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '0.65rem', marginBottom: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600 }}>Field {i + 1}</span>
               <button onClick={() => removeField(i)} style={{ background: 'none', border: 'none', color: '#ed4245', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>Remove</button>
@@ -169,7 +169,7 @@ export default function EmbedEditor({
         ))}
         <button onClick={addField} className="embed-add-btn" style={{
           width: '100%', padding: '0.55rem', background: 'rgba(88,101,242,0.06)', border: '1px dashed rgba(88,101,242,0.25)',
-          borderRadius: '10px', color: '#8b9eff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+          borderRadius: '9px', color: '#8b9eff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
           transition: 'all 0.2s',
         }}>
           + Add Field
@@ -178,7 +178,7 @@ export default function EmbedEditor({
 
       <Section title={`Buttons (${data.buttons.length})`}>
         {data.buttons.map((btn, i) => (
-          <div key={i} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div key={i} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '0.65rem', marginBottom: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 600 }}>Button {i + 1}</span>
               <button onClick={() => removeButton(i)} style={{ background: 'none', border: 'none', color: '#ed4245', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>Remove</button>
@@ -204,7 +204,7 @@ export default function EmbedEditor({
         ))}
         <button onClick={addButton} className="embed-add-btn" style={{
           width: '100%', padding: '0.55rem', background: 'rgba(88,101,242,0.06)', border: '1px dashed rgba(88,101,242,0.25)',
-          borderRadius: '10px', color: '#8b9eff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+          borderRadius: '9px', color: '#8b9eff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
           transition: 'all 0.2s',
         }}>
           + Add Button
