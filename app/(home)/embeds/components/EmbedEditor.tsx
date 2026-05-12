@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { EmbedData, EmbedAuthor, EmbedFooter, EmbedField, EmbedButton } from '../lib/types'
 import { BUTTON_STYLES } from '../lib/constants'
+import { extractEmbedTags, type ParsedEmbedPatch } from '../lib/parse'
 
 function InputField({ label, value, onChange, placeholder, multiline }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean

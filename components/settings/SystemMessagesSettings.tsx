@@ -14,6 +14,7 @@ import {
   type EmbedData,
   type EmbedField,
 } from '@/app/(home)/embeds/lib/types'
+import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
 
 type MessageKind = 'welcome' | 'boost' | 'goodbye'
 
@@ -375,6 +376,7 @@ function ScriptEditorModal({
   addButton,
   updateButton,
   removeButton,
+  applyEmbedPatch,
   titleAdd,
   titleEdit,
   channelHint,
@@ -408,6 +410,7 @@ function ScriptEditorModal({
   addButton: () => void
   updateButton: (index: number, key: keyof EmbedButton, value: string | boolean) => void
   removeButton: (index: number) => void
+  applyEmbedPatch: (patch: ParsedEmbedPatch) => void
   titleAdd: string
   titleEdit: string
   channelHint: string
@@ -560,6 +563,7 @@ function ScriptEditorModal({
                         addButton={addButton}
                         updateButton={updateButton}
                         removeButton={removeButton}
+                        applyEmbedPatch={applyEmbedPatch}
                       />
                     </div>
                   </div>
@@ -870,6 +874,25 @@ export default function SystemMessagesSettings({
     setEmbed((prev) => ({ ...prev, buttons: prev.buttons.filter((_, i) => i !== index) }))
   }, [])
 
+  const applyEmbedPatch = useCallback((patch: ParsedEmbedPatch) => {
+    setEmbed((prev) => {
+      const next: EmbedData = { ...prev }
+      if (patch.content !== undefined) next.content = patch.content
+      if (patch.color !== undefined) next.color = patch.color
+      if (patch.url !== undefined) next.url = patch.url
+      if (patch.title !== undefined) next.title = patch.title
+      if (patch.description !== undefined) next.description = patch.description
+      if (patch.thumbnail !== undefined) next.thumbnail = patch.thumbnail
+      if (patch.image !== undefined) next.image = patch.image
+      if (patch.timestamp !== undefined) next.timestamp = patch.timestamp
+      if (patch.footer) next.footer = patch.footer
+      if (patch.author) next.author = patch.author
+      if (patch.addFields?.length) next.fields = [...prev.fields, ...patch.addFields]
+      if (patch.addButtons?.length) next.buttons = [...prev.buttons, ...patch.addButtons]
+      return next
+    })
+  }, [])
+
   const saveModal = async () => {
     const cfg = KIND_CONFIG[modalKind]
     if (!draftChannelId) {
@@ -1099,6 +1122,7 @@ export default function SystemMessagesSettings({
         addButton={addButton}
         updateButton={updateButton}
         removeButton={removeButton}
+        applyEmbedPatch={applyEmbedPatch}
         titleAdd={modalCfg.titleAdd}
         titleEdit={modalCfg.titleEdit}
         channelHint={modalCfg.channelHint}
