@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
 import {
-  getConfiguration,
   createConfiguration,
   deleteConfiguration,
   updateCategory,
@@ -18,28 +17,6 @@ import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 function asSnowflakeOrNull(value: unknown): string | null {
   if (value === null || value === undefined || value === '') return null
   return String(value)
-}
-
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await getSession()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { id } = await params
-
-  if (!(await hasGuildAdmin(session.accessToken, id))) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const configuration = await getConfiguration(id)
-  return NextResponse.json(
-    { configuration },
-    { headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' } }
-  )
 }
 
 export async function POST(

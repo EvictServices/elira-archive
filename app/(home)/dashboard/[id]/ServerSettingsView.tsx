@@ -1,17 +1,19 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
 import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavContext'
 import { useMediaQuery } from '@/lib/useMediaQuery'
-import PrefixSettings from '@/components/settings/PrefixSettings'
-import AntinukeSettings from '@/components/settings/AntinukeSettings'
-import LoggingSettings from '@/components/settings/LoggingSettings'
-import AutoroleSettings from '@/components/settings/AutoroleSettings'
-import VoicemasterSettings from '@/components/settings/VoicemasterSettings'
-import AuditLogSettings from '@/components/settings/AuditLogSettings'
-import SystemMessagesSettings from '@/components/settings/SystemMessagesSettings'
-import TicketsSettings from '@/components/settings/TicketsSettings'
+
+const PrefixSettings = dynamic(() => import('@/components/settings/PrefixSettings'))
+const AntinukeSettings = dynamic(() => import('@/components/settings/AntinukeSettings'))
+const LoggingSettings = dynamic(() => import('@/components/settings/LoggingSettings'))
+const AutoroleSettings = dynamic(() => import('@/components/settings/AutoroleSettings'))
+const VoicemasterSettings = dynamic(() => import('@/components/settings/VoicemasterSettings'))
+const AuditLogSettings = dynamic(() => import('@/components/settings/AuditLogSettings'))
+const SystemMessagesSettings = dynamic(() => import('@/components/settings/SystemMessagesSettings'))
+const TicketsSettings = dynamic(() => import('@/components/settings/TicketsSettings'))
 
 interface Guild {
   guild_id: string

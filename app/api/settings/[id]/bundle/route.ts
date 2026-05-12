@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession, type Session } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
-import { listWelcomeMessages } from '@/lib/settings/welcome'
-import { listBoostMessages } from '@/lib/settings/boost'
-import { listGoodbyeMessages } from '@/lib/settings/goodbye'
+import { listMessages } from '@/lib/settings/script_messages'
 import { getAutoroleSettings } from '@/lib/settings/autorole'
 import { getLoggingSettings } from '@/lib/settings/logging'
 import { getTicketSettings } from '@/lib/settings/tickets'
@@ -20,15 +18,15 @@ interface ResourceLoader {
 
 const RESOURCES: Record<string, ResourceLoader> = {
   system: {
-    load: async (id) => ({ messages: await listWelcomeMessages(id) }),
+    load: async (id) => ({ messages: await listMessages('welcome', id) }),
     fallback: { messages: [], unavailable: true },
   },
   boost: {
-    load: async (id) => ({ messages: await listBoostMessages(id) }),
+    load: async (id) => ({ messages: await listMessages('boost', id) }),
     fallback: { messages: [], unavailable: true },
   },
   goodbye: {
-    load: async (id) => ({ messages: await listGoodbyeMessages(id) }),
+    load: async (id) => ({ messages: await listMessages('goodbye', id) }),
     fallback: { messages: [], unavailable: true },
   },
   channels: {
