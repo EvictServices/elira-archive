@@ -5,6 +5,11 @@ import { useConfirm } from '@/components/ConfirmModal'
 import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/bundleClient'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
+import {
+  colorHex,
+  type GuildChannel,
+  type GuildRole,
+} from '@/components/settings/types'
 
 interface TicketConfigPublic {
   guild_id: string
@@ -28,27 +33,6 @@ interface TicketSettingsData {
   logs_channel_id: string | null
   buttons: TicketButtonPublic[]
   open_ticket_count: number
-}
-
-interface GuildChannel {
-  id: string
-  name: string
-  type: number | string
-  position: number
-  parent_id: string | null
-}
-
-interface GuildRole {
-  id: string
-  name: string
-  color: number
-  position: number
-  managed: boolean
-}
-
-function colorHex(color: number): string | null {
-  if (!color) return null
-  return `#${color.toString(16).padStart(6, '0')}`
 }
 
 export default function TicketsSettings({ guildId }: { guildId: string }) {

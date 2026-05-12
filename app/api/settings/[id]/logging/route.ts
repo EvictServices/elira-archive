@@ -68,7 +68,6 @@ export async function PATCH(
     return NextResponse.json(updated)
   }
 
-  // Update events for a channel
   if (body.channel_id && Array.isArray(body.events)) {
     const channelId = String(body.channel_id)
     const events = body.events as string[]
@@ -95,7 +94,6 @@ export async function PATCH(
     return NextResponse.json(updated)
   }
 
-  // Add ignored target
   if (body.action === 'add_ignored' && body.target_id) {
     await addIgnored(id, String(body.target_id))
     recordDashboardAudit(session, id, 'logging.ignored_add', {
@@ -105,7 +103,6 @@ export async function PATCH(
     return NextResponse.json(updated)
   }
 
-  // Remove ignored target
   if (body.action === 'remove_ignored' && body.target_id) {
     await removeIgnored(id, String(body.target_id))
     recordDashboardAudit(session, id, 'logging.ignored_remove', {

@@ -17,6 +17,7 @@ import {
 import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
 import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
 import { fetchBundle } from '@/lib/bundleClient'
+import type { GuildChannel } from '@/components/settings/types'
 
 type MessageKind = 'welcome' | 'boost' | 'goodbye'
 
@@ -33,7 +34,6 @@ const MAX_PER_KIND = 2
 
 const DELETE_AFTER_RE = /\s*--delete_after\s+(\d+)\s*$/i
 
-/** Strip a trailing `--delete_after N` suffix from a template, returning the cleaned text and the value. */
 function extractDeleteAfter(template: string): { cleaned: string; deleteAfter: number | null } {
   const m = template.match(DELETE_AFTER_RE)
   if (!m || m.index == null) return { cleaned: template, deleteAfter: null }
@@ -42,7 +42,6 @@ function extractDeleteAfter(template: string): { cleaned: string; deleteAfter: n
   return { cleaned: template.slice(0, m.index).trimEnd(), deleteAfter: n }
 }
 
-/** Append `--delete_after N` to a template (after stripping any existing trailing flag). */
 function appendDeleteAfter(template: string, seconds: number): string {
   const base = template.replace(DELETE_AFTER_RE, '').trimEnd()
   return `${base} --delete_after ${seconds}`
@@ -121,14 +120,6 @@ const KIND_CONFIG: Record<
   },
 }
 
-interface GuildChannel {
-  id: string
-  name: string
-  type: number | string
-  position: number
-  parent_id: string | null
-}
-
 function normalizeSnowflake(v: unknown): string {
   if (v === null || v === undefined) return ''
   if (typeof v === 'bigint') return String(v)
@@ -146,7 +137,6 @@ function normalizeOptionalSnowflake(v: unknown): string | null {
   return s || null
 }
 
-/** Discord ChannelType names some APIs serialize as strings instead of numbers. */
 const DISCORD_CHANNEL_TYPE_BY_NAME: Record<string, number> = {
   GUILD_TEXT: 0,
   GUILD_NEWS: 5,

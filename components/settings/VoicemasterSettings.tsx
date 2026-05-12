@@ -9,63 +9,14 @@ import {
   isDiscordTextChannel,
   isDiscordVoiceChannel,
 } from '@/lib/guild_channel_type'
-
-interface Configuration {
-  guild_id: string
-  category_id: string | null
-  interface_id: string | null
-  channel_id: string | null
-  role_id: string | null
-  region: string | null
-  bitrate: number | null
-  interface_layout: string
-}
-
-interface VmChannel {
-  guild_id: string
-  channel_id: string
-  owner_id: string | null
-  name: string | null
-  member_count: number | null
-  bitrate: number | null
-  user_limit: number | null
-  exists: boolean
-  owner_username?: string | null
-  owner_avatar?: string | null
-}
-
-interface GuildChannel {
-  id: string
-  name: string
-  type: number | string
-  position: number
-  parent_id: string | null
-}
-
-interface GuildRole {
-  id: string
-  name: string
-  color: number
-  position: number
-  managed: boolean
-}
-
-const REGIONS = [
-  'brazil',
-  'hongkong',
-  'india',
-  'japan',
-  'rotterdam',
-  'russia',
-  'singapore',
-  'south-korea',
-  'southafrica',
-  'sydney',
-  'us-central',
-  'us-east',
-  'us-south',
-  'us-west',
-] as const
+import type { GuildChannel, GuildRole } from '@/components/settings/types'
+import {
+  REGIONS,
+  MIN_BITRATE_KBPS as MIN_BITRATE,
+  MAX_BITRATE_KBPS as MAX_BITRATE,
+  type EnrichedVoicemasterChannel as VmChannel,
+  type VoicemasterConfiguration as Configuration,
+} from '@/lib/settings/voicemaster_types'
 
 const REGION_LABELS: Record<string, string> = {
   brazil: 'Brazil',
@@ -83,9 +34,6 @@ const REGION_LABELS: Record<string, string> = {
   'us-south': 'US South',
   'us-west': 'US West',
 }
-
-const MIN_BITRATE = 8
-const MAX_BITRATE = 384
 
 export default function VoicemasterSettings({ guildId }: { guildId: string }) {
   const [configuration, setConfiguration] = useState<Configuration | null>(null)

@@ -2,49 +2,21 @@ import pool from '@/lib/db'
 import redis from '@/lib/redis'
 import { CLUSTER_API_BASE, fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
 import { fetchUserInfoBatch } from '@/lib/fetchUsers'
+import {
+  REGIONS,
+  MIN_BITRATE_KBPS,
+  MAX_BITRATE_KBPS,
+  type Region,
+  type VoicemasterConfiguration,
+  type VoicemasterChannel,
+  type EnrichedVoicemasterChannel,
+} from '@/lib/settings/voicemaster_types'
+
+export * from '@/lib/settings/voicemaster_types'
 
 function clusterJsonParse<T>(text: string): T {
   const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
   return JSON.parse(safe) as T
-}
-
-export const REGIONS = [
-  'brazil',
-  'hongkong',
-  'india',
-  'japan',
-  'rotterdam',
-  'russia',
-  'singapore',
-  'south-korea',
-  'southafrica',
-  'sydney',
-  'us-central',
-  'us-east',
-  'us-south',
-  'us-west',
-] as const
-
-export type Region = (typeof REGIONS)[number]
-
-export const MIN_BITRATE_KBPS = 8
-export const MAX_BITRATE_KBPS = 384
-
-export interface VoicemasterConfiguration {
-  guild_id: string
-  category_id: string | null
-  interface_id: string | null
-  channel_id: string | null
-  role_id: string | null
-  region: Region | null
-  bitrate: number | null
-  interface_layout: string
-}
-
-export interface VoicemasterChannel {
-  guild_id: string
-  channel_id: string
-  owner_id: string | null
 }
 
 function configCacheKey(guildId: string): string {
@@ -218,7 +190,7 @@ export async function updateBitrate(
   await ensureConfigured(guildId)
   await pool.query(
     `UPDATE voicemaster.configuration SET bitrate = $2 WHERE guild_id = $1`,
-    [guildId, bitrateKbps == null ? null : bitrateKbps * 1000]
+    [guildId, bitrateKbps == null ? null : bitrateKbps * 1000]  
   )
   await invalidateConfigCache(guildId)
 }
@@ -232,19 +204,6 @@ export async function getChannels(guildId: string): Promise<VoicemasterChannel[]
     [guildId]
   )
   return res.rows.map(rowToChannel)
-}
-
-export interface EnrichedVoicemasterChannel {
-  guild_id: string
-  channel_id: string
-  owner_id: string | null
-  name: string | null
-  member_count: number | null
-  bitrate: number | null
-  user_limit: number | null
-  exists: boolean
-  owner_username: string | null
-  owner_avatar: string | null
 }
 
 export async function getEnrichedChannels(
@@ -357,13 +316,10 @@ export async function updateChannelOwner(
   await invalidateChannelCache(channelId)
 }
 
-/** Bot/cluster: disconnect members and delete the Discord voice channel (VoiceMaster temp channel). */
 export interface VoicemasterChannelDeleteResult {
   ok: boolean
   error?: string
-  /** Bot-reported count of members disconnected from the voice channel. */
   disconnected_count?: number
-  /** Bot-reported user IDs disconnected (when the cluster returns them). */
   disconnected_user_ids?: string[]
 }
 

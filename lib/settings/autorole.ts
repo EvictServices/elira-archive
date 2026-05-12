@@ -1,24 +1,16 @@
 import pool from '@/lib/db'
 import redis from '@/lib/redis'
 import { xxh32 } from '@/lib/hash'
+import {
+  ACTIONS,
+  MIN_DELAY,
+  MAX_DELAY,
+  type AutoroleAction,
+  type AutoroleEntry,
+  type AutoroleSettings,
+} from '@/lib/settings/autorole_types'
 
-export const ACTIONS = ['add', 'remove'] as const
-export type AutoroleAction = (typeof ACTIONS)[number]
-
-export const MIN_DELAY = 1
-export const MAX_DELAY = 160
-
-export interface AutoroleEntry {
-  role_id: string
-  action: AutoroleAction
-  delay: number | null
-}
-
-export interface AutoroleSettings {
-  roles: AutoroleEntry[]
-  reassign_roles: boolean
-  reassign_ignore_ids: string[]
-}
+export * from '@/lib/settings/autorole_types'
 
 function cacheKey(guildId: string): string {
   return xxh32(`autorole:${guildId}`)

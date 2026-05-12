@@ -8,44 +8,17 @@ import {
 import { useConfirm } from '@/components/ConfirmModal'
 import { Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/bundleClient'
-
-interface AutoroleEntry {
-  role_id: string
-  action: 'add' | 'remove'
-  delay: number | null
-}
+import {
+  colorHex,
+  type GuildMemberInfo,
+  type GuildRole,
+} from '@/components/settings/types'
+import { MIN_DELAY, MAX_DELAY, type AutoroleEntry } from '@/lib/settings/autorole_types'
 
 interface AutoroleSettingsData {
   roles: AutoroleEntry[]
   reassign_roles: boolean
   reassign_ignore_ids: string[]
-}
-
-interface GuildRole {
-  id: string
-  name: string
-  color: number
-  position: number
-  managed: boolean
-  is_bot_managed: boolean
-  is_premium_subscriber: boolean
-  is_integration: boolean
-  permissions: string
-}
-
-interface GuildMemberInfo {
-  is_owner: boolean
-  top_role_position: number
-  role_ids: string[]
-  permissions: string
-}
-
-const MIN_DELAY = 1
-const MAX_DELAY = 160
-
-function colorHex(color: number): string | null {
-  if (!color) return null
-  return `#${color.toString(16).padStart(6, '0')}`
 }
 
 export default function AutoroleSettings({ guildId }: { guildId: string }) {
@@ -213,7 +186,7 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
     if (!me.is_owner && role.position >= me.top_role_position) {
       return { ok: false, reason: 'Above your highest role' }
     }
-    const dangerous = getDangerousPermissions(role.permissions)
+    const dangerous = getDangerousPermissions(role.permissions ?? '0')
     if (dangerous.length > 0) {
       return {
         ok: false,

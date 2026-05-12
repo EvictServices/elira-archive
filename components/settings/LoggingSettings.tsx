@@ -4,18 +4,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChannelDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/bundleClient'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
+import type { GuildChannel } from '@/components/settings/types'
 
 interface LoggingChannel {
   channel_id: string
   events: string[]
-}
-
-interface GuildChannel {
-  id: string
-  name: string
-  type: number
-  position: number
-  parent_id: string | null
 }
 
 interface Settings {
