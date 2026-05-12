@@ -4018,6 +4018,10 @@ body:has(.server-layout) > footer {
   margin-bottom: 0;
 }
 
+.welcome-modal-channel-pane .welcome-modal-section + .welcome-modal-section {
+  margin-top: 18px;
+}
+
 .welcome-modal-scroll {
   flex: 1;
   min-height: 0;

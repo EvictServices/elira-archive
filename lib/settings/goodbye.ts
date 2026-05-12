@@ -68,7 +68,6 @@ export async function upsertGoodbyeMessage(
 
   const deleteAfterValue = await resolveGoodbyeDeleteAfter(guildId, channelId, from, deleteAfter)
 
-  // Same INSERT/ON CONFLICT as `Settings.set_goodbye_message` in goodbye/etc/settings/__init__.py
   await pool.query(
     `INSERT INTO goodbye_message (guild_id, channel_id, template, delete_after)
      VALUES ($1::bigint, $2::bigint, $3, $4)

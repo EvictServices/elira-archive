@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment } from 'react'
+import { resolveVariable, type PreviewContext } from '../lib/preview'
 
 const mentionStyle = {
   background: 'rgba(88,101,242,0.3)',
@@ -60,6 +61,7 @@ function parseMarkdown(text: string): TextNode[] {
     [/^\*\*(.+?)\*\*/, m => ({ type: 'bold', content: m[1] })],
     [/^\*(.+?)\*/, m => ({ type: 'italic', content: m[1] })],
     [/^__(.+?)__/, m => ({ type: 'underline', content: m[1] })],
+    [/^_(.+?)_/, m => ({ type: 'italic', content: m[1] })],
     [/^~~(.+?)~~/, m => ({ type: 'strike', content: m[1] })],
     [/^\|\|(.+?)\|\|/, m => ({ type: 'spoiler', content: m[1] })],
     [/^> (.+?)(?:\n|$)/, m => ({ type: 'quote', content: m[1] })],
@@ -68,20 +70,7 @@ function parseMarkdown(text: string): TextNode[] {
     [/^<#\d+>/, () => ({ type: 'channel', content: '#channel' })],
     [/^<@&\d+>/, () => ({ type: 'role', content: '@role' })],
     [/^<@!?\d+>/, () => ({ type: 'mention', content: '@user' })],
-    [/^\{user\.mention\}/, () => ({ type: 'mention', content: '@user' })],
-    [/^\{user\.name\}/, () => ({ type: 'text-var', content: 'user' })],
-    [/^\{user\.display_name\}/, () => ({ type: 'text-var', content: 'Display Name' })],
-    [/^\{user\}/, () => ({ type: 'text-var', content: 'user' })],
-    [/^\{moderator\.mention\}/, () => ({ type: 'mention', content: '@moderator' })],
-    [/^\{moderator\.name\}/, () => ({ type: 'text-var', content: 'moderator' })],
-    [/^\{moderator\.display_name\}/, () => ({ type: 'text-var', content: 'Moderator' })],
-    [/^\{moderator\}/, () => ({ type: 'mention', content: '@moderator' })],
-    [/^\{channel\.mention\}/, () => ({ type: 'channel', content: '#channel' })],
-    [/^\{channel\.name\}/, () => ({ type: 'text-var', content: 'channel' })],
-    [/^\{guild\.name\}/, () => ({ type: 'text-var', content: 'Server Name' })],
-    [/^\{guild\}/, () => ({ type: 'text-var', content: 'Server Name' })],
-    [/^\{reason\}/, () => ({ type: 'text-var', content: 'No reason provided' })],
-    [/^\{[a-z._]+\}/, m => ({ type: 'variable', content: m[0] })],
+    [/^\{[a-z_]+(?:\.[a-z_]+)*\}/, m => ({ type: 'var', content: m[0].slice(1, -1) })],
   ]
 
   while (remaining.length > 0) {
@@ -113,20 +102,20 @@ function parseMarkdown(text: string): TextNode[] {
   return nodes
 }
 
-function RenderNode({ node, index }: { node: TextNode; index: number }) {
+function RenderNode({ node, index, context }: { node: TextNode; index: number; context?: PreviewContext }) {
   if (typeof node === 'string') return <Fragment key={index}>{node}</Fragment>
 
   switch (node.type) {
     case 'bold':
-      return <strong key={index} style={{ color: '#fff', fontWeight: 700 }}>{renderInline(node.content as string)}</strong>
+      return <strong key={index} style={{ color: '#fff', fontWeight: 700 }}>{renderInline(node.content as string, context)}</strong>
     case 'italic':
-      return <em key={index}>{renderInline(node.content as string)}</em>
+      return <em key={index}>{renderInline(node.content as string, context)}</em>
     case 'bolditalic':
-      return <strong key={index} style={{ color: '#fff', fontWeight: 700 }}><em>{renderInline(node.content as string)}</em></strong>
+      return <strong key={index} style={{ color: '#fff', fontWeight: 700 }}><em>{renderInline(node.content as string, context)}</em></strong>
     case 'underline':
-      return <u key={index}>{renderInline(node.content as string)}</u>
+      return <u key={index}>{renderInline(node.content as string, context)}</u>
     case 'strike':
-      return <s key={index} style={{ textDecoration: 'line-through' }}>{renderInline(node.content as string)}</s>
+      return <s key={index} style={{ textDecoration: 'line-through' }}>{renderInline(node.content as string, context)}</s>
     case 'code':
       return <code key={index} style={inlineCodeStyle}>{node.content}</code>
     case 'codeblock':
@@ -136,7 +125,7 @@ function RenderNode({ node, index }: { node: TextNode; index: number }) {
     case 'quote':
       return (
         <div key={index} style={{ borderLeft: '3px solid #4e5058', paddingLeft: '0.5rem', margin: '0.15rem 0' }}>
-          {renderInline(node.content as string)}
+          {renderInline(node.content as string, context)}
         </div>
       )
     case 'link':
@@ -162,27 +151,34 @@ function RenderNode({ node, index }: { node: TextNode; index: number }) {
         />
       )
     }
-    case 'text-var':
-      return <span key={index}>{node.content}</span>
-    case 'variable':
-      return <span key={index} style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', fontSize: '0.85em' }}>{node.content}</span>
+    case 'var': {
+      const path = node.content as string
+      const resolved = resolveVariable(path, context)
+      if (resolved.kind === 'mention') return <span key={index} style={mentionStyle}>{resolved.value}</span>
+      if (resolved.kind === 'channel') return <span key={index} style={channelStyle}>{resolved.value}</span>
+      if (resolved.kind === 'role') return <span key={index} style={mentionStyle}>{resolved.value}</span>
+      if (resolved.kind === 'unknown') {
+        return <span key={index} style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', fontSize: '0.85em' }}>{resolved.value}</span>
+      }
+      return <span key={index}>{resolved.value}</span>
+    }
     default:
       return <Fragment key={index}>{node.content}</Fragment>
   }
 }
 
-function renderInline(text: string): React.ReactNode {
+function renderInline(text: string, context?: PreviewContext): React.ReactNode {
   const nodes = parseMarkdown(text)
-  return nodes.map((n, i) => <RenderNode key={i} node={n} index={i} />)
+  return nodes.map((n, i) => <RenderNode key={i} node={n} index={i} context={context} />)
 }
 
-export default function DiscordMarkdown({ text }: { text: string }) {
+export default function DiscordMarkdown({ text, context }: { text: string; context?: PreviewContext }) {
   if (!text) return null
   const nodes = parseMarkdown(text)
   return (
     <span>
       {nodes.map((n, i) => (
-        <RenderNode key={i} node={n} index={i} />
+        <RenderNode key={i} node={n} index={i} context={context} />
       ))}
     </span>
   )

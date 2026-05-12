@@ -446,6 +446,13 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
                 guildId={guild.guild_id}
                 guildName={guild.name}
                 guildIconUrl={guild.icon_url}
+                guildBannerUrl={guild.banner_url}
+                user={{
+                  id: user.id,
+                  username: user.username,
+                  display_name: user.username,
+                  avatar_url: userAvatarUrl(user),
+                }}
               />
               <AutoroleSettings guildId={guild.guild_id} />
             </div>

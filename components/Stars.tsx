@@ -31,7 +31,6 @@ export default function Stars() {
     resize()
     window.addEventListener('resize', resize)
 
-    // Initialize dots
     const dotCount = 60
     for (let i = 0; i < dotCount; i++) {
       dotsRef.current.push({
@@ -53,7 +52,6 @@ export default function Stars() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Update and draw dots
       dotsRef.current.forEach((dot) => {
         dot.x += dot.vx
         dot.y += dot.vy
@@ -61,7 +59,6 @@ export default function Stars() {
         if (dot.x < 0 || dot.x > canvas.width) dot.vx *= -1
         if (dot.y < 0 || dot.y > canvas.height) dot.vy *= -1
 
-        // Mouse interaction - push dots away gently
         const dx = dot.x - mouseRef.current.x
         const dy = dot.y - mouseRef.current.y
         const dist = Math.sqrt(dx * dx + dy * dy)

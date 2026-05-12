@@ -50,7 +50,6 @@ export async function upsertBoostMessage(
     throw new Error(`You can only have up to ${MAX_BOOST_CHANNELS} boost messages. Remove one first.`)
   }
 
-  // Same INSERT/ON CONFLICT as `Settings.set_boost_message` in boost/etc/settings/__init__.py
   await pool.query(
     `INSERT INTO boost_message (guild_id, channel_id, template)
      VALUES ($1::bigint, $2::bigint, $3)

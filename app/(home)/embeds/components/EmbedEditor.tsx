@@ -90,12 +90,7 @@ export default function EmbedEditor({
   addButton, updateButton, removeButton,
   applyEmbedPatch,
 }: EmbedEditorProps) {
-  /**
-   * Wrap a top-level text field's setter so that pasted/typed embed tags like
-   * `{thumbnail: …}` or `{color: 5f828d}` are detected, routed to their actual fields,
-   * and stripped from the field the user is typing in. Brace-aware so nested variables
-   * like `{user.avatar}` inside `{thumbnail: {user.avatar}}` are preserved as values.
-   */
+
   const onTextChange = (fieldKey: AutoParseField) => (newValue: string) => {
     if (!applyEmbedPatch) {
       update(fieldKey, newValue)

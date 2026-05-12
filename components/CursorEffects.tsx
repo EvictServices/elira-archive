@@ -31,7 +31,6 @@ export default function CursorEffects() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Draw cursor trail
       trailRef.current.forEach((point, i) => {
         point.opacity *= 0.92
         if (point.opacity < 0.01) return

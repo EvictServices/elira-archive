@@ -15,6 +15,7 @@ import {
   type EmbedField,
 } from '@/app/(home)/embeds/lib/types'
 import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
+import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
 
 type MessageKind = 'welcome' | 'boost' | 'goodbye'
 
@@ -28,6 +29,23 @@ interface BoostRow extends ScriptRow {
 }
 
 const MAX_PER_KIND = 2
+
+const DELETE_AFTER_RE = /\s*--delete_after\s+(\d+)\s*$/i
+
+/** Strip a trailing `--delete_after N` suffix from a template, returning the cleaned text and the value. */
+function extractDeleteAfter(template: string): { cleaned: string; deleteAfter: number | null } {
+  const m = template.match(DELETE_AFTER_RE)
+  if (!m || m.index == null) return { cleaned: template, deleteAfter: null }
+  const n = parseInt(m[1], 10)
+  if (!Number.isFinite(n) || n < 0) return { cleaned: template, deleteAfter: null }
+  return { cleaned: template.slice(0, m.index).trimEnd(), deleteAfter: n }
+}
+
+/** Append `--delete_after N` to a template (after stripping any existing trailing flag). */
+function appendDeleteAfter(template: string, seconds: number): string {
+  const base = template.replace(DELETE_AFTER_RE, '').trimEnd()
+  return `${base} --delete_after ${seconds}`
+}
 
 function PencilIcon() {
   return (
@@ -74,7 +92,7 @@ const KIND_CONFIG: Record<
     titleEdit: 'Edit welcome message',
     channelHint: 'Where this welcome is sent when someone joins.',
     everyChannelHint: 'Every text channel already has a welcome message. Remove one to add elsewhere.',
-    showDeleteAfter: false,
+    showDeleteAfter: true,
   },
   boost: {
     apiPath: 'boost',
@@ -86,7 +104,7 @@ const KIND_CONFIG: Record<
     titleEdit: 'Edit boost message',
     channelHint: 'Where this message is sent when the server receives a new boost.',
     everyChannelHint: 'Every text channel already has a boost message. Remove one to add elsewhere.',
-    showDeleteAfter: false,
+    showDeleteAfter: true,
   },
   goodbye: {
     apiPath: 'goodbye',
@@ -377,6 +395,7 @@ function ScriptEditorModal({
   updateButton,
   removeButton,
   applyEmbedPatch,
+  previewContext,
   titleAdd,
   titleEdit,
   channelHint,
@@ -411,6 +430,7 @@ function ScriptEditorModal({
   updateButton: (index: number, key: keyof EmbedButton, value: string | boolean) => void
   removeButton: (index: number) => void
   applyEmbedPatch: (patch: ParsedEmbedPatch) => void
+  previewContext: PreviewContext
   titleAdd: string
   titleEdit: string
   channelHint: string
@@ -506,8 +526,7 @@ function ScriptEditorModal({
                     Auto-delete
                   </h3>
                   <p className="welcome-modal-hint">
-                    Seconds before the message is removed. Leave empty to keep the current setting when editing, or
-                    leave unset for new messages.
+                    Seconds before the message is removed. Leave empty to disable auto-delete.
                   </p>
                   <input
                     type="number"
@@ -641,7 +660,7 @@ function ScriptEditorModal({
                               <span style={{ color: '#a3a6aa', fontSize: '0.7rem' }}>Today at {timeStr}</span>
                             )}
                           </div>
-                          <EmbedPreview data={embed} />
+                          <EmbedPreview data={embed} context={previewContext} />
                         </div>
                       </div>
                     </div>
@@ -654,7 +673,16 @@ function ScriptEditorModal({
                     </div>
                     <div style={{ padding: '1rem' }}>
                       <pre className="welcome-script-pre welcome-modal-script-pre">
-                        {generateScript(embed) || '// Empty — add content or embed fields'}
+                        {(() => {
+                          let s = generateScript(embed)
+                          if (s && showDeleteAfter && deleteAfterDraft.trim() !== '') {
+                            const n = parseInt(deleteAfterDraft.trim(), 10)
+                            if (Number.isFinite(n) && n >= 0) {
+                              s = appendDeleteAfter(s, n)
+                            }
+                          }
+                          return s || '// Empty — add content or embed fields'
+                        })()}
                       </pre>
                     </div>
                   </div>
@@ -690,15 +718,51 @@ function rowsForKind(kind: MessageKind, welcome: ScriptRow[], boost: BoostRow[],
   return boost
 }
 
+interface SystemMessagesUser {
+  id: string
+  username: string
+  display_name?: string | null
+  avatar_url: string
+}
+
 export default function SystemMessagesSettings({
   guildId,
   guildName,
   guildIconUrl,
+  guildBannerUrl,
+  user,
 }: {
   guildId: string
   guildName: string
   guildIconUrl: string | null
+  guildBannerUrl?: string | null
+  user?: SystemMessagesUser
 }) {
+  const previewContext: PreviewContext = {
+    user: user
+      ? {
+          id: user.id,
+          name: user.username,
+          display_name: user.display_name || user.username,
+          avatar_url: user.avatar_url,
+        }
+      : undefined,
+    moderator: user
+      ? {
+          id: user.id,
+          name: user.username,
+          display_name: user.display_name || user.username,
+          avatar_url: user.avatar_url,
+        }
+      : undefined,
+    guild: {
+      id: guildId,
+      name: guildName,
+      icon_url: guildIconUrl,
+      banner_url: guildBannerUrl ?? null,
+    },
+  }
+
   const [messagesWelcome, setMessagesWelcome] = useState<ScriptRow[]>([])
   const [messagesBoost, setMessagesBoost] = useState<BoostRow[]>([])
   const [messagesGoodbye, setMessagesGoodbye] = useState<ScriptRow[]>([])
@@ -726,17 +790,18 @@ export default function SystemMessagesSettings({
     else setMessagesGoodbye(list as ScriptRow[])
   }, [])
 
-  const load = useCallback(() => {
+  const load = useCallback((signal?: AbortSignal) => {
     setLoading(true)
     setError(null)
     const base = `/api/settings/${guildId}`
     Promise.all([
-      fetch(`${base}/system`).then((r) => r.json()),
-      fetch(`${base}/boost`).then((r) => r.json()),
-      fetch(`${base}/goodbye`).then((r) => r.json()),
-      fetch(`${base}/channels?type=all`).then((r) => r.json()),
+      fetch(`${base}/system`, { signal }).then((r) => r.json()),
+      fetch(`${base}/boost`, { signal }).then((r) => r.json()),
+      fetch(`${base}/goodbye`, { signal }).then((r) => r.json()),
+      fetch(`${base}/channels?type=all`, { signal }).then((r) => r.json()),
     ])
       .then(([w, b, g, raw]) => {
+        if (signal?.aborted) return
         const listW: ScriptRow[] = Array.isArray(w.messages) ? w.messages : []
         const listB: BoostRow[] = Array.isArray(b.messages)
           ? b.messages.map((m: Record<string, unknown>) => ({
@@ -763,12 +828,19 @@ export default function SystemMessagesSettings({
         setCategoryById(cats)
         setChannels(textList)
       })
-      .catch(() => setError('Failed to load system messages'))
-      .finally(() => setLoading(false))
+      .catch((err) => {
+        if (signal?.aborted || (err && (err.name === 'AbortError' || err.code === 20))) return
+        setError('Failed to load system messages')
+      })
+      .finally(() => {
+        if (!signal?.aborted) setLoading(false)
+      })
   }, [guildId])
 
   useEffect(() => {
-    load()
+    const ctrl = new AbortController()
+    load(ctrl.signal)
+    return () => ctrl.abort()
   }, [load])
 
   const channelName = (id: string) => channels.find((c) => c.id === id)?.name ?? id
@@ -793,8 +865,9 @@ export default function SystemMessagesSettings({
     setEditSourceChannelId(row.channel_id)
     setModalError(null)
     setDraftChannelId(row.channel_id)
-    setEmbed(parseScriptToEmbed(row.template))
-    setDeleteAfterDraft('')
+    const { cleaned, deleteAfter } = extractDeleteAfter(row.template)
+    setEmbed(parseScriptToEmbed(cleaned))
+    setDeleteAfterDraft(deleteAfter != null ? String(deleteAfter) : '')
     setModalOpen(true)
   }
 
@@ -907,21 +980,22 @@ export default function SystemMessagesSettings({
         return
       }
     }
+    let template = generateScript(embed)
+    if (cfg.showDeleteAfter && deleteAfterDraft.trim() !== '') {
+      const n = parseInt(deleteAfterDraft.trim(), 10)
+      if (Number.isNaN(n) || n < 0) {
+        setModalError('Auto-delete must be a non-negative number.')
+        return
+      }
+      template = appendDeleteAfter(template, n)
+    }
+
     setSaving(true)
     setModalError(null)
     try {
-      const body: Record<string, unknown> = { channel_id: draftChannelId, embed }
+      const body: Record<string, unknown> = { channel_id: draftChannelId, template }
       if (modalMode === 'edit' && editSourceChannelId && editSourceChannelId !== draftChannelId) {
         body.from_channel_id = editSourceChannelId
-      }
-      if (cfg.showDeleteAfter && deleteAfterDraft.trim() !== '') {
-        const n = parseInt(deleteAfterDraft.trim(), 10)
-        if (Number.isNaN(n) || n < 0) {
-          setModalError('Auto-delete must be a non-negative number.')
-          setSaving(false)
-          return
-        }
-        body.delete_after = n
       }
       const res = await fetch(`/api/settings/${guildId}/${cfg.apiPath}`, {
         method: 'PATCH',
@@ -1029,10 +1103,13 @@ export default function SystemMessagesSettings({
           <div className="an-modules welcome-message-modules system-messages-modules">
             {rows.map((m, i) => {
               const ch = channels.find((c) => c.id === m.channel_id)
-              const boostMeta =
+              const templateDeleteAfter = extractDeleteAfter(m.template).deleteAfter
+              const fallbackDeleteAfter =
                 kind === 'boost' && 'delete_after' in m && m.delete_after != null
-                  ? ` · auto-delete ${m.delete_after}s`
-                  : ''
+                  ? Number(m.delete_after)
+                  : null
+              const deleteAfter = templateDeleteAfter ?? fallbackDeleteAfter
+              const boostMeta = deleteAfter != null ? ` · auto-delete ${deleteAfter}s` : ''
               return (
                 <div
                   key={m.channel_id}
@@ -1123,6 +1200,7 @@ export default function SystemMessagesSettings({
         updateButton={updateButton}
         removeButton={removeButton}
         applyEmbedPatch={applyEmbedPatch}
+        previewContext={previewContext}
         titleAdd={modalCfg.titleAdd}
         titleEdit={modalCfg.titleEdit}
         channelHint={modalCfg.channelHint}
