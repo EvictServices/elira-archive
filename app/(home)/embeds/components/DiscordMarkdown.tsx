@@ -37,7 +37,17 @@ const inlineCodeStyle = {
   color: '#dcddde',
 }
 
-type TextNode = string | { type: string; content: React.ReactNode; href?: string }
+const emojiStyle = {
+  width: '1.375em',
+  height: '1.375em',
+  verticalAlign: '-0.3em',
+  objectFit: 'contain' as const,
+  display: 'inline-block',
+}
+
+type TextNode =
+  | string
+  | { type: string; content: React.ReactNode; href?: string; animated?: boolean }
 
 function parseMarkdown(text: string): TextNode[] {
   const nodes: TextNode[] = []
@@ -54,6 +64,10 @@ function parseMarkdown(text: string): TextNode[] {
     [/^\|\|(.+?)\|\|/, m => ({ type: 'spoiler', content: m[1] })],
     [/^> (.+?)(?:\n|$)/, m => ({ type: 'quote', content: m[1] })],
     [/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)/, m => ({ type: 'link', content: m[1], href: m[2] })],
+    [/^<(a?):([\w~]+):(\d+)>/, m => ({ type: 'emoji', content: m[2], href: m[3], animated: m[1] === 'a' })],
+    [/^<#\d+>/, () => ({ type: 'channel', content: '#channel' })],
+    [/^<@&\d+>/, () => ({ type: 'role', content: '@role' })],
+    [/^<@!?\d+>/, () => ({ type: 'mention', content: '@user' })],
     [/^\{user\.mention\}/, () => ({ type: 'mention', content: '@user' })],
     [/^\{user\.name\}/, () => ({ type: 'text-var', content: 'user' })],
     [/^\{user\.display_name\}/, () => ({ type: 'text-var', content: 'Display Name' })],
@@ -86,7 +100,7 @@ function parseMarkdown(text: string): TextNode[] {
       }
     }
     if (!matched) {
-      const nextSpecial = remaining.slice(1).search(/[`*_~|>\[{]/)
+      const nextSpecial = remaining.slice(1).search(/[`*_~|>\[{<]/)
       if (nextSpecial === -1) {
         nodes.push(remaining)
         break
@@ -131,6 +145,23 @@ function RenderNode({ node, index }: { node: TextNode; index: number }) {
       return <span key={index} style={mentionStyle}>{node.content}</span>
     case 'channel':
       return <span key={index} style={channelStyle}>{node.content}</span>
+    case 'role':
+      return <span key={index} style={mentionStyle}>{node.content}</span>
+    case 'emoji': {
+      const ext = node.animated ? 'gif' : 'png'
+      const id = node.href
+      const name = String(node.content)
+      return (
+        <img
+          key={index}
+          src={`https://cdn.discordapp.com/emojis/${id}.${ext}?size=32&quality=lossless`}
+          alt={`:${name}:`}
+          title={`:${name}:`}
+          style={emojiStyle}
+          draggable={false}
+        />
+      )
+    }
     case 'text-var':
       return <span key={index}>{node.content}</span>
     case 'variable':

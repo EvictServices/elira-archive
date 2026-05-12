@@ -79,21 +79,47 @@ interface EmbedEditorProps {
   addButton: () => void
   updateButton: (index: number, key: keyof EmbedButton, value: string | boolean) => void
   removeButton: (index: number) => void
+  applyEmbedPatch?: (patch: ParsedEmbedPatch) => void
 }
+
+type AutoParseField = 'content' | 'title' | 'description' | 'thumbnail' | 'image' | 'url'
 
 export default function EmbedEditor({
   data, update, updateAuthor, updateFooter,
   addField, updateField, removeField,
   addButton, updateButton, removeButton,
+  applyEmbedPatch,
 }: EmbedEditorProps) {
+  /**
+   * Wrap a top-level text field's setter so that pasted/typed embed tags like
+   * `{thumbnail: …}` or `{color: 5f828d}` are detected, routed to their actual fields,
+   * and stripped from the field the user is typing in. Brace-aware so nested variables
+   * like `{user.avatar}` inside `{thumbnail: {user.avatar}}` are preserved as values.
+   */
+  const onTextChange = (fieldKey: AutoParseField) => (newValue: string) => {
+    if (!applyEmbedPatch) {
+      update(fieldKey, newValue)
+      return
+    }
+    const { cleaned, patch, matched } = extractEmbedTags(newValue)
+    if (!matched) {
+      update(fieldKey, newValue)
+      return
+    }
+    applyEmbedPatch(patch)
+    if (!(fieldKey in patch)) {
+      update(fieldKey, cleaned.trim())
+    }
+  }
+
   return (
     <>
-      <InputField label="Message Content" value={data.content} onChange={v => update('content', v)} placeholder="Text outside the embed" multiline />
+      <InputField label="Message Content" value={data.content} onChange={onTextChange('content')} placeholder="Text outside the embed" multiline />
 
       <Section title="Embed Body" defaultOpen>
         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
           <div style={{ flex: 1 }}>
-            <InputField label="Title" value={data.title} onChange={v => update('title', v)} placeholder="Embed title" />
+            <InputField label="Title" value={data.title} onChange={onTextChange('title')} placeholder="Embed title" />
           </div>
           <div style={{ width: '80px' }}>
             <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>
@@ -107,13 +133,13 @@ export default function EmbedEditor({
             />
           </div>
         </div>
-        <InputField label="URL" value={data.url} onChange={v => update('url', v)} placeholder="https://..." />
-        <InputField label="Description" value={data.description} onChange={v => update('description', v)} placeholder="Embed description" multiline />
+        <InputField label="URL" value={data.url} onChange={onTextChange('url')} placeholder="https://..." />
+        <InputField label="Description" value={data.description} onChange={onTextChange('description')} placeholder="Embed description" multiline />
       </Section>
 
       <Section title="Images">
-        <InputField label="Thumbnail URL" value={data.thumbnail} onChange={v => update('thumbnail', v)} placeholder="Small image (top right)" />
-        <InputField label="Image URL" value={data.image} onChange={v => update('image', v)} placeholder="Large image (bottom)" />
+        <InputField label="Thumbnail URL" value={data.thumbnail} onChange={onTextChange('thumbnail')} placeholder="Small image (top right)" />
+        <InputField label="Image URL" value={data.image} onChange={onTextChange('image')} placeholder="Large image (bottom)" />
       </Section>
 
       <Section title="Author">

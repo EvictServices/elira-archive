@@ -1,3 +1,5 @@
+import { extractEmbedTags } from './parse'
+
 export interface EmbedField {
   name: string
   value: string
@@ -108,92 +110,28 @@ export function generateScript(data: EmbedData): string {
   return lines.join('\n')
 }
 
-/** Best-effort inverse of {@link generateScript} for dashboard round-trip (Elara `welcome_message.template`). */
+/**
+ * Best-effort inverse of {@link generateScript} for dashboard round-trip.
+ *
+ * Delegates to the brace-aware extractor so multi-line tag values, multiple tags on the
+ * same line, and nested template variables (e.g. `{thumbnail: {user.avatar}}`) all parse
+ * correctly. Unknown `{x.y}` blocks (like `{user.mention}`) are preserved as literal text
+ * inside the value they appear in.
+ */
 export function parseScriptToEmbed(template: string): EmbedData {
   const data = defaultEmbed()
-  const lines = template
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean)
-
-  for (const line of lines) {
-    if (line === '{embed}') continue
-    if (line === '{timestamp}') {
-      data.timestamp = true
-      continue
-    }
-
-    if (!line.startsWith('{') || !line.endsWith('}')) continue
-    const inner = line.slice(1, -1)
-    const colon = inner.indexOf(':')
-    if (colon === -1) continue
-    const tag = inner.slice(0, colon)
-    const rest = inner.slice(colon + 1)
-
-    switch (tag) {
-      case 'content':
-        data.content = rest
-        break
-      case 'color':
-        data.color = rest
-        break
-      case 'url':
-        data.url = rest
-        break
-      case 'title':
-        data.title = rest
-        break
-      case 'description':
-        data.description = rest
-        break
-      case 'thumbnail':
-        data.thumbnail = rest
-        break
-      case 'image':
-        data.image = rest
-        break
-      case 'field': {
-        const parts = rest.split(' && ').map((p) => p.trim())
-        if (parts.length < 2) break
-        const inline = parts[parts.length - 1] === 'inline'
-        const name = parts[0]
-        const value = inline ? parts.slice(1, -1).join(' && ') : parts.slice(1).join(' && ')
-        if (name && value) data.fields.push({ name, value, inline })
-        break
-      }
-      case 'footer': {
-        const parts = rest.split(' && ').map((p) => p.trim())
-        data.footer.text = parts[0] ?? ''
-        if (parts[1]) data.footer.icon_url = parts[1]
-        break
-      }
-      case 'author': {
-        const parts = rest.split(' && ').map((p) => p.trim())
-        if (parts[0]) data.author.name = parts[0]
-        if (parts[1] && parts[1] !== 'null') data.author.url = parts[1]
-        if (parts[2]) data.author.icon_url = parts[2]
-        break
-      }
-      case 'button': {
-        const parts = rest.split(' && ').map((p) => p.trim())
-        if (parts.length < 3) break
-        const style = parts[0] || 'link'
-        const label = parts[1] || ''
-        const url = parts[2] || ''
-        let emoji = ''
-        const disabled = parts.includes('disabled')
-        for (const p of parts.slice(3)) {
-          if (p !== 'disabled' && !emoji) emoji = p
-        }
-        if (label && url) {
-          data.buttons.push({ style, label, url, emoji, disabled })
-        }
-        break
-      }
-      default:
-        break
-    }
-  }
-
+  const { patch } = extractEmbedTags(template)
+  if (patch.content !== undefined) data.content = patch.content
+  if (patch.color !== undefined) data.color = patch.color
+  if (patch.url !== undefined) data.url = patch.url
+  if (patch.title !== undefined) data.title = patch.title
+  if (patch.description !== undefined) data.description = patch.description
+  if (patch.thumbnail !== undefined) data.thumbnail = patch.thumbnail
+  if (patch.image !== undefined) data.image = patch.image
+  if (patch.timestamp !== undefined) data.timestamp = patch.timestamp
+  if (patch.footer) data.footer = patch.footer
+  if (patch.author) data.author = patch.author
+  if (patch.addFields?.length) data.fields = [...data.fields, ...patch.addFields]
+  if (patch.addButtons?.length) data.buttons = [...data.buttons, ...patch.addButtons]
   return data
 }

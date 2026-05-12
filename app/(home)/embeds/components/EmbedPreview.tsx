@@ -4,6 +4,25 @@ import type { EmbedData } from '../lib/types'
 import { BUTTON_STYLE_COLORS } from '../lib/constants'
 import DiscordMarkdown from './DiscordMarkdown'
 
+const DEFAULT_AVATAR = 'https://cdn.discordapp.com/embed/avatars/0.png'
+const EXAMPLE_GUILD_ICON = 'https://cdn.discordapp.com/embed/avatars/3.png'
+
+/**
+ * Image fields in the editor often hold template variables (e.g. `{user.avatar}`) that
+ * the bot resolves at send time. For the preview we substitute a plausible example URL
+ * so the `<img>` tag doesn't try to fetch the literal placeholder text.
+ */
+function resolveExampleImageUrl(url: string): string {
+  if (!url) return url
+  const trimmed = url.trim()
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return url
+  const inner = trimmed.slice(1, -1).toLowerCase()
+  if (inner.includes('guild') && (inner.includes('icon') || inner.includes('banner'))) {
+    return EXAMPLE_GUILD_ICON
+  }
+  return DEFAULT_AVATAR
+}
+
 export default function EmbedPreview({ data }: { data: EmbedData }) {
   const hasEmbed = data.title || data.description || data.thumbnail || data.image ||
     data.author.name || data.footer.text || data.fields.length > 0
@@ -25,7 +44,7 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
             {data.author.name && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
                 {data.author.icon_url && (
-                  <img src={data.author.icon_url} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
+                  <img src={resolveExampleImageUrl(data.author.icon_url)} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
                 )}
                 <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>
                   <DiscordMarkdown text={data.author.name} />
@@ -61,13 +80,13 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
             )}
 
             {data.image && (
-              <img src={data.image} alt="" style={{ maxWidth: '100%', borderRadius: '4px', marginBottom: '0.5rem', maxHeight: 300, objectFit: 'contain' }} />
+              <img src={resolveExampleImageUrl(data.image)} alt="" style={{ maxWidth: '100%', borderRadius: '4px', marginBottom: '0.5rem', maxHeight: 300, objectFit: 'contain' }} />
             )}
 
             {(data.footer.text || data.timestamp) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
                 {data.footer.icon_url && (
-                  <img src={data.footer.icon_url} alt="" style={{ width: 20, height: 20, borderRadius: '50%' }} />
+                  <img src={resolveExampleImageUrl(data.footer.icon_url)} alt="" style={{ width: 20, height: 20, borderRadius: '50%' }} />
                 )}
                 <span style={{ color: '#a3a6aa', fontSize: '0.75rem' }}>
                   <DiscordMarkdown text={data.footer.text} />
@@ -80,7 +99,7 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
 
           {data.thumbnail && (
             <div style={{ padding: '0.75rem 1rem 0.75rem 0', flexShrink: 0 }}>
-              <img src={data.thumbnail} alt="" style={{ width: 80, height: 80, borderRadius: '4px', objectFit: 'cover' }} />
+              <img src={resolveExampleImageUrl(data.thumbnail)} alt="" style={{ width: 80, height: 80, borderRadius: '4px', objectFit: 'cover' }} />
             </div>
           )}
         </div>
@@ -99,7 +118,11 @@ export default function EmbedPreview({ data }: { data: EmbedData }) {
                 display: 'flex', alignItems: 'center', gap: '0.35rem',
               }}
             >
-              {btn.emoji && <span>{btn.emoji}</span>}
+              {btn.emoji && (
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <DiscordMarkdown text={btn.emoji} />
+                </span>
+              )}
               {btn.label}
               {btn.style === 'link' && (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: 2, opacity: 0.7 }}>
