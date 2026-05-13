@@ -3206,11 +3206,21 @@ body:has(.server-layout) > footer {
 }
 .sidebar-guild-banner {
   position: relative;
-  height: 64px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  width: 100%;
+  line-height: 0;
+  overflow: hidden;
+  background: var(--bg-tertiary);
 }
+
+.sidebar-guild-banner-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(160px, 40vh);
+  object-fit: scale-down;
+  object-position: center top;
+}
+
 .sidebar-guild-banner::after {
   content: '';
   position: absolute;
@@ -5704,11 +5714,17 @@ body:has(.server-layout) > footer {
 .guild-overview-template {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
   max-width: none;
+}
+
+.guild-overview-template > .gov-breadcrumb,
+.guild-overview-template > .gov-pagehead,
+.guild-overview-template > .gov-kpi-row {
+  flex-shrink: 0;
 }
 
 .gov-breadcrumb {
@@ -5857,11 +5873,19 @@ body:has(.server-layout) > footer {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  margin-top: 8px;
+  padding-top: 10px;
 }
 
 .guild-overview-template .gov-activity-body {
   flex: 1 1 auto;
   min-height: 0;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.guild-overview-template .gov-activity-card.an-module {
+  padding: 12px 14px;
 }
 
 .gov-activity-head {
@@ -5938,19 +5962,37 @@ body:has(.server-layout) > footer {
   gap: 14px;
 }
 
-.gov-activity-svg {
+/* Fills card body height; SVG is absolutely sized so it can use width+height 100% + viewBox meet (uniform scale, no stretch). */
+.gov-activity-chart-slot {
+  flex: 1 1 auto;
+  min-height: min(220px, 30vh);
   width: 100%;
-  height: auto;
-  min-height: clamp(200px, 28vh, 360px);
-  aspect-ratio: 800 / 260;
-  display: block;
-  flex-shrink: 0;
-  align-self: stretch;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.server-content--overview-fill .guild-overview-template .gov-activity-svg {
-  min-height: clamp(260px, min(48vh, calc(100dvh - 420px)), 720px);
-  aspect-ratio: 800 / 260;
+.guild-overview-template .gov-activity-chart-slot > .settings-loading,
+.guild-overview-template .gov-activity-chart-slot > .settings-hint {
+  margin: 0;
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+}
+
+.guild-overview-template .gov-activity-chart-slot .gov-activity-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.gov-activity-svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .gov-activity-gridline {
@@ -5982,6 +6024,7 @@ body:has(.server-layout) > footer {
 }
 
 .gov-activity-legend {
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -6016,7 +6059,7 @@ body:has(.server-layout) > footer {
 .gov-activity-empty {
   margin: 0;
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1rem 0.75rem;
 }
 
 .gov-split {

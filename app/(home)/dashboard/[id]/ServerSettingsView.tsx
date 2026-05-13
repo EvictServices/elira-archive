@@ -342,11 +342,9 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
 
         <div className={`sidebar-guild${guild.banner_url ? ' sidebar-guild--with-banner' : ''}`}>
           {guild.banner_url && (
-            <div
-              className="sidebar-guild-banner"
-              style={{ backgroundImage: `url(${guild.banner_url})` }}
-              aria-hidden
-            />
+            <div className="sidebar-guild-banner" aria-hidden>
+              <img src={guild.banner_url} alt="" className="sidebar-guild-banner-img" />
+            </div>
           )}
           <div className="sidebar-guild-row">
             {guild.icon_url ? (

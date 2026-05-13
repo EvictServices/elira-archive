@@ -184,7 +184,14 @@ function ActivityAreaChart({ series }: { series: DailyRow[] }) {
         const y = padT + innerH - (tv / maxInv) * innerH
         return (
           <g key={i}>
-            <line x1={padL} y1={y} x2={w - padR} y2={y} className="gov-activity-gridline" />
+            <line
+              x1={padL}
+              y1={y}
+              x2={w - padR}
+              y2={y}
+              className="gov-activity-gridline"
+              vectorEffect="non-scaling-stroke"
+            />
             <text x={padL - 8} y={y + 4} className="gov-activity-ytick" textAnchor="end">
               {tv >= 1000 ? `${(tv / 1000).toFixed(tv % 1000 === 0 ? 0 : 1)}k` : tv}
             </text>
@@ -382,13 +389,15 @@ export default function GuildOverviewSettings({
         </div>
         <span className="an-module-desc">Daily invocations and distinct command names in this server.</span>
         <div className="an-module-body gov-activity-body">
-          {loading ? (
-            <p className="settings-loading gov-activity-loading">Loading chart…</p>
-          ) : !hasChartPoints ? (
-            <p className="settings-hint gov-activity-empty">No command activity in this range yet.</p>
-          ) : (
-            <ActivityAreaChart series={chartSeries} />
-          )}
+          <div className="gov-activity-chart-slot">
+            {loading ? (
+              <p className="settings-loading gov-activity-loading">Loading chart…</p>
+            ) : !hasChartPoints ? (
+              <p className="settings-hint gov-activity-empty">No command activity in this range yet.</p>
+            ) : (
+              <ActivityAreaChart series={chartSeries} />
+            )}
+          </div>
           <div className="gov-activity-legend">
             <span>
               <i className="gov-legend-dot gov-legend-dot--inv" /> Invocations
