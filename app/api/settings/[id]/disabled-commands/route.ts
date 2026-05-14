@@ -3,36 +3,13 @@ import { getSession } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
 import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
 import { isDiscordTextChannel } from '@/lib/guild_channel_type'
+import { normalizeCommand, normalizeSnowflakeList } from '@/lib/settings/command_mgmt'
 import {
   addDisabledCommandRows,
   listDisabledCommands,
   removeDisabledCommandRows,
 } from '@/lib/settings/disabled_commands'
 import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
-
-const CMD_MAX = 96
-const CMD_RE = /^[a-z0-9][a-z0-9 _-]*$/i
-
-function normalizeCommand(raw: unknown): string | null {
-  if (typeof raw !== 'string') return null
-  const s = raw.trim().replace(/\s+/g, ' ')
-  if (s.length < 1 || s.length > CMD_MAX) return null
-  if (!CMD_RE.test(s)) return null
-  if (/^command(\s|$)/i.test(s)) return null
-  return s
-}
-
-function normalizeChannelIds(raw: unknown): string[] | null {
-  if (!Array.isArray(raw)) return null
-  const out: string[] = []
-  for (const x of raw) {
-    if (typeof x !== 'string' && typeof x !== 'number') return null
-    const id = String(x).trim()
-    if (!/^\d{17,20}$/.test(id)) return null
-    out.push(id)
-  }
-  return [...new Set(out)]
-}
 
 function textChannelIds(channels: GuildChannel[]): Set<string> {
   const set = new Set<string>()
@@ -80,7 +57,7 @@ export async function POST(
 
   const body = await req.json().catch(() => null)
   const command = normalizeCommand(body?.command)
-  const channelIds = normalizeChannelIds(body?.channelIds)
+  const channelIds = normalizeSnowflakeList(body?.channelIds)
 
   if (!command) {
     return NextResponse.json(
@@ -141,7 +118,7 @@ export async function DELETE(
 
   const body = await req.json().catch(() => null)
   const command = normalizeCommand(body?.command)
-  const channelIds = normalizeChannelIds(body?.channelIds)
+  const channelIds = normalizeSnowflakeList(body?.channelIds)
 
   if (!command) {
     return NextResponse.json({ error: 'Invalid command name.' }, { status: 400 })

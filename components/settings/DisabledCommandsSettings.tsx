@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChannelDropdown } from '@/components/settings/AnDropdowns'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ChannelDropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/bundleClient'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
-import type { GuildChannel } from '@/components/settings/types'
+import { colorHex, type GuildChannel, type GuildRole } from '@/components/settings/types'
+import { OverflowChipDropdown } from '@/components/settings/OverflowChipDropdown'
 import PrefixSettings from './PrefixSettings'
 
 interface DisabledGroup {
@@ -12,86 +13,16 @@ interface DisabledGroup {
   channel_ids: string[]
 }
 
+interface RestrictionGroup {
+  command: string
+  role_ids: string[]
+}
+
 const MAX_VISIBLE_CHANNEL_CHIPS = 5
+const MAX_VISIBLE_ROLE_CHIPS = 5
 
-function ChannelOverflowDropdown({
-  count,
-  ids,
-  nameFor,
-  disabled,
-  onRemoveOne,
-}: {
-  count: number
-  ids: string[]
-  nameFor: (id: string) => string | null
-  disabled?: boolean
-  onRemoveOne: (id: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const onDoc = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    window.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDoc)
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
-  if (count <= 0 || ids.length === 0) return null
-
-  return (
-    <div className="disabled-commands-overflow-wrap" ref={wrapRef}>
-      <button
-        type="button"
-        className="disabled-commands-chip disabled-commands-chip--overflow disabled-commands-overflow-trigger"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-label={`Show ${count} more channels`}
-        disabled={disabled}
-        onClick={(e) => {
-          e.stopPropagation()
-          setOpen((o) => !o)
-        }}
-      >
-        +{count}
-      </button>
-      {open && (
-        <div className="disabled-commands-overflow-menu" role="listbox">
-          {ids.map((cid) => {
-            const name = nameFor(cid) ?? cid
-            return (
-              <div key={cid} className="disabled-commands-overflow-row" role="option">
-                <span className="disabled-commands-overflow-name">#{name}</span>
-                <button
-                  type="button"
-                  className="disabled-commands-overflow-remove"
-                  aria-label={`Remove #${name}`}
-                  disabled={disabled}
-                  onClick={() => {
-                    onRemoveOne(cid)
-                    setOpen(false)
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
+function isEveryoneRole(r: GuildRole): boolean {
+  return (r as GuildRole & { is_default?: boolean }).is_default === true
 }
 
 export default function DisabledCommandsSettings({ guildId }: { guildId: string }) {
@@ -99,13 +30,25 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
   const [textChannels, setTextChannels] = useState<GuildChannel[]>([])
   const [allGuildChannels, setAllGuildChannels] = useState<GuildChannel[]>([])
   const [categories, setCategories] = useState<GuildChannel[]>([])
+  const [guildRoles, setGuildRoles] = useState<GuildRole[]>([])
+  const [ignoredTargetIds, setIgnoredTargetIds] = useState<string[]>([])
+  const [restrictEntries, setRestrictEntries] = useState<RestrictionGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [accessError, setAccessError] = useState<string | null>(null)
   const [commandDraft, setCommandDraft] = useState('')
   const [pickerChannel, setPickerChannel] = useState('')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [removing, setRemoving] = useState<string | null>(null)
+  const [ignoreDraft, setIgnoreDraft] = useState('')
+  const [ignoreSaving, setIgnoreSaving] = useState(false)
+  const [removingIgnore, setRemovingIgnore] = useState<string | null>(null)
+  const [restrictCommandDraft, setRestrictCommandDraft] = useState('')
+  const [restrictRolePicker, setRestrictRolePicker] = useState('')
+  const [restrictSelectedRoleIds, setRestrictSelectedRoleIds] = useState<string[]>([])
+  const [restrictSaving, setRestrictSaving] = useState(false)
+  const [removingRestrict, setRemovingRestrict] = useState<string | null>(null)
 
   const channelById = useMemo(() => {
     const m = new Map<string, string>()
@@ -118,12 +61,34 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
 
   const channelLabel = (id: string) => channelById.get(String(id).trim()) ?? null
 
+  const roleById = useMemo(() => {
+    const m = new Map<string, GuildRole>()
+    for (const r of guildRoles) m.set(r.id, r)
+    return m
+  }, [guildRoles])
+
+  const roleLabel = (id: string) => roleById.get(String(id).trim())?.name ?? null
+
+  const restrictAssignableRoles = useMemo(
+    () => guildRoles.filter((r) => !isEveryoneRole(r) && !r.managed && !r.is_bot_managed),
+    [guildRoles]
+  )
+
+  const targetDisplayLabel = (targetId: string) => {
+    const ch = channelLabel(targetId)
+    if (ch) return `#${ch}`
+    return `Member ${targetId.length > 12 ? `${targetId.slice(0, 8)}…` : targetId}`
+  }
+
   const load = useCallback(async () => {
     setError(null)
+    setAccessError(null)
     try {
-      const [bundle, disabledRes] = await Promise.all([
-        fetchBundle(guildId, ['channels']),
+      const [bundle, disabledRes, ignoreRes, restrictRes] = await Promise.all([
+        fetchBundle(guildId, ['channels', 'roles']),
         fetch(`/api/settings/${guildId}/disabled-commands`),
+        fetch(`/api/settings/${guildId}/command-ignore`),
+        fetch(`/api/settings/${guildId}/command-restrict`),
       ])
       const raw = (bundle.channels ?? []) as GuildChannel[]
       const text = raw.filter((c) => isDiscordTextChannel(c))
@@ -131,6 +96,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
       setTextChannels(text)
       setCategories(cats)
       setAllGuildChannels(raw)
+      setGuildRoles(Array.isArray(bundle.roles) ? (bundle.roles as GuildRole[]) : [])
 
       if (!disabledRes.ok) {
         const d = await disabledRes.json().catch(() => ({}))
@@ -138,6 +104,25 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
       }
       const data = (await disabledRes.json()) as { entries: DisabledGroup[] }
       setEntries(data.entries ?? [])
+
+      const loadWarn: string[] = []
+      if (ignoreRes.ok) {
+        const ig = (await ignoreRes.json()) as { targetIds?: string[] }
+        setIgnoredTargetIds(ig.targetIds ?? [])
+      } else {
+        setIgnoredTargetIds([])
+        loadWarn.push('command ignore')
+      }
+      if (restrictRes.ok) {
+        const rs = (await restrictRes.json()) as { entries?: RestrictionGroup[] }
+        setRestrictEntries(rs.entries ?? [])
+      } else {
+        setRestrictEntries([])
+        loadWarn.push('command restrict')
+      }
+      if (loadWarn.length > 0) {
+        setAccessError(`Some lists could not be loaded (${loadWarn.join(', ')}).`)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
@@ -224,6 +209,117 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     }
   }
 
+  const submitIgnore = async () => {
+    const id = ignoreDraft.replace(/\D/g, '')
+    if (id.length < 17) {
+      setAccessError('Enter a 17–20 digit channel or user ID.')
+      return
+    }
+    setIgnoreSaving(true)
+    setAccessError(null)
+    try {
+      const res = await fetch(`/api/settings/${guildId}/command-ignore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetId: id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setAccessError(typeof data.error === 'string' ? data.error : 'Could not add ignore')
+        return
+      }
+      setIgnoredTargetIds((data as { targetIds?: string[] }).targetIds ?? [])
+      setIgnoreDraft('')
+    } catch {
+      setAccessError('Could not add ignore')
+    } finally {
+      setIgnoreSaving(false)
+    }
+  }
+
+  const removeIgnoreTarget = async (targetId: string) => {
+    setRemovingIgnore(targetId)
+    setAccessError(null)
+    try {
+      const res = await fetch(`/api/settings/${guildId}/command-ignore`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setAccessError(typeof data.error === 'string' ? data.error : 'Remove failed')
+        return
+      }
+      setIgnoredTargetIds((data as { targetIds?: string[] }).targetIds ?? [])
+    } catch {
+      setAccessError('Remove failed')
+    } finally {
+      setRemovingIgnore(null)
+    }
+  }
+
+  const addRestrictRoleToSelection = () => {
+    if (!restrictRolePicker) return
+    setRestrictSelectedRoleIds((prev) =>
+      prev.includes(restrictRolePicker) ? prev : [...prev, restrictRolePicker]
+    )
+    setRestrictRolePicker('')
+  }
+
+  const submitRestrict = async () => {
+    const cmd = restrictCommandDraft.trim()
+    if (!cmd || restrictSelectedRoleIds.length === 0) {
+      setAccessError('Enter a command name and at least one role for restrictions.')
+      return
+    }
+    setRestrictSaving(true)
+    setAccessError(null)
+    try {
+      const res = await fetch(`/api/settings/${guildId}/command-restrict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: cmd, roleIds: restrictSelectedRoleIds }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setAccessError(typeof data.error === 'string' ? data.error : 'Save failed')
+        return
+      }
+      setRestrictEntries((data as { entries?: RestrictionGroup[] }).entries ?? [])
+      setRestrictCommandDraft('')
+      setRestrictSelectedRoleIds([])
+    } catch {
+      setAccessError('Save failed')
+    } finally {
+      setRestrictSaving(false)
+    }
+  }
+
+  const removeRestrict = async (command: string, roleIds: string[], mode: 'all' | 'one') => {
+    const key =
+      mode === 'all' ? `${command}::rst-all` : `${command}::rst::${roleIds[0]}`
+    setRemovingRestrict(key)
+    setAccessError(null)
+    try {
+      const res = await fetch(`/api/settings/${guildId}/command-restrict`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command, roleIds }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setAccessError(typeof data.error === 'string' ? data.error : 'Remove failed')
+        return
+      }
+      setRestrictEntries((data as { entries?: RestrictionGroup[] }).entries ?? [])
+    } catch {
+      setAccessError('Remove failed')
+    } finally {
+      setRemovingRestrict(null)
+    }
+  }
+
   const selectionVisibleIds = selectedIds.slice(0, MAX_VISIBLE_CHANNEL_CHIPS)
   const selectionExtraIds = selectedIds.slice(MAX_VISIBLE_CHANNEL_CHIPS)
   const selectionExtraCount = selectionExtraIds.length
@@ -304,12 +400,16 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                 </span>
               )
             })}
-            <ChannelOverflowDropdown
+            <OverflowChipDropdown
               count={selectionExtraCount}
               ids={selectionExtraIds}
-              nameFor={channelLabel}
+              getRowLabel={(id) => {
+                const n = channelLabel(id)
+                return n ? `#${n}` : id
+              }}
               disabled={saving}
               onRemoveOne={(cid) => setSelectedIds((prev) => prev.filter((id) => id !== cid))}
+              ariaMoreLabel="Show more channels"
             />
           </div>
         )}
@@ -358,6 +458,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
         </p>
 
         {error && <p className="settings-error">{error}</p>}
+        {accessError && <p className="settings-error">{accessError}</p>}
 
         {entries.length === 0 ? (
           <p className="settings-hint" style={{ marginBottom: '1rem' }}>
@@ -403,12 +504,16 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                           </span>
                         )
                       })}
-                      <ChannelOverflowDropdown
+                      <OverflowChipDropdown
                         count={knownExtraCount}
                         ids={knownExtraIds}
-                        nameFor={channelLabel}
+                        getRowLabel={(id) => {
+                          const n = channelLabel(id)
+                          return n ? `#${n}` : id
+                        }}
                         disabled={removing !== null}
                         onRemoveOne={(cid) => removeChannels(row.command, [cid], 'one')}
+                        ariaMoreLabel="Show more channels"
                       />
                     </div>
                   )}
@@ -426,6 +531,231 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                       </button>
                     </p>
                   )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+
+      <div className="settings-field disabled-commands-below">
+        <label className="settings-label">Ignored channels &amp; members</label>
+        <p className="settings-desc">
+          These targets cannot run commands in the server. Administrators are not blocked.
+        </p>
+        <div className="settings-input-row" style={{ flexWrap: 'wrap', gap: '0.5rem', maxWidth: 360 }}>
+          <input
+            type="text"
+            className="settings-input"
+            inputMode="numeric"
+            placeholder="Channel or user ID"
+            value={ignoreDraft}
+            onChange={(e) => {
+              setIgnoreDraft(e.target.value.replace(/\D/g, ''))
+              setAccessError(null)
+            }}
+            disabled={ignoreSaving}
+            style={{ maxWidth: 220 }}
+          />
+          <button
+            type="button"
+            className="settings-save-btn"
+            onClick={() => void submitIgnore()}
+            disabled={ignoreSaving || ignoreDraft.replace(/\D/g, '').length < 17}
+          >
+            {ignoreSaving ? 'Adding…' : 'Add ignore'}
+          </button>
+        </div>
+        {ignoredTargetIds.length === 0 ? (
+          <p className="settings-hint" style={{ marginTop: '0.5rem' }}>
+            No ignored targets.
+          </p>
+        ) : (
+          <div className="disabled-commands-chips" style={{ marginTop: '0.65rem' }}>
+            {ignoredTargetIds.map((tid) => (
+              <span key={tid} className="disabled-commands-chip">
+                {targetDisplayLabel(tid)}
+                <button
+                  type="button"
+                  className="disabled-commands-chip-remove"
+                  aria-label="Remove ignore"
+                  disabled={removingIgnore !== null}
+                  onClick={() => void removeIgnoreTarget(tid)}
+                >
+                  {removingIgnore === tid ? '…' : '×'}
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="settings-field disabled-commands-below">
+        <label className="settings-label">Command role restrictions</label>
+        <p className="settings-desc">
+          Only members with at least one of the listed roles may use the command (unless they have
+          Administrator). Add a command, pick roles, then save.
+        </p>
+        <div className="disabled-commands-add-controls" style={{ maxWidth: 420 }}>
+          <div className="settings-input-row disabled-commands-command-row">
+            <input
+              type="text"
+              className="settings-input"
+              placeholder="Command name"
+              value={restrictCommandDraft}
+              onChange={(e) => {
+                setRestrictCommandDraft(e.target.value)
+                setAccessError(null)
+              }}
+              disabled={restrictSaving}
+            />
+          </div>
+          <div className="disabled-commands-channel-row">
+            <RoleDropdown
+              roles={restrictAssignableRoles}
+              value={restrictRolePicker}
+              onChange={setRestrictRolePicker}
+              placeholder="Pick a role"
+              saving={restrictSaving}
+            />
+          </div>
+          <div className="disabled-commands-add-actions">
+            <button
+              type="button"
+              className="settings-save-btn"
+              onClick={addRestrictRoleToSelection}
+              disabled={restrictSaving || !restrictRolePicker}
+            >
+              Add role
+            </button>
+            <button
+              type="button"
+              className="settings-save-btn welcome-message-remove-btn"
+              onClick={() => setRestrictSelectedRoleIds([])}
+              disabled={restrictSaving || restrictSelectedRoleIds.length === 0}
+            >
+              Clear roles
+            </button>
+          </div>
+          {restrictSelectedRoleIds.length > 0 && (
+            <div className="disabled-commands-chips disabled-commands-chips--selection">
+              {restrictSelectedRoleIds.slice(0, MAX_VISIBLE_ROLE_CHIPS).map((rid) => {
+                const name = roleLabel(rid)
+                if (!name) return null
+                const hex = colorHex(roleById.get(rid)?.color ?? 0)
+                return (
+                  <span key={rid} className="disabled-commands-chip">
+                    <span className="autorole-role" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {hex && (
+                        <span className="autorole-role-dot" style={{ background: hex }} />
+                      )}
+                      @{name}
+                    </span>
+                    <button
+                      type="button"
+                      className="disabled-commands-chip-remove"
+                      aria-label="Remove from selection"
+                      disabled={restrictSaving}
+                      onClick={() =>
+                        setRestrictSelectedRoleIds((prev) => prev.filter((id) => id !== rid))
+                      }
+                    >
+                      ×
+                    </button>
+                  </span>
+                )
+              })}
+              <OverflowChipDropdown
+                count={Math.max(0, restrictSelectedRoleIds.length - MAX_VISIBLE_ROLE_CHIPS)}
+                ids={restrictSelectedRoleIds.slice(MAX_VISIBLE_ROLE_CHIPS)}
+                getRowLabel={(id) => {
+                  const n = roleLabel(id)
+                  return n ? `@${n}` : id
+                }}
+                disabled={restrictSaving}
+                onRemoveOne={(id) =>
+                  setRestrictSelectedRoleIds((prev) => prev.filter((x) => x !== id))
+                }
+                ariaMoreLabel="Show more roles"
+              />
+            </div>
+          )}
+          <div className="disabled-commands-save-row">
+            <button
+              type="button"
+              className="settings-save-btn"
+              onClick={() => void submitRestrict()}
+              disabled={
+                restrictSaving ||
+                !restrictCommandDraft.trim() ||
+                restrictSelectedRoleIds.length === 0
+              }
+            >
+              {restrictSaving ? 'Saving…' : 'Save restrictions'}
+            </button>
+          </div>
+        </div>
+
+        {restrictEntries.length === 0 ? (
+          <p className="settings-hint" style={{ marginTop: '0.75rem' }}>
+            No role restrictions configured.
+          </p>
+        ) : (
+          <ul className="disabled-commands-list" style={{ marginTop: '1rem' }}>
+            {restrictEntries.map((row) => {
+              const visibleRids = row.role_ids.slice(0, MAX_VISIBLE_ROLE_CHIPS)
+              const extraRids = row.role_ids.slice(MAX_VISIBLE_ROLE_CHIPS)
+              const extraCount = extraRids.length
+              return (
+                <li key={row.command} className="disabled-commands-row">
+                  <div className="disabled-commands-row-top">
+                    <code className="disabled-commands-cmd">{row.command}</code>
+                    <button
+                      type="button"
+                      className="disabled-commands-clear-all"
+                      disabled={removingRestrict !== null}
+                      onClick={() => removeRestrict(row.command, row.role_ids, 'all')}
+                    >
+                      {removingRestrict === `${row.command}::rst-all` ? '…' : 'Clear all'}
+                    </button>
+                  </div>
+                  <div className="disabled-commands-chips">
+                    {visibleRids.map((rid) => {
+                      const name = roleLabel(rid)
+                      const hex = colorHex(roleById.get(rid)?.color ?? 0)
+                      return (
+                        <span key={rid} className="disabled-commands-chip">
+                          <span
+                            className="autorole-role"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            {hex && <span className="autorole-role-dot" style={{ background: hex }} />}
+                            @{name ?? rid}
+                          </span>
+                          <button
+                            type="button"
+                            className="disabled-commands-chip-remove"
+                            aria-label={`Remove @${name ?? rid}`}
+                            disabled={removingRestrict !== null}
+                            onClick={() => removeRestrict(row.command, [rid], 'one')}
+                          >
+                            {removingRestrict === `${row.command}::rst::${rid}` ? '…' : '×'}
+                          </button>
+                        </span>
+                      )
+                    })}
+                    <OverflowChipDropdown
+                      count={extraCount}
+                      ids={extraRids}
+                      getRowLabel={(id) => {
+                        const n = roleLabel(id)
+                        return n ? `@${n}` : id
+                      }}
+                      disabled={removingRestrict !== null}
+                      onRemoveOne={(rid) => removeRestrict(row.command, [rid], 'one')}
+                      ariaMoreLabel="Show more roles"
+                    />
+                  </div>
                 </li>
               )
             })}

@@ -17,6 +17,10 @@ const ACTION_TITLE: Record<string, string> = {
   'prefix.update': 'Command Prefix',
   'commands.disabled.add': 'Command disabled in channels',
   'commands.disabled.remove': 'Command re-enabled in channels',
+  'commands.ignore.add': 'Command ignore target added',
+  'commands.ignore.remove': 'Command ignore target removed',
+  'commands.restrict.add': 'Command role restriction added',
+  'commands.restrict.remove': 'Command role restriction removed',
   'antinuke.module.update': 'Antinuke Module',
   'antinuke.bot_toggle': 'Antinuke Bot Monitoring Toggled',
   'antinuke.whitelist.update': 'Antinuke Whitelist Updated',
@@ -52,6 +56,10 @@ const ACTION_CATEGORY: Record<string, string> = {
   'prefix.update': 'General',
   'commands.disabled.add': 'General',
   'commands.disabled.remove': 'General',
+  'commands.ignore.add': 'General',
+  'commands.ignore.remove': 'General',
+  'commands.restrict.add': 'General',
+  'commands.restrict.remove': 'General',
   'antinuke.module.update': 'Antinuke',
   'antinuke.bot_toggle': 'Antinuke',
   'antinuke.whitelist.update': 'Antinuke',
@@ -114,6 +122,14 @@ function buildChangeBlurb(action: string, detail: Record<string, unknown>): stri
     case 'commands.disabled.remove':
       return typeof d.command === 'string' && typeof d.count === 'number'
         ? `${d.command} · removed ${d.count} channel(s)`
+        : 'Updated'
+    case 'commands.ignore.add':
+    case 'commands.ignore.remove':
+      return typeof d.target_id === 'string' ? `Target ${formatSnowflake(d.target_id)}` : 'Updated'
+    case 'commands.restrict.add':
+    case 'commands.restrict.remove':
+      return typeof d.command === 'string' && typeof d.count === 'number'
+        ? `${d.command} · ${d.count} role(s)`
         : 'Updated'
     case 'antinuke.module.update':
       return typeof d.module === 'string' ? `Module: ${d.module}` : 'Configuration saved'
@@ -237,6 +253,8 @@ const DETAIL_LABELS: Record<string, string> = {
   prefix: 'Prefix',
   command: 'Command',
   channel_ids: 'Channel IDs',
+  target_id: 'Target ID',
+  role_ids: 'Role IDs',
   count: 'Count',
   module: 'Module',
   enabled: 'Enabled',
@@ -244,7 +262,6 @@ const DETAIL_LABELS: Record<string, string> = {
   channel_id: 'Channel ID',
   from_channel_id: 'Previous channel ID',
   events_count: 'Event types',
-  target_id: 'Target ID',
   role_id: 'Role ID',
   action: 'Action',
   delay: 'Delay (seconds)',
