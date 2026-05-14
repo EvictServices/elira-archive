@@ -3751,6 +3751,35 @@ body:has(.server-layout) > footer {
   }
 }
 
+.general-settings-access-errors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.general-settings-three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .general-settings-three-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.general-settings-pane--cmd-col .settings-input-row,
+.general-settings-pane--cmd-col .settings-input {
+  max-width: none;
+}
+
+.general-settings-pane--cmd-col .disabled-commands-command-row,
+.general-settings-pane--cmd-col .disabled-commands-channel-row {
+  max-width: none;
+}
+
 .general-settings-pane {
   min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -3776,6 +3805,43 @@ body:has(.server-layout) > footer {
 
 .general-settings-pane-desc {
   margin-bottom: 6px;
+}
+
+.general-settings-add-rule-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin-bottom: 2px;
+}
+
+.general-settings-pane--add-rule .general-settings-mode-select {
+  max-width: min(100%, 320px);
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.28);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.general-settings-pane--add-rule .general-settings-mode-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.general-settings-pane--add-rule .general-settings-mode-select:focus-visible {
+  outline: 2px solid rgba(139, 158, 255, 0.55);
+  outline-offset: 2px;
+}
+
+.general-settings-cmd-hint {
+  margin: -0.35rem 0 0;
+  opacity: 0.88;
 }
 
 .disabled-commands-add-controls {
