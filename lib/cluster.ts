@@ -63,7 +63,7 @@ export interface GuildData {
   name: string
   icon_url: string | null
   banner_url: string | null
-  /** Discord vanity invite slug when the server has a custom URL (for vanity rewards). */
+  /** Discord vanity slug. Cluster JSON uses `vanity_code`; `fetchGuild` copies it here. */
   vanity_url_code?: string | null
   owner_id: string
   member_count: number
@@ -76,7 +76,14 @@ export interface GuildData {
 }
 
 export async function fetchGuild(guildId: string): Promise<GuildData> {
-  return clusterGet<GuildData>(`/guild/find?idx=${guildId}`)
+  const raw = await clusterGet<GuildData & { vanity_code?: string | null }>(`/guild/find?idx=${guildId}`)
+  const fromUrl = raw.vanity_url_code
+  const fromCluster = raw.vanity_code
+  const vanity =
+    (typeof fromUrl === 'string' && fromUrl.trim() !== '' && fromUrl) ||
+    (typeof fromCluster === 'string' && fromCluster.trim() !== '' && fromCluster) ||
+    null
+  return { ...raw, vanity_url_code: vanity }
 }
 
 export interface GuildChannel {

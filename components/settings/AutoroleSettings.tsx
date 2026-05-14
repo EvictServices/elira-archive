@@ -282,11 +282,14 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
               </span>
               {settings.roles.length > 0 && (
                 <button
-                  className="an-toggle-btn"
+                  type="button"
+                  className="system-messages-icon-btn system-messages-minus-btn"
                   onClick={handleClear}
                   disabled={saving === 'clear'}
+                  aria-label="Clear all auto roles"
+                  title="Clear all"
                 >
-                  {saving === 'clear' ? 'Clearing...' : 'Clear all'}
+                  {saving === 'clear' ? '…' : '-'}
                 </button>
               )}
             </div>
@@ -322,11 +325,14 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
                           {entry.delay ? `after ${entry.delay}s` : 'instant'}
                         </span>
                         <button
+                          type="button"
                           className="autorole-remove-btn"
                           onClick={() => handleRemove(entry)}
                           disabled={saving === key}
+                          aria-label={`Remove ${entry.action} rule for ${role ? role.name : entry.role_id}`}
+                          title="Remove"
                         >
-                          {saving === key ? '…' : 'Remove'}
+                          {saving === key ? '…' : '-'}
                         </button>
                       </div>
                     )

@@ -73,7 +73,7 @@ export function OverflowChipDropdown({
                     setOpen(false)
                   }}
                 >
-                  ×
+                  -
                 </button>
               </div>
             )

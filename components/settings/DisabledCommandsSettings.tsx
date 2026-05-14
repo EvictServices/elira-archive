@@ -429,7 +429,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                       disabled={saving}
                       onClick={() => setSelectedIds((prev) => prev.filter((id) => id !== cid))}
                     >
-                      ×
+                      -
                     </button>
                   </span>
                 )
@@ -550,7 +550,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                         setRestrictSelectedRoleIds((prev) => prev.filter((id) => id !== rid))
                       }
                     >
-                      ×
+                      -
                     </button>
                   </span>
                 )
@@ -641,7 +641,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                   disabled={removingIgnore !== null}
                   onClick={() => void removeIgnoreTarget(tid)}
                 >
-                  {removingIgnore === tid ? '…' : '×'}
+                  {removingIgnore === tid ? '…' : '-'}
                 </button>
               </span>
             ))}
@@ -673,10 +673,12 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                     <button
                       type="button"
                       className="disabled-commands-clear-all"
+                      aria-label={`Clear all role restrictions for ${row.command}`}
+                      title="Clear all"
                       disabled={removingRestrict !== null}
                       onClick={() => removeRestrict(row.command, row.role_ids, 'all')}
                     >
-                      {removingRestrict === `${row.command}::rst-all` ? '…' : 'Clear all'}
+                      {removingRestrict === `${row.command}::rst-all` ? '…' : '-'}
                     </button>
                   </div>
                   <div className="disabled-commands-chips">
@@ -699,7 +701,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                             disabled={removingRestrict !== null}
                             onClick={() => removeRestrict(row.command, [rid], 'one')}
                           >
-                            {removingRestrict === `${row.command}::rst::${rid}` ? '…' : '×'}
+                            {removingRestrict === `${row.command}::rst::${rid}` ? '…' : '-'}
                           </button>
                         </span>
                       )
@@ -750,10 +752,12 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                     <button
                       type="button"
                       className="disabled-commands-clear-all"
+                      aria-label={`Clear all disabled channels for ${row.command}`}
+                      title="Clear all"
                       disabled={removing !== null}
                       onClick={() => removeChannels(row.command, row.channel_ids, 'all')}
                     >
-                      {removing === `${row.command}::all` ? '…' : 'Clear all'}
+                      {removing === `${row.command}::all` ? '…' : '-'}
                     </button>
                   </div>
                   {knownIds.length > 0 && (
@@ -770,7 +774,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
                               disabled={removing !== null}
                               onClick={() => removeChannels(row.command, [cid], 'one')}
                             >
-                              {removing === `${row.command}::${cid}` ? '…' : '×'}
+                              {removing === `${row.command}::${cid}` ? '…' : '-'}
                             </button>
                           </span>
                         )

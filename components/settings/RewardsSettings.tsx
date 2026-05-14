@@ -1,9 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react'
-import { ChannelDropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
+import { RoleDropdown } from '@/components/settings/AnDropdowns'
 import type { AnGuildRole } from '@/components/settings/AnDropdowns'
-import EmbedScriptEditorModal from '@/components/settings/EmbedScriptEditorModal'
+import {
+  ScriptEditorModal,
+  categoryLabel,
+  type ScriptEditorModalMode,
+} from '@/components/settings/SystemMessagesScriptModal'
 import { useConfirm } from '@/components/ConfirmModal'
 import {
   defaultEmbed,
@@ -36,11 +40,42 @@ function rolesToAn(roles: GuildRole[]): AnGuildRole[] {
   return roles.map((r) => ({ id: r.id, name: r.name, color: r.color }))
 }
 
-function truncateOneLine(s: string, max: number): string {
-  const t = s.replace(/\s+/g, ' ').trim()
-  if (t.length <= max) return t
-  return `${t.slice(0, max - 1)}…`
+function PencilIcon() {
+  return (
+    <svg
+      className="system-messages-icon-svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  )
 }
+
+const DELETE_AFTER_RE = /\s*--delete_after\s+(\d+)\s*$/i
+
+function extractDeleteAfter(template: string): { cleaned: string; deleteAfter: number | null } {
+  const m = template.match(DELETE_AFTER_RE)
+  if (!m || m.index == null) return { cleaned: template, deleteAfter: null }
+  const n = parseInt(m[1], 10)
+  if (!Number.isFinite(n) || n < 0) return { cleaned: template, deleteAfter: null }
+  return { cleaned: template.slice(0, m.index).trimEnd(), deleteAfter: n }
+}
+
+function appendDeleteAfter(template: string, seconds: number): string {
+  const base = template.replace(DELETE_AFTER_RE, '').trimEnd()
+  return `${base} --delete_after ${seconds}`
+}
+
+type RewardModalKind = 'tag' | 'vanity'
 
 export default function RewardsSettings({
   guildId,
@@ -84,21 +119,25 @@ export default function RewardsSettings({
 
   const [tag, setTag] = useState<TagRewardsState | null>(null)
   const [vanity, setVanity] = useState<VanityRewardsState | null>(null)
-  const [textChannels, setTextChannels] = useState<GuildChannel[]>([])
-  const [categories, setCategories] = useState<GuildChannel[]>([])
+  const [channels, setChannels] = useState<GuildChannel[]>([])
+  const [categoryById, setCategoryById] = useState<Record<string, string>>({})
   const [guildRoles, setGuildRoles] = useState<GuildRole[]>([])
   const [me, setMe] = useState<GuildMemberInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [tagAddRoleId, setTagAddRoleId] = useState('')
 
   const [modalOpen, setModalOpen] = useState(false)
-  const [editingKind, setEditingKind] = useState<'tag' | 'vanity' | null>(null)
-  const [embed, setEmbed] = useState<EmbedData>(defaultEmbed)
+  const [modalKind, setModalKind] = useState<RewardModalKind>('tag')
+  const [modalMode, setModalMode] = useState<ScriptEditorModalMode>('edit')
+  const [draftChannelId, setDraftChannelId] = useState('')
+  const [embed, setEmbed] = useState<EmbedData>(() => defaultEmbed())
   const [modalError, setModalError] = useState<string | null>(null)
-  const [modalSaving, setModalSaving] = useState(false)
+  const [deleteAfterDraft, setDeleteAfterDraft] = useState('')
   const lastInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+
+  const emptyUsedChannels = useMemo(() => new Set<string>(), [])
 
   const loadRewards = useCallback(async () => {
     const [tagRes, vanityRes] = await Promise.all([
@@ -127,8 +166,12 @@ export default function RewardsSettings({
       .then(([bundle]) => {
         if (cancelled) return
         const all = Array.isArray(bundle.channels) ? (bundle.channels as GuildChannel[]) : []
-        setTextChannels(all.filter((c) => isDiscordTextChannel(c)))
-        setCategories(all.filter((c) => isDiscordCategoryChannel(c)))
+        const cats: Record<string, string> = {}
+        for (const c of all) {
+          if (isDiscordCategoryChannel(c)) cats[String(c.id)] = c.name
+        }
+        setCategoryById(cats)
+        setChannels(all.filter((c) => isDiscordTextChannel(c)).sort((a, b) => a.position - b.position))
         const rs = bundle.roles
         if (Array.isArray(rs)) setGuildRoles(rs as GuildRole[])
         const meData = bundle.me
@@ -185,8 +228,9 @@ export default function RewardsSettings({
 
   const anRoles = useMemo(() => rolesToAn(availableRoles), [availableRoles])
 
-  const patchTag = async (body: Record<string, unknown>, key: string) => {
-    setSaving(key)
+  const channelName = (id: string) => channels.find((c) => c.id === id)?.name ?? id
+
+  const patchTag = async (body: Record<string, unknown>) => {
     setError(null)
     try {
       const res = await fetch(`/api/settings/${guildId}/rewards/tag`, {
@@ -204,13 +248,10 @@ export default function RewardsSettings({
     } catch {
       setError('Save failed')
       return false
-    } finally {
-      setSaving(null)
     }
   }
 
-  const patchVanity = async (body: Record<string, unknown>, key: string) => {
-    setSaving(key)
+  const patchVanity = async (body: Record<string, unknown>) => {
     setError(null)
     try {
       const res = await fetch(`/api/settings/${guildId}/rewards/vanity`, {
@@ -228,27 +269,35 @@ export default function RewardsSettings({
     } catch {
       setError('Save failed')
       return false
-    } finally {
-      setSaving(null)
     }
   }
 
-  const openEditor = (kind: 'tag' | 'vanity') => {
-    const raw = kind === 'tag' ? tag?.template ?? '' : vanity?.template ?? ''
-    setEditingKind(kind)
+  const closeModal = () => {
+    setModalOpen(false)
     setModalError(null)
+    setDeleteAfterDraft('')
+  }
+
+  const openEditModal = (kind: RewardModalKind) => {
+    const row = kind === 'tag' ? tag : vanity
+    if (!row) return
+    const chId =
+      kind === 'tag'
+        ? row.channel_id ?? channels[0]?.id ?? ''
+        : row.channel_id ?? channels[0]?.id ?? ''
+    setModalKind(kind)
+    setModalMode('edit')
+    setModalError(null)
+    setDraftChannelId(chId)
+    const raw = kind === 'tag' ? tag?.template ?? '' : vanity?.template ?? ''
+    const { cleaned, deleteAfter } = extractDeleteAfter(raw)
+    setDeleteAfterDraft(deleteAfter != null ? String(deleteAfter) : '')
     try {
-      setEmbed(raw.trim() ? parseScriptToEmbed(raw) : defaultEmbed)
+      setEmbed(cleaned.trim() ? parseScriptToEmbed(cleaned) : defaultEmbed())
     } catch {
-      setEmbed(defaultEmbed)
+      setEmbed(defaultEmbed())
     }
     setModalOpen(true)
-  }
-
-  const closeEditor = () => {
-    setModalOpen(false)
-    setEditingKind(null)
-    setModalError(null)
   }
 
   const handleEditorFocus = useCallback((e: FocusEvent) => {
@@ -340,24 +389,57 @@ export default function RewardsSettings({
   }, [])
 
   const saveModal = async () => {
-    if (!editingKind) return
-    const script = generateScript(embed).trim()
-    if (!script) {
+    if (!draftChannelId) {
+      setModalError('Select a channel.')
+      return
+    }
+    let template = generateScript(embed).trim()
+    if (!template) {
       setModalError('Add message content or embed fields before saving.')
       return
     }
-    setModalSaving(true)
+    if (deleteAfterDraft.trim() !== '') {
+      const n = parseInt(deleteAfterDraft.trim(), 10)
+      if (Number.isNaN(n) || n < 0) {
+        setModalError('Auto-delete must be a non-negative number.')
+        return
+      }
+      template = appendDeleteAfter(template, n)
+    }
+    setSaving(true)
     setModalError(null)
     const ok =
-      editingKind === 'tag'
-        ? await patchTag({ template: script }, 'tag-template')
-        : await patchVanity({ template: script }, 'vanity-template')
-    setModalSaving(false)
-    if (ok) closeEditor()
-    else setModalError('Save failed')
+      modalKind === 'tag'
+        ? await patchTag({ channel_id: draftChannelId, template })
+        : await patchVanity({ channel_id: draftChannelId, template })
+    setSaving(false)
+    if (ok) closeModal()
+    else setModalError('Could not save. Check the message above or try again.')
   }
 
-  const clearTemplate = async (kind: 'tag' | 'vanity') => {
+  const clearTagChannel = async () => {
+    const ok = await confirm({
+      title: 'Clear notification channel?',
+      description: 'Tag reward notifications will not be sent until you pick a channel again.',
+      confirmLabel: 'Clear',
+      destructive: true,
+    })
+    if (!ok) return
+    await patchTag({ channel_id: null })
+  }
+
+  const clearVanityChannel = async () => {
+    const ok = await confirm({
+      title: 'Clear notification channel?',
+      description: 'Vanity reward notifications will not be sent until you pick a channel again.',
+      confirmLabel: 'Clear',
+      destructive: true,
+    })
+    if (!ok) return
+    await patchVanity({ channel_id: null })
+  }
+
+  const clearTemplate = async (kind: RewardModalKind) => {
     const ok = await confirm({
       title: kind === 'tag' ? 'Reset tag notification message?' : 'Reset vanity notification message?',
       description: 'The bot will use its built-in default text for new notifications.',
@@ -365,46 +447,261 @@ export default function RewardsSettings({
       destructive: true,
     })
     if (!ok) return
-    if (kind === 'tag') await patchTag({ template: null }, 'tag-clear-template')
-    else await patchVanity({ template: null }, 'vanity-clear-template')
+    if (kind === 'tag') await patchTag({ template: null })
+    else await patchVanity({ template: null })
   }
-
-  const scriptEmpty = !generateScript(embed).trim()
 
   if (loading || !tag || !vanity) {
-    return <div className="settings-loading">Loading...</div>
+    return <div className="settings-loading">Loading…</div>
   }
 
-  const tagTemplateSummary = tag.template
-    ? truncateOneLine(tag.template, 72)
-    : truncateOneLine(TAG_REWARDS_DEFAULT_TEMPLATE, 72)
+  const tagCh = tag.channel_id ? channels.find((c) => c.id === tag.channel_id) : undefined
+  const vanityCh = vanity.channel_id ? channels.find((c) => c.id === vanity.channel_id) : undefined
 
-  const vanityDefault = vanityUrlCode ? vanityRewardsDefaultTemplate(vanityUrlCode) : ''
-  const vanityTemplateSummary = vanity.template
-    ? truncateOneLine(vanity.template, 72)
-    : vanityDefault
-      ? truncateOneLine(vanityDefault, 72)
-      : '—'
+  const modalTitles =
+    modalKind === 'tag'
+      ? { add: 'Tag reward notification', edit: 'Edit tag reward notification' }
+      : { add: 'Vanity reward notification', edit: 'Edit vanity reward notification' }
+
+  const tagDeleteAfter = extractDeleteAfter(tag.template ?? '').deleteAfter
+  const vanityDeleteAfter = extractDeleteAfter(vanity.template ?? '').deleteAfter
 
   return (
-    <div className="rewards-settings-stack">
+    <div className="system-messages-stack">
       {confirmModal}
-      <EmbedScriptEditorModal
-        open={modalOpen && editingKind != null}
-        title={
-          editingKind === 'tag'
-            ? 'Edit tag reward notification'
-            : editingKind === 'vanity'
-              ? 'Edit vanity reward notification'
-              : 'Edit notification'
-        }
+      {error && <p className="settings-error">{error}</p>}
+
+      <div className="system-messages-kinds-grid">
+        <div className="settings-field system-messages-section">
+          <div className="system-messages-section-head">
+            <label className="settings-label system-messages-section-label">Guild tag rewards</label>
+          </div>
+          <p className="settings-hint system-messages-section-hint">
+            When someone sets this server as their primary profile tag, grant roles and send an optional notification
+            (Elara <code className="prefix-settings-inline-code">tag</code>).
+          </p>
+          <div className="system-messages-section-body">
+            <div className="an-modules welcome-message-modules system-messages-modules">
+              <div className="an-module welcome-message-module" style={{ animationDelay: '0.03s' }}>
+                <div className="an-module-header">
+                  <span className="an-module-name welcome-message-module-title">
+                    <span>
+                      {tag.channel_id ? `#${channelName(tag.channel_id)}` : 'Notification'}
+                    </span>
+                    <span className="welcome-message-title-sep" aria-hidden>
+                      ·
+                    </span>
+                    <span className="welcome-message-title-category">
+                      {categoryLabel(tagCh?.parent_id ?? null, categoryById)}
+                      {tagDeleteAfter != null && (
+                        <span style={{ opacity: 0.75, fontWeight: 500 }}>{` · auto-delete ${tagDeleteAfter}s`}</span>
+                      )}
+                    </span>
+                  </span>
+                  <div className="welcome-message-module-actions">
+                    <button
+                      type="button"
+                      className="system-messages-icon-btn system-messages-edit-btn"
+                      onClick={() => openEditModal('tag')}
+                      aria-label="Edit tag notification"
+                      title="Edit notification"
+                    >
+                      <PencilIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className="system-messages-icon-btn system-messages-minus-btn"
+                      onClick={() => void clearTagChannel()}
+                      disabled={!tag.channel_id}
+                      aria-label="Clear notification channel"
+                      title="Clear channel"
+                    >
+                      -
+                    </button>
+                  </div>
+                </div>
+                <span className="an-module-desc welcome-message-channel-id">
+                  {tag.channel_id ?? 'No channel — open edit to choose one'}
+                </span>
+                <div className="rewards-card-inline">
+                  <span className="settings-label" style={{ fontSize: '0.72rem', marginBottom: 6, display: 'block' }}>
+                    Roles to grant
+                  </span>
+                  <div className="rewards-role-chips">
+                    {tag.role_ids.length === 0 ? (
+                      <span className="rewards-muted">No roles yet</span>
+                    ) : (
+                      tag.role_ids.map((rid) => {
+                        const r = rolesById.get(rid)
+                        return (
+                          <span key={rid} className="rewards-chip">
+                            <span className="autorole-role">
+                              {r && (
+                                <span
+                                  className="autorole-role-dot"
+                                  style={
+                                    r.color
+                                      ? { background: `#${r.color.toString(16).padStart(6, '0')}` }
+                                      : undefined
+                                  }
+                                />
+                              )}
+                              <span className="autorole-role-name">{r?.name ?? rid}</span>
+                            </span>
+                            <button
+                              type="button"
+                              className="system-messages-icon-btn system-messages-minus-btn"
+                              aria-label={`Remove ${r?.name ?? 'role'}`}
+                              onClick={() =>
+                                void patchTag({ role_ids: tag.role_ids.filter((x) => x !== rid) })
+                              }
+                            >
+                              −
+                            </button>
+                          </span>
+                        )
+                      })
+                    )}
+                  </div>
+                  <div className="rewards-add-role-row">
+                    <RoleDropdown
+                      roles={anRoles}
+                      entries={assignableRoleEntries}
+                      value={tagAddRoleId}
+                      onChange={(id) => {
+                        setTagAddRoleId('')
+                        if (!id || tag.role_ids.includes(id) || tag.role_ids.length >= MAX_TAG_REWARD_ROLES) return
+                        void patchTag({ role_ids: [...tag.role_ids, id] })
+                      }}
+                      placeholder={
+                        tag.role_ids.length >= MAX_TAG_REWARD_ROLES
+                          ? `Max ${MAX_TAG_REWARD_ROLES} roles`
+                          : 'Add role…'
+                      }
+                    />
+                  </div>
+                  {tag.template && (
+                    <div className="settings-input-row" style={{ marginTop: 10 }}>
+                      <button
+                        type="button"
+                        className="settings-save-btn welcome-message-remove-btn"
+                        onClick={() => void clearTemplate('tag')}
+                      >
+                        Reset message to default
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={`settings-field system-messages-section${!vanityUrlCode ? ' rewards-vanity-locked' : ''}`}
+        >
+          <div className="system-messages-section-head">
+            <label className="settings-label system-messages-section-label">Vanity URL rewards</label>
+          </div>
+          <p className="settings-hint system-messages-section-hint">
+            When someone puts your vanity invite in their custom status, grant a role and notify a channel (Elara{' '}
+            <code className="prefix-settings-inline-code">vanity</code>).
+          </p>
+          {!vanityUrlCode && (
+            <p className="rewards-vanity-hint">
+              This server does not have a vanity URL yet. Set one under Discord → Server Settings → Vanity URL.
+            </p>
+          )}
+          <div className="system-messages-section-body">
+            <div className="an-modules welcome-message-modules system-messages-modules">
+              <div className="an-module welcome-message-module" style={{ animationDelay: '0.06s' }}>
+                <div className="an-module-header">
+                  <span className="an-module-name welcome-message-module-title">
+                    <span>
+                      {vanity.channel_id ? `#${channelName(vanity.channel_id)}` : 'Notification'}
+                    </span>
+                    <span className="welcome-message-title-sep" aria-hidden>
+                      ·
+                    </span>
+                    <span className="welcome-message-title-category">
+                      {categoryLabel(vanityCh?.parent_id ?? null, categoryById)}
+                      {vanityDeleteAfter != null && (
+                        <span style={{ opacity: 0.75, fontWeight: 500 }}>{` · auto-delete ${vanityDeleteAfter}s`}</span>
+                      )}
+                    </span>
+                  </span>
+                  <div className="welcome-message-module-actions">
+                    <button
+                      type="button"
+                      className="system-messages-icon-btn system-messages-edit-btn"
+                      onClick={() => vanityUrlCode && openEditModal('vanity')}
+                      disabled={!vanityUrlCode}
+                      aria-label="Edit vanity notification"
+                      title="Edit notification"
+                    >
+                      <PencilIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className="system-messages-icon-btn system-messages-minus-btn"
+                      onClick={() => void clearVanityChannel()}
+                      disabled={!vanityUrlCode || !vanity.channel_id}
+                      aria-label="Clear notification channel"
+                      title="Clear channel"
+                    >
+                      -
+                    </button>
+                  </div>
+                </div>
+                <span className="an-module-desc welcome-message-channel-id">
+                  {vanity.channel_id ?? 'No channel — open edit to choose one'}
+                </span>
+                <div className="rewards-card-inline">
+                  <span className="settings-label" style={{ fontSize: '0.72rem', marginBottom: 6, display: 'block' }}>
+                    Role to grant
+                  </span>
+                  <RoleDropdown
+                    roles={anRoles}
+                    entries={assignableRoleEntries}
+                    value={vanity.role_id ?? ''}
+                    onChange={(id) => void patchVanity({ role_id: id || null })}
+                    placeholder="Pick a role…"
+                    saving={!vanityUrlCode}
+                  />
+                  {vanity.template && (
+                    <div className="settings-input-row" style={{ marginTop: 10 }}>
+                      <button
+                        type="button"
+                        className="settings-save-btn welcome-message-remove-btn"
+                        onClick={() => void clearTemplate('vanity')}
+                        disabled={!vanityUrlCode}
+                      >
+                        Reset message to default
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ScriptEditorModal
+        open={modalOpen}
+        mode={modalMode}
         guildName={guildName}
         guildIconUrl={guildIconUrl}
-        previewContext={previewContext}
+        channels={channels}
+        categoryById={categoryById}
+        usedChannelIds={emptyUsedChannels}
+        draftChannelId={draftChannelId}
+        setDraftChannelId={setDraftChannelId}
         embed={embed}
-        saving={modalSaving}
+        saving={saving}
         modalError={modalError}
-        saveDisabled={scriptEmpty}
+        onClose={closeModal}
+        onSave={() => void saveModal()}
         lastInputRef={lastInputRef}
         handleEditorFocus={handleEditorFocus}
         insertVariable={insertVariable}
@@ -418,189 +715,19 @@ export default function RewardsSettings({
         updateButton={updateButton}
         removeButton={removeButton}
         applyEmbedPatch={applyEmbedPatch}
-        onClose={closeEditor}
-        onSave={() => void saveModal()}
+        previewContext={previewContext}
+        titleAdd={modalTitles.add}
+        titleEdit={modalTitles.edit}
+        channelHint={
+          modalKind === 'tag'
+            ? 'Where tag reward notifications are sent when someone reps your server tag.'
+            : 'Where vanity reward notifications are sent when someone adds your vanity URL to their status.'
+        }
+        modalSubtitle="Pick the notification channel, then build the script (same editor as System Messages)."
+        showDeleteAfter
+        deleteAfterDraft={deleteAfterDraft}
+        setDeleteAfterDraft={setDeleteAfterDraft}
       />
-
-      {error && <p className="settings-error">{error}</p>}
-
-      <div className="an-module enabled" style={{ animationDelay: '0.02s' }}>
-        <div className="an-module-header">
-          <span className="an-module-name">Guild tag rewards</span>
-        </div>
-        <span className="an-module-desc">
-          When someone sets this server as their primary profile tag, grant roles and optionally send a
-          notification (Elara <code className="prefix-settings-inline-code">tag</code> parity).
-        </span>
-        <div className="an-module-body rewards-module-body">
-          <div className="an-edit-field">
-            <label>Roles to grant</label>
-            <div className="rewards-role-chips">
-              {tag.role_ids.length === 0 ? (
-                <span className="rewards-muted">No roles yet</span>
-              ) : (
-                tag.role_ids.map((rid) => {
-                  const r = rolesById.get(rid)
-                  return (
-                    <span key={rid} className="rewards-chip">
-                      <span className="autorole-role">
-                        {r && (
-                          <span
-                            className="autorole-role-dot"
-                            style={
-                              r.color
-                                ? { background: `#${r.color.toString(16).padStart(6, '0')}` }
-                                : undefined
-                            }
-                          />
-                        )}
-                        {r?.name ?? rid}
-                      </span>
-                      <button
-                        type="button"
-                        className="system-messages-icon-btn system-messages-minus-btn"
-                        aria-label={`Remove ${r?.name ?? 'role'}`}
-                        disabled={Boolean(saving)}
-                        onClick={() =>
-                          void patchTag(
-                            { role_ids: tag.role_ids.filter((x) => x !== rid) },
-                            `tag-rm-${rid}`
-                          )
-                        }
-                      >
-                        −
-                      </button>
-                    </span>
-                  )
-                })
-              )}
-            </div>
-            <div className="rewards-add-role-row">
-              <RoleDropdown
-                roles={anRoles}
-                entries={assignableRoleEntries}
-                value={tagAddRoleId}
-                onChange={(id) => {
-                  setTagAddRoleId('')
-                  if (!id || tag.role_ids.includes(id) || tag.role_ids.length >= MAX_TAG_REWARD_ROLES) return
-                  void patchTag({ role_ids: [...tag.role_ids, id] }, 'tag-add-role')
-                }}
-                placeholder={
-                  tag.role_ids.length >= MAX_TAG_REWARD_ROLES
-                    ? `Max ${MAX_TAG_REWARD_ROLES} roles`
-                    : 'Add role…'
-                }
-                saving={Boolean(saving)}
-              />
-            </div>
-          </div>
-
-          <div className="an-edit-field">
-            <label>Notification channel</label>
-            <ChannelDropdown
-              channels={textChannels}
-              categories={categories}
-              value={tag.channel_id ?? ''}
-              onChange={(id) => void patchTag({ channel_id: id || null }, 'tag-channel')}
-              placeholder="Pick a channel…"
-              saving={Boolean(saving)}
-            />
-          </div>
-
-          <div className="an-edit-field">
-            <label>Message template</label>
-            <p className="rewards-template-preview">{tagTemplateSummary}</p>
-            <div className="settings-input-row rewards-template-actions">
-              <button
-                type="button"
-                className="settings-save-btn"
-                onClick={() => openEditor('tag')}
-                disabled={Boolean(saving)}
-              >
-                Edit in builder
-              </button>
-              {tag.template && (
-                <button
-                  type="button"
-                  className="settings-save-btn welcome-message-remove-btn"
-                  onClick={() => void clearTemplate('tag')}
-                  disabled={Boolean(saving)}
-                >
-                  Use default text
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={`an-module enabled${!vanityUrlCode ? ' rewards-vanity-locked' : ''}`}
-        style={{ animationDelay: '0.06s' }}
-      >
-        <div className="an-module-header">
-          <span className="an-module-name">Vanity URL rewards</span>
-        </div>
-        <span className="an-module-desc">
-          When someone puts your vanity invite in their custom status, grant a role and optionally notify a
-          channel (Elara <code className="prefix-settings-inline-code">vanity</code> parity).
-        </span>
-        {!vanityUrlCode && (
-          <p className="rewards-vanity-hint">
-            This server does not have a vanity URL yet. Set one under Discord → Server Settings → Vanity URL.
-          </p>
-        )}
-        <div className="an-module-body rewards-module-body">
-          <div className="an-edit-field">
-            <label>Role to grant</label>
-            <RoleDropdown
-              roles={anRoles}
-              entries={assignableRoleEntries}
-              value={vanity.role_id ?? ''}
-              onChange={(id) => void patchVanity({ role_id: id || null }, 'vanity-role')}
-              placeholder="Pick a role…"
-              saving={Boolean(saving) || !vanityUrlCode}
-            />
-          </div>
-
-          <div className="an-edit-field">
-            <label>Notification channel</label>
-            <ChannelDropdown
-              channels={textChannels}
-              categories={categories}
-              value={vanity.channel_id ?? ''}
-              onChange={(id) => void patchVanity({ channel_id: id || null }, 'vanity-channel')}
-              placeholder="Pick a channel…"
-              saving={Boolean(saving) || !vanityUrlCode}
-            />
-          </div>
-
-          <div className="an-edit-field">
-            <label>Message template</label>
-            <p className="rewards-template-preview">{vanityTemplateSummary}</p>
-            <div className="settings-input-row rewards-template-actions">
-              <button
-                type="button"
-                className="settings-save-btn"
-                onClick={() => openEditor('vanity')}
-                disabled={Boolean(saving) || !vanityUrlCode}
-              >
-                Edit in builder
-              </button>
-              {vanity.template && (
-                <button
-                  type="button"
-                  className="settings-save-btn welcome-message-remove-btn"
-                  onClick={() => void clearTemplate('vanity')}
-                  disabled={Boolean(saving) || !vanityUrlCode}
-                >
-                  Use default text
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

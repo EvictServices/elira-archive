@@ -339,8 +339,10 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
                             className="autorole-remove-btn"
                             disabled={saving === `staff-${rid}`}
                             onClick={() => patch({ op: 'remove_staff', role_id: rid }, `staff-${rid}`)}
+                            aria-label={`Remove staff role ${role ? role.name : rid}`}
+                            title="Remove"
                           >
-                            {saving === `staff-${rid}` ? '…' : 'Remove'}
+                            {saving === `staff-${rid}` ? '…' : '-'}
                           </button>
                         </div>
                       )
@@ -407,8 +409,10 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
                           onClick={() =>
                             patch({ op: 'remove_blacklist', target_id: tid }, `bl-${tid}`)
                           }
+                          aria-label={`Unblock ${tid}`}
+                          title="Unblock"
                         >
-                          {saving === `bl-${tid}` ? '…' : 'Unblock'}
+                          {saving === `bl-${tid}` ? '…' : '-'}
                         </button>
                       </div>
                     ))}
@@ -444,11 +448,13 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
                     <span className="an-module-name">Button · {btn.identifier}</span>
                     <button
                       type="button"
-                      className="an-toggle-btn"
+                      className="system-messages-icon-btn system-messages-minus-btn"
                       disabled={saving === `del-btn-${btn.identifier}`}
                       onClick={() => handleDeleteButton(btn.identifier)}
+                      aria-label={`Delete ticket button ${btn.identifier}`}
+                      title="Delete"
                     >
-                      {saving === `del-btn-${btn.identifier}` ? 'Removing…' : 'Delete'}
+                      {saving === `del-btn-${btn.identifier}` ? '…' : '-'}
                     </button>
                   </div>
                   <span className="an-module-desc">
