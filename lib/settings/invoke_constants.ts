@@ -31,16 +31,16 @@ export const INVOKE_ACTION_LABELS: Record<InvokeActionType, string> = {
 
 /**
  * Default success line when no custom invoke script is set (Elara `InvokeScript.send`:
- * `Successfully {action_type} {target.mention}.`). `{user.mention}` matches substitution in scripts.
+ * `Successfully {action_type} {target.mention}`). `{user.mention}` matches substitution in scripts.
  */
 export const INVOKE_DEFAULT_MESSAGE: Record<InvokeActionType, string> = {
-  kicked: 'Successfully kicked {user.mention}.',
-  banned: 'Successfully banned {user.mention}.',
-  muted: 'Successfully muted {user.mention}.',
-  unmuted: 'Successfully unmuted {user.mention}.',
-  warned: 'Successfully warned {user.mention}.',
-  jailed: 'Successfully jailed {user.mention}.',
-  unjailed: 'Successfully unjailed {user.mention}.',
-  role_added: 'Successfully role_added {user.mention}.',
-  role_removed: 'Successfully role_removed {user.mention}.',
+  kicked: 'Successfully kicked {user.mention}',
+  banned: 'Successfully banned {user.mention}',
+  muted: 'Successfully muted {user.mention}',
+  unmuted: 'Successfully unmuted {user.mention}',
+  warned: 'Successfully warned {user.mention}',
+  jailed: 'Successfully jailed {user.mention}',
+  unjailed: 'Successfully unjailed {user.mention}',
+  role_added: 'Successfully role_added {user.mention}',
+  role_removed: 'Successfully role_removed {user.mention}',
 }

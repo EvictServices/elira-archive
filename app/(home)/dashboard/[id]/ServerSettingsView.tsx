@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
+import { useDashboardGuildBreadcrumb } from '@/components/DashboardGuildBreadcrumbContext'
 import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavContext'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
@@ -199,7 +200,13 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
   const router = useRouter()
   const isMobile = useMediaQuery('(max-width: 1024px)')
   const { mobileNavOpen, closeMobileNav, toggleMobileNav } = useGuildSettingsMobileNav()
+  const { setGuildBreadcrumbName } = useDashboardGuildBreadcrumb()
   const swipeCloseRef = useRef<{ x: number } | null>(null)
+
+  useLayoutEffect(() => {
+    setGuildBreadcrumbName(guild.name)
+    return () => setGuildBreadcrumbName(null)
+  }, [guild.guild_id, guild.name, setGuildBreadcrumbName])
 
   const filteredSections = canAccessAntinuke
     ? sections

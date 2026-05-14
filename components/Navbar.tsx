@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { INVITE_URL, SUPPORT_URL, DOCS_URL } from '@/lib/constants'
+import { useDashboardGuildBreadcrumb } from '@/components/DashboardGuildBreadcrumbContext'
 import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavContext'
 import UserMenu from '@/components/UserMenu'
 
@@ -24,6 +25,7 @@ export default function Navbar() {
   const lastScrollY = useRef(0)
   const guildMobileScrollLastY = useRef(0)
   const { mobileNavOpen: guildDrawerOpen } = useGuildSettingsMobileNav()
+  const { guildName: dashboardGuildName } = useDashboardGuildBreadcrumb()
 
   const isDashboard = pathname.startsWith('/dashboard')
 
@@ -140,7 +142,12 @@ export default function Navbar() {
                 <span className="site-nav__crumb-sep" aria-hidden>
                   /
                 </span>
-                <span className="site-nav__crumb is-active">Server</span>
+                <span
+                  className="site-nav__crumb site-nav__crumb--guild is-active"
+                  title={dashboardGuildName ?? undefined}
+                >
+                  {dashboardGuildName ?? 'Server'}
+                </span>
               </>
             )}
           </div>
