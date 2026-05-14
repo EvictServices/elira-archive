@@ -249,8 +249,8 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
           <span className="an-module-name">Join-to-create channel</span>
         </div>
         <span className="an-module-desc">
-          When a member joins this voice channel, the bot creates a personal temporary
-          channel for them in the configured category.
+          When a member joins this voice channel, a personal temporary channel is created for them
+          in the configured category.
         </span>
         <div className="an-module-body">
           <div className="an-edit-field">
@@ -471,9 +471,9 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
           </span>
         </div>
         <span className="an-module-desc">
-          Temporary voice channels the bot is currently tracking. Deleting a row
-          disconnects every member and removes the channel from Discord; if the
-          channel was already deleted manually, the tracking record is just dropped.
+          Temporary voice channels currently tracked for this server. Deleting a row disconnects
+          every member and removes the channel from Discord; if the channel was already deleted
+          manually, the tracking record is just dropped.
         </span>
         <div className="an-module-body">
           {channels.length === 0 ? (

@@ -58,7 +58,7 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
   const exitIfForbidden = useCallback(
     (status: number) => {
       if (status === 403) {
-        router.replace(`/dashboard/${guildId}/overview`)
+        router.replace(`/dashboard/${guildId}/general`)
         return true
       }
       return false
@@ -295,7 +295,7 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
           </h2>
           <p className="server-content-desc">
             Trusted admins can manage antinuke from Discord and this dashboard. Whitelisted users
-            are ignored by antinuke thresholds (same as the bot).
+            are ignored by antinuke thresholds.
           </p>
         </header>
         <div className="an-access-panel">

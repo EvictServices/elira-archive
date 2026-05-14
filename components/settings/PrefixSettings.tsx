@@ -59,7 +59,7 @@ export default function PrefixSettings({ guildId }: { guildId: string }) {
     <div className="settings-field">
       <label className="settings-label">Server Prefix</label>
       <p className="settings-desc">
-        The prefix used to trigger bot commands. Must be between 1 and 7 characters.
+        The prefix used to trigger commands. Must be between 1 and 7 characters.
       </p>
       <div className="settings-input-row">
         <input

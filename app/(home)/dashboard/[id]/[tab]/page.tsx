@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ServerSettingsPage({ params }: { params: Promise<{ id: string; tab: string }> }) {
   const { id, tab } = await params
 
-  if (tab === 'general') {
-    redirect(`/dashboard/${id}/overview`)
+  if (tab === 'overview' || tab === 'prefix') {
+    redirect(`/dashboard/${id}/general`)
   }
 
   const [session, guild] = await Promise.all([

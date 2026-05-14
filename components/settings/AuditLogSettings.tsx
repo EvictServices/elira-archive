@@ -15,6 +15,8 @@ interface AuditEntry {
 
 const ACTION_TITLE: Record<string, string> = {
   'prefix.update': 'Command Prefix',
+  'commands.disabled.add': 'Command disabled in channels',
+  'commands.disabled.remove': 'Command re-enabled in channels',
   'antinuke.module.update': 'Antinuke Module',
   'antinuke.bot_toggle': 'Antinuke Bot Monitoring Toggled',
   'antinuke.whitelist.update': 'Antinuke Whitelist Updated',
@@ -48,6 +50,8 @@ const ACTION_TITLE: Record<string, string> = {
 
 const ACTION_CATEGORY: Record<string, string> = {
   'prefix.update': 'General',
+  'commands.disabled.add': 'General',
+  'commands.disabled.remove': 'General',
   'antinuke.module.update': 'Antinuke',
   'antinuke.bot_toggle': 'Antinuke',
   'antinuke.whitelist.update': 'Antinuke',
@@ -103,6 +107,14 @@ function buildChangeBlurb(action: string, detail: Record<string, unknown>): stri
   switch (action) {
     case 'prefix.update':
       return typeof d.prefix === 'string' ? `Set to “${d.prefix}”` : 'Updated'
+    case 'commands.disabled.add':
+      return typeof d.command === 'string' && typeof d.count === 'number'
+        ? `${d.command} · ${d.count} channel(s)`
+        : 'Updated'
+    case 'commands.disabled.remove':
+      return typeof d.command === 'string' && typeof d.count === 'number'
+        ? `${d.command} · removed ${d.count} channel(s)`
+        : 'Updated'
     case 'antinuke.module.update':
       return typeof d.module === 'string' ? `Module: ${d.module}` : 'Configuration saved'
     case 'antinuke.bot_toggle':
@@ -223,9 +235,11 @@ function buildChangeBlurb(action: string, detail: Record<string, unknown>): stri
 
 const DETAIL_LABELS: Record<string, string> = {
   prefix: 'Prefix',
+  command: 'Command',
+  channel_ids: 'Channel IDs',
+  count: 'Count',
   module: 'Module',
   enabled: 'Enabled',
-  count: 'Count',
   event: 'Event',
   channel_id: 'Channel ID',
   from_channel_id: 'Previous channel ID',
@@ -451,7 +465,7 @@ export default function AuditLogSettings({ guildId }: { guildId: string }) {
         </p>
         {unavailable && (
           <p className="settings-error">
-            The audit log table is not available yet. Apply{' '}
+            Dashboard audit logging is not set up yet. Apply{' '}
             <code className="audit-log-code">sql/dashboard_audit_log.sql</code> to your database.
           </p>
         )}

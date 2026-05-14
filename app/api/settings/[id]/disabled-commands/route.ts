@@ -1,0 +1,163 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getSession } from '@/lib/auth'
+import { hasGuildAdmin } from '@/lib/discord'
+import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
+import { isDiscordTextChannel } from '@/lib/guild_channel_type'
+import {
+  addDisabledCommandRows,
+  listDisabledCommands,
+  removeDisabledCommandRows,
+} from '@/lib/settings/disabled_commands'
+import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+
+const CMD_MAX = 96
+const CMD_RE = /^[a-z0-9][a-z0-9 _-]*$/i
+
+function normalizeCommand(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null
+  const s = raw.trim().replace(/\s+/g, ' ')
+  if (s.length < 1 || s.length > CMD_MAX) return null
+  if (!CMD_RE.test(s)) return null
+  if (/^command(\s|$)/i.test(s)) return null
+  return s
+}
+
+function normalizeChannelIds(raw: unknown): string[] | null {
+  if (!Array.isArray(raw)) return null
+  const out: string[] = []
+  for (const x of raw) {
+    if (typeof x !== 'string' && typeof x !== 'number') return null
+    const id = String(x).trim()
+    if (!/^\d{17,20}$/.test(id)) return null
+    out.push(id)
+  }
+  return [...new Set(out)]
+}
+
+function textChannelIds(channels: GuildChannel[]): Set<string> {
+  const set = new Set<string>()
+  for (const c of channels) {
+    if (isDiscordTextChannel(c)) set.add(c.id)
+  }
+  return set
+}
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const entries = await listDisabledCommands(id)
+  return NextResponse.json({ entries }, {
+    headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' },
+  })
+}
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const body = await req.json().catch(() => null)
+  const command = normalizeCommand(body?.command)
+  const channelIds = normalizeChannelIds(body?.channelIds)
+
+  if (!command) {
+    return NextResponse.json(
+      {
+        error:
+          'Invalid command name. Use the command’s qualified name (letters, numbers, spaces, hyphens). The `command` group cannot be changed here.',
+      },
+      { status: 400 }
+    )
+  }
+
+  if (!channelIds || channelIds.length === 0) {
+    return NextResponse.json({ error: 'Select at least one text channel.' }, { status: 400 })
+  }
+
+  let guildChannels: GuildChannel[] = []
+  try {
+    guildChannels = (await fetchGuildChannels(id)) as GuildChannel[]
+  } catch {
+    return NextResponse.json({ error: 'Could not load server channels.' }, { status: 502 })
+  }
+
+  const allowed = textChannelIds(guildChannels)
+  for (const cid of channelIds) {
+    if (!allowed.has(cid)) {
+      return NextResponse.json(
+        { error: 'One or more channel IDs are not valid text channels in this server.' },
+        { status: 400 }
+      )
+    }
+  }
+
+  await addDisabledCommandRows(id, command, channelIds)
+  recordDashboardAudit(session, id, 'commands.disabled.add', {
+    command,
+    channel_ids: channelIds,
+    count: channelIds.length,
+  })
+
+  const entries = await listDisabledCommands(id)
+  return NextResponse.json({ entries })
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  if (!(await hasGuildAdmin(session.accessToken, id))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const body = await req.json().catch(() => null)
+  const command = normalizeCommand(body?.command)
+  const channelIds = normalizeChannelIds(body?.channelIds)
+
+  if (!command) {
+    return NextResponse.json({ error: 'Invalid command name.' }, { status: 400 })
+  }
+
+  if (!channelIds || channelIds.length === 0) {
+    return NextResponse.json({ error: 'channelIds required.' }, { status: 400 })
+  }
+
+  await removeDisabledCommandRows(id, command, channelIds)
+  recordDashboardAudit(session, id, 'commands.disabled.remove', {
+    command,
+    channel_ids: channelIds,
+    count: channelIds.length,
+  })
+
+  const entries = await listDisabledCommands(id)
+  return NextResponse.json({ entries })
+}

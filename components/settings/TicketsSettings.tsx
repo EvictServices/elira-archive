@@ -207,8 +207,7 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
                 <span className="an-module-name">Transcript channel</span>
               </div>
               <span className="an-module-desc">
-                When a ticket is closed, the log embed is sent here (same as{' '}
-                <span className="ticket-cmd">;ticket transcript</span>).
+                When a ticket is closed, the transcript log embed is sent to this channel.
               </span>
               <div className="an-module-body">
                 <div className="an-edit-field">
@@ -236,8 +235,8 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
                 <span className="an-module-name">New ticket channel name</span>
               </div>
               <span className="an-module-desc">
-                Template for created channels (bot script variables, e.g.{' '}
-                <span className="ticket-cmd">{'{user.name}'}</span>). Leave empty for the default{' '}
+                Template for new ticket channel names. Variables such as{' '}
+                <span className="ticket-cmd">{'{user.name}'}</span> are supported. Leave empty for the default{' '}
                 <span className="ticket-cmd">ticket-username</span> pattern.
               </span>
               <div className="an-module-body">
@@ -361,8 +360,7 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
                 </span>
               </div>
               <span className="an-module-desc">
-                User or role IDs that cannot open tickets (same as{' '}
-                <span className="ticket-cmd">;ticket ignore</span>).
+                User or role IDs that cannot open tickets.
               </span>
               <div className="an-module-body">
                 <div className="an-edit-field">
@@ -425,7 +423,7 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
                   <span className="an-module-name">Ticket buttons</span>
                 </div>
                 <span className="an-module-desc">
-                  No buttons in the database yet. Add one with{' '}
+                  No buttons yet. Add one with{' '}
                   <span className="ticket-cmd">;ticket button add</span> in Discord.
                 </span>
               </div>

@@ -6,8 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavContext'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
-const PrefixSettings = dynamic(() => import('@/components/settings/PrefixSettings'))
-const GuildOverviewSettings = dynamic(() => import('@/components/settings/GuildOverviewSettings'))
+const DisabledCommandsSettings = dynamic(() => import('@/components/settings/DisabledCommandsSettings'))
 const AntinukeSettings = dynamic(() => import('@/components/settings/AntinukeSettings'))
 const LoggingSettings = dynamic(() => import('@/components/settings/LoggingSettings'))
 const AutoroleSettings = dynamic(() => import('@/components/settings/AutoroleSettings'))
@@ -77,24 +76,12 @@ const sections: SidebarSection[] = [
     label: 'Configuration',
     items: [
       {
-        id: 'overview',
-        label: 'Overview',
+        id: 'general',
+        label: 'General',
         icon: (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-        ),
-      },
-      {
-        id: 'prefix',
-        label: 'Prefix',
-        icon: (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 7V4h16v3" />
-            <path d="M9 20h6" />
-            <path d="M12 4v16" />
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
           </svg>
         ),
       },
@@ -184,8 +171,7 @@ const sections: SidebarSection[] = [
 ]
 
 const sectionDescriptions: Record<string, string> = {
-  overview: 'Server snapshot and command usage for this guild.',
-  prefix: 'Change the prefix used to run bot commands.',
+  general: 'Core server options, including the command prefix.',
   audit: 'Review changes made from this dashboard.',
   logging: 'Set up event logging channels.',
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
@@ -416,30 +402,17 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
         </div>
       </aside>
 
-      <main
-        className={['server-content', activeItem === 'overview' ? 'server-content--overview-fill' : '']
-          .filter(Boolean)
-          .join(' ')}
-      >
-        {activeItem !== 'overview' && (
-          <header className="server-content-header">
-            <h1 className="server-content-title">
-              {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
-            </h1>
-            {sectionDescriptions[activeItem] && (
-              <p className="server-content-desc">{sectionDescriptions[activeItem]}</p>
-            )}
-          </header>
-        )}
-        <div
-          className={['server-content-body', activeItem === 'overview' ? 'server-content-body--overview-plain' : '']
-            .filter(Boolean)
-            .join(' ')}
-        >
-          {activeItem === 'overview' && (
-            <GuildOverviewSettings guild={guild} mutualServerCount={user.serverCount} />
+      <main className="server-content">
+        <header className="server-content-header">
+          <h1 className="server-content-title">
+            {sections.flatMap((s) => s.items).find((i) => i.id === activeItem)?.label}
+          </h1>
+          {sectionDescriptions[activeItem] && (
+            <p className="server-content-desc">{sectionDescriptions[activeItem]}</p>
           )}
-          {activeItem === 'prefix' && <PrefixSettings guildId={guild.guild_id} />}
+        </header>
+        <div className="server-content-body">
+          {activeItem === 'general' && <DisabledCommandsSettings guildId={guild.guild_id} />}
           {activeItem === 'audit' && <AuditLogSettings guildId={guild.guild_id} />}
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
@@ -462,8 +435,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
               <AutoroleSettings guildId={guild.guild_id} />
             </div>
           )}
-          {activeItem !== 'overview' &&
-            activeItem !== 'prefix' &&
+          {activeItem !== 'general' &&
             activeItem !== 'audit' &&
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&
