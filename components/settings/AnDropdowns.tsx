@@ -40,17 +40,23 @@ export function Dropdown({
   options,
   onChange,
   saving,
+  disabled,
   placeholder = 'Select...',
+  'aria-labelledby': ariaLabelledBy,
 }: {
   value: string
   options: { value: string; label: string }[]
   onChange: (value: string) => void
   saving?: boolean
+  /** When true, the menu cannot be opened (e.g. parent view still loading). */
+  disabled?: boolean
   placeholder?: string
+  'aria-labelledby'?: string
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const selected = options.find((o) => o.value === value)
+  const locked = Boolean(saving) || Boolean(disabled)
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -60,13 +66,21 @@ export function Dropdown({
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    if (locked) setOpen(false)
+  }, [locked])
+
   return (
-    <div className={`an-dropdown${open ? ' open' : ''}${saving ? ' saving' : ''}`} ref={ref}>
+    <div
+      className={`an-dropdown${open ? ' open' : ''}${saving ? ' saving' : ''}${disabled ? ' disabled' : ''}`}
+      ref={ref}
+    >
       <button
         className="an-dropdown-trigger"
-        onClick={() => !saving && setOpen(!open)}
+        onClick={() => !locked && setOpen(!open)}
         type="button"
-        disabled={saving}
+        disabled={locked}
+        aria-labelledby={ariaLabelledBy}
       >
         <span>{saving ? 'Saving...' : selected?.label ?? placeholder}</span>
         <svg

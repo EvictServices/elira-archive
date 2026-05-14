@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChannelDropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
+import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/bundleClient'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
 import { colorHex, type GuildChannel, type GuildRole } from '@/components/settings/types'
@@ -337,27 +337,29 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
   const addRulePanel = (
     <section className="general-settings-pane general-settings-pane--add-rule">
       <div className="general-settings-add-rule-header">
-        <label className="settings-label" htmlFor={`cmd-mgmt-mode-${guildId}`}>
+        <span className="settings-label" id={`cmd-mgmt-mode-label-${guildId}`}>
           Add
-        </label>
-        <select
-          id={`cmd-mgmt-mode-${guildId}`}
-          className="settings-input general-settings-mode-select"
-          value={addRuleMode}
-          onChange={(e) => {
-            const v = e.target.value as AddRuleMode
-            if (v === 'disable' || v === 'ignore' || v === 'restrict') {
-              setAddRuleMode(v)
-              setError(null)
-              setAccessError(null)
-            }
-          }}
-          disabled={loading}
-        >
-          <option value="disable">Disable command in channels</option>
-          <option value="ignore">Ignore channel or member</option>
-          <option value="restrict">Restrict command to roles</option>
-        </select>
+        </span>
+        <div className="general-settings-add-rule-mode">
+          <Dropdown
+            value={addRuleMode}
+            options={[
+              { value: 'disable', label: 'Disable command in channels' },
+              { value: 'ignore', label: 'Ignore channel or member' },
+              { value: 'restrict', label: 'Restrict command to roles' },
+            ]}
+            onChange={(v) => {
+              if (v === 'disable' || v === 'ignore' || v === 'restrict') {
+                setAddRuleMode(v)
+                setError(null)
+                setAccessError(null)
+              }
+            }}
+            disabled={loading}
+            placeholder="Select type…"
+            aria-labelledby={`cmd-mgmt-mode-label-${guildId}`}
+          />
+        </div>
       </div>
       <p className="settings-desc general-settings-pane-desc">{addModeDesc}</p>
 
@@ -616,10 +618,6 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
           {accessError && <p className="settings-error">{accessError}</p>}
         </div>
       )}
-
-      <p className="settings-hint general-settings-cmd-hint">
-        New ignores, role restrictions, or channel disables are added using the form next to Server Prefix.
-      </p>
 
       <div className="general-settings-three-col">
         <section className="general-settings-pane general-settings-pane--cmd-col settings-field">

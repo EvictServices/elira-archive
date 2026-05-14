@@ -15,6 +15,9 @@ interface AuditEntry {
 
 const ACTION_TITLE: Record<string, string> = {
   'prefix.update': 'Command Prefix',
+  'roleplay.enabled.update': 'Roleplay commands',
+  'invoke.template.upsert': 'Invoke command message',
+  'invoke.template.delete': 'Invoke command message removed',
   'commands.disabled.add': 'Command disabled in channels',
   'commands.disabled.remove': 'Command re-enabled in channels',
   'commands.ignore.add': 'Command ignore target added',
@@ -54,6 +57,9 @@ const ACTION_TITLE: Record<string, string> = {
 
 const ACTION_CATEGORY: Record<string, string> = {
   'prefix.update': 'General',
+  'roleplay.enabled.update': 'General',
+  'invoke.template.upsert': 'Invoke commands',
+  'invoke.template.delete': 'Invoke commands',
   'commands.disabled.add': 'General',
   'commands.disabled.remove': 'General',
   'commands.ignore.add': 'General',
@@ -115,6 +121,12 @@ function buildChangeBlurb(action: string, detail: Record<string, unknown>): stri
   switch (action) {
     case 'prefix.update':
       return typeof d.prefix === 'string' ? `Set to “${d.prefix}”` : 'Updated'
+    case 'roleplay.enabled.update':
+      return d.enabled === true ? 'Enabled' : d.enabled === false ? 'Disabled' : 'Updated'
+    case 'invoke.template.upsert':
+      return typeof d.action_type === 'string' ? `Action: ${d.action_type}` : 'Saved'
+    case 'invoke.template.delete':
+      return typeof d.action_type === 'string' ? `Action: ${d.action_type}` : 'Removed'
     case 'commands.disabled.add':
       return typeof d.command === 'string' && typeof d.count === 'number'
         ? `${d.command} · ${d.count} channel(s)`

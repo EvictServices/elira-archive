@@ -3597,6 +3597,91 @@ body:has(.server-layout) > footer {
   opacity: 0.7;
 }
 
+.prefix-settings-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  width: 100%;
+}
+
+.prefix-settings-roleplay {
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+.prefix-settings-roleplay-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.prefix-settings-roleplay-header .an-toggle {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.prefix-settings-inline-code {
+  font-size: 0.85em;
+  padding: 0.08rem 0.28rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.invoke-settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.invoke-settings-intro {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.65;
+  max-width: 56rem;
+  line-height: 1.55;
+}
+
+.invoke-action-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.invoke-action-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.invoke-action-key code {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.invoke-action-card-summary {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.78;
+  line-height: 1.45;
+  margin: 0 0 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  word-break: break-word;
+}
+
+.invoke-action-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+}
+
 .disabled-commands-list {
   list-style: none;
   padding: 0;
@@ -3761,7 +3846,8 @@ body:has(.server-layout) > footer {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
-  align-items: stretch;
+  /* Avoid stretching short columns to the height of the tallest (e.g. long disabled list). */
+  align-items: start;
 }
 
 @media (max-width: 1100px) {
@@ -3816,32 +3902,22 @@ body:has(.server-layout) > footer {
   margin-bottom: 2px;
 }
 
-.general-settings-pane--add-rule .general-settings-mode-select {
-  max-width: min(100%, 320px);
+.general-settings-add-rule-header .general-settings-add-rule-mode {
   flex: 1 1 200px;
   min-width: 0;
-  padding: 0.45rem 0.55rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.28);
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+  max-width: min(100%, 360px);
 }
 
-.general-settings-pane--add-rule .general-settings-mode-select:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.general-settings-pane--add-rule .general-settings-add-rule-mode .an-dropdown-trigger {
+  min-height: 40px;
 }
 
-.general-settings-pane--add-rule .general-settings-mode-select:focus-visible {
-  outline: 2px solid rgba(139, 158, 255, 0.55);
-  outline-offset: 2px;
+.general-settings-pane--add-rule .disabled-commands-add-controls .settings-input-row {
+  max-width: none;
 }
 
-.general-settings-cmd-hint {
-  margin: -0.35rem 0 0;
-  opacity: 0.88;
+.general-settings-pane--add-rule .disabled-commands-add-controls .settings-input {
+  max-width: min(100%, 320px);
 }
 
 .disabled-commands-add-controls {
@@ -5927,6 +6003,11 @@ body:has(.server-layout) > footer {
 }
 
 .an-dropdown.saving .an-dropdown-trigger {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.an-dropdown.disabled .an-dropdown-trigger {
   opacity: 0.5;
   cursor: not-allowed;
 }

@@ -14,6 +14,7 @@ const VoicemasterSettings = dynamic(() => import('@/components/settings/Voicemas
 const AuditLogSettings = dynamic(() => import('@/components/settings/AuditLogSettings'))
 const SystemMessagesSettings = dynamic(() => import('@/components/settings/SystemMessagesSettings'))
 const TicketsSettings = dynamic(() => import('@/components/settings/TicketsSettings'))
+const InvokeSettings = dynamic(() => import('@/components/settings/InvokeSettings'))
 
 interface Guild {
   guild_id: string
@@ -112,6 +113,16 @@ const sections: SidebarSection[] = [
         ),
       },
       {
+        id: 'invoke',
+        label: 'Invoke',
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="4 17 10 11 4 5" />
+            <line x1="12" y1="19" x2="20" y2="19" />
+          </svg>
+        ),
+      },
+      {
         id: 'antinuke',
         label: 'Antinuke',
         icon: (
@@ -174,6 +185,7 @@ const sectionDescriptions: Record<string, string> = {
   general: 'Core server options, including the command prefix.',
   audit: 'Review changes made from this dashboard.',
   logging: 'Set up event logging channels.',
+  invoke: 'Customize the messages the bot sends after moderation actions (kick, ban, mute, and more).',
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
   system: 'Welcome, boost, and leave messages, plus automatic roles when members join.',
   starboard: 'Highlight popular messages in a starboard channel.',
@@ -416,6 +428,20 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
           {activeItem === 'audit' && <AuditLogSettings guildId={guild.guild_id} />}
           {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
+          {activeItem === 'invoke' && (
+            <InvokeSettings
+              guildId={guild.guild_id}
+              guildName={guild.name}
+              guildIconUrl={guild.icon_url}
+              guildBannerUrl={guild.banner_url}
+              user={{
+                id: user.id,
+                username: user.username,
+                display_name: user.username,
+                avatar_url: userAvatarUrl(user),
+              }}
+            />
+          )}
           {activeItem === 'voicemaster' && <VoicemasterSettings guildId={guild.guild_id} />}
           {activeItem === 'tickets' && <TicketsSettings guildId={guild.guild_id} />}
           {activeItem === 'system' && (
@@ -439,6 +465,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
             activeItem !== 'audit' &&
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&
+            activeItem !== 'invoke' &&
             activeItem !== 'voicemaster' &&
             activeItem !== 'tickets' &&
             activeItem !== 'system' && (
