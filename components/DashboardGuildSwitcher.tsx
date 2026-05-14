@@ -37,6 +37,10 @@ export default function DashboardGuildSwitcher() {
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
     if (!activeGuildId) {
       setGuilds(null)
       return

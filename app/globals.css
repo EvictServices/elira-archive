@@ -475,6 +475,113 @@ body.nav-open {
   vertical-align: bottom;
 }
 
+.site-nav__guild-crumb-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: min(calc(42vw + 36px), 316px);
+}
+
+.site-nav__guild-crumb-row .site-nav__crumb--guild {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-nav__guild-switcher.an-dropdown {
+  flex-shrink: 0;
+}
+
+.site-nav__guild-switcher .site-nav__guild-switcher-trigger.an-dropdown-trigger {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  justify-content: center;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.site-nav__guild-switcher .site-nav__guild-switcher-trigger.an-dropdown-trigger:hover,
+.site-nav__guild-switcher.open .site-nav__guild-switcher-trigger.an-dropdown-trigger {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.site-nav__guild-switcher-chevron {
+  margin: 0;
+  opacity: 0.55;
+}
+
+.site-nav__guild-switcher.open .site-nav__guild-switcher-chevron {
+  opacity: 0.85;
+}
+
+.site-nav__guild-switcher-menu.an-dropdown-menu {
+  left: 0;
+  right: auto;
+  min-width: 220px;
+  width: max-content;
+  max-width: min(92vw, 320px);
+  max-height: min(60vh, 280px);
+}
+
+.site-nav__guild-switcher-item.an-dropdown-item {
+  text-decoration: none;
+  justify-content: flex-start;
+  gap: 8px;
+  opacity: 0.85;
+}
+
+.site-nav__guild-switcher-item.an-dropdown-item:hover {
+  opacity: 1;
+}
+
+.site-nav__guild-switcher-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.site-nav__guild-switcher-icon {
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.site-nav__guild-switcher-icon-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.site-nav__guild-switcher-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  text-align: left;
+}
+
+.site-nav__guild-switcher-check {
+  flex-shrink: 0;
+  margin-left: 4px;
+  opacity: 0.9;
+}
+
 .site-nav__dash-right {
   display: flex;
   align-items: center;
@@ -3664,6 +3771,78 @@ body:has(.server-layout) > footer {
   gap: 1.25rem;
 }
 
+.rewards-settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.rewards-module-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rewards-role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  min-height: 2rem;
+}
+
+.rewards-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.45rem 0.25rem 0.55rem;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.rewards-add-role-row {
+  margin-top: 0.5rem;
+  max-width: 22rem;
+}
+
+.rewards-muted {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.rewards-template-preview {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.82;
+  line-height: 1.45;
+  margin: 0 0 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  word-break: break-word;
+}
+
+.rewards-template-actions {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rewards-vanity-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  opacity: 0.85;
+  margin: 0.35rem 0 0;
+  line-height: 1.45;
+}
+
+.rewards-vanity-locked .an-module-body {
+  opacity: 0.55;
+}
+
+.rewards-vanity-locked .rewards-vanity-hint {
+  opacity: 1;
+}
+
 .invoke-settings-intro {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -6003,15 +6182,24 @@ body:has(.server-layout) > footer {
   opacity: 0.5;
 }
 
+.logging-ignore-section .an-access-panel {
+  max-width: min(100%, 400px);
+}
+
 .logging-ignore-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(132px, 158px);
+  gap: 10px;
+  align-items: start;
 }
 
 @media (max-width: 640px) {
   .logging-ignore-controls {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .logging-ignore-section .an-access-panel {
+    max-width: 100%;
   }
 }
 

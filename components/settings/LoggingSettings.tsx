@@ -434,7 +434,7 @@ function IgnoreSection({
   }
 
   return (
-    <section className="an-access" aria-labelledby="logging-ignore-heading">
+    <section className="an-access logging-ignore-section" aria-labelledby="logging-ignore-heading">
       <header className="server-content-header">
         <h2 id="logging-ignore-heading" className="server-content-title">
           Ignored targets

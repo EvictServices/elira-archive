@@ -63,6 +63,8 @@ export interface GuildData {
   name: string
   icon_url: string | null
   banner_url: string | null
+  /** Discord vanity invite slug when the server has a custom URL (for vanity rewards). */
+  vanity_url_code?: string | null
   owner_id: string
   member_count: number
   boost_count: number

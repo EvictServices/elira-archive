@@ -16,12 +16,14 @@ const AuditLogSettings = dynamic(() => import('@/components/settings/AuditLogSet
 const SystemMessagesSettings = dynamic(() => import('@/components/settings/SystemMessagesSettings'))
 const TicketsSettings = dynamic(() => import('@/components/settings/TicketsSettings'))
 const InvokeSettings = dynamic(() => import('@/components/settings/InvokeSettings'))
+const RewardsSettings = dynamic(() => import('@/components/settings/RewardsSettings'))
 
 interface Guild {
   guild_id: string
   name: string
   icon_url: string | null
   banner_url: string | null
+  vanity_url_code?: string | null
   owner_id: string
   member_count: number
   [key: string]: unknown
@@ -155,6 +157,17 @@ const sections: SidebarSection[] = [
           </svg>
         ),
       },
+      {
+        id: 'rewards',
+        label: 'Rewards',
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
+            <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
+            <path d="M18 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
+          </svg>
+        ),
+      },
     ],
   },
   {
@@ -190,6 +203,7 @@ const sectionDescriptions: Record<string, string> = {
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
   system: 'Welcome, boost, and leave messages, plus automatic roles when members join.',
   starboard: 'Highlight popular messages in a starboard channel.',
+  rewards: 'Reward members who rep your server tag or vanity invite (Elara tag / vanity parity).',
   voicemaster: 'Create temporary voice channels on demand.',
   tickets: 'Set up a support ticket system.',
 }
@@ -449,6 +463,25 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
               }}
             />
           )}
+          {activeItem === 'rewards' && (
+            <RewardsSettings
+              guildId={guild.guild_id}
+              guildName={guild.name}
+              guildIconUrl={guild.icon_url}
+              guildBannerUrl={guild.banner_url}
+              vanityUrlCode={
+                guild.vanity_url_code != null && String(guild.vanity_url_code).trim() !== ''
+                  ? String(guild.vanity_url_code).trim()
+                  : null
+              }
+              user={{
+                id: user.id,
+                username: user.username,
+                display_name: user.username,
+                avatar_url: userAvatarUrl(user),
+              }}
+            />
+          )}
           {activeItem === 'voicemaster' && <VoicemasterSettings guildId={guild.guild_id} />}
           {activeItem === 'tickets' && <TicketsSettings guildId={guild.guild_id} />}
           {activeItem === 'system' && (
@@ -473,6 +506,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
             activeItem !== 'antinuke' &&
             activeItem !== 'logging' &&
             activeItem !== 'invoke' &&
+            activeItem !== 'rewards' &&
             activeItem !== 'voicemaster' &&
             activeItem !== 'tickets' &&
             activeItem !== 'system' && (

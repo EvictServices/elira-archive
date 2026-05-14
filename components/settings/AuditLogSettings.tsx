@@ -18,6 +18,8 @@ const ACTION_TITLE: Record<string, string> = {
   'roleplay.enabled.update': 'Roleplay commands',
   'invoke.template.upsert': 'Invoke command message',
   'invoke.template.delete': 'Invoke command message removed',
+  'rewards.tag.update': 'Tag rewards',
+  'rewards.vanity.update': 'Vanity rewards',
   'commands.disabled.add': 'Command disabled in channels',
   'commands.disabled.remove': 'Command re-enabled in channels',
   'commands.ignore.add': 'Command ignore target added',
@@ -60,6 +62,8 @@ const ACTION_CATEGORY: Record<string, string> = {
   'roleplay.enabled.update': 'General',
   'invoke.template.upsert': 'Invoke commands',
   'invoke.template.delete': 'Invoke commands',
+  'rewards.tag.update': 'Rewards',
+  'rewards.vanity.update': 'Rewards',
   'commands.disabled.add': 'General',
   'commands.disabled.remove': 'General',
   'commands.ignore.add': 'General',
@@ -127,6 +131,9 @@ function buildChangeBlurb(action: string, detail: Record<string, unknown>): stri
       return typeof d.action_type === 'string' ? `Action: ${d.action_type}` : 'Saved'
     case 'invoke.template.delete':
       return typeof d.action_type === 'string' ? `Action: ${d.action_type}` : 'Removed'
+    case 'rewards.tag.update':
+    case 'rewards.vanity.update':
+      return 'Configuration saved'
     case 'commands.disabled.add':
       return typeof d.command === 'string' && typeof d.count === 'number'
         ? `${d.command} · ${d.count} channel(s)`
