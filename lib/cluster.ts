@@ -157,9 +157,23 @@ export function normalizeGuildChannel(raw: GuildChannel | Record<string, unknown
   }
 }
 
-export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[]> {
-  const cacheKey = `dashboard:channels:v4:${guildId}`
-  const cached = await redis.get(cacheKey)
+export function guildChannelsCacheKey(guildId: string): string {
+  return `dashboard:channels:v4:${guildId}`
+}
+
+export async function invalidateGuildChannelsCache(guildId: string): Promise<void> {
+  await redis.del(guildChannelsCacheKey(guildId))
+}
+
+export async function fetchGuildChannels(
+  guildId: string,
+  options?: { fresh?: boolean }
+): Promise<GuildChannel[]> {
+  const cacheKey = guildChannelsCacheKey(guildId)
+  if (options?.fresh) {
+    await redis.del(cacheKey)
+  }
+  const cached = options?.fresh ? null : await redis.get(cacheKey)
   if (cached) {
     const parsed = JSON.parse(cached) as GuildChannel[]
     return parsed.map(normalizeGuildChannel)

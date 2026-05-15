@@ -1,6 +1,11 @@
 import pool from '@/lib/db'
 import redis from '@/lib/redis'
-import { CLUSTER_API_BASE, fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
+import {
+  CLUSTER_API_BASE,
+  fetchGuildChannels,
+  invalidateGuildChannelsCache,
+  type GuildChannel,
+} from '@/lib/cluster'
 import { fetchUserInfoBatch } from '@/lib/fetchUsers'
 import {
   REGIONS,
@@ -214,15 +219,54 @@ export async function getChannels(guildId: string): Promise<VoicemasterChannel[]
   return res.rows.map(rowToChannel)
 }
 
+function voiceChannelOccupancy(ch: GuildChannel | undefined): number | null {
+  if (!ch) return null
+  if (typeof ch.member_count === 'number' && !Number.isNaN(ch.member_count)) {
+    return ch.member_count
+  }
+  const ids = ch.connected_member_ids
+  if (Array.isArray(ids)) return ids.length
+  return 0
+}
+
+/** Drop dashboard entries for channels gone from Discord or with nobody connected. */
+export async function pruneInactiveVoicemasterChannels(
+  _guildId: string,
+  base: VoicemasterChannel[],
+  live: GuildChannel[]
+): Promise<VoicemasterChannel[]> {
+  const liveById = new Map(live.map((c) => [String(c.id).trim(), c] as const))
+  const removeIds: string[] = []
+  for (const row of base) {
+    const id = String(row.channel_id).trim()
+    const ch = liveById.get(id)
+    const occupancy = voiceChannelOccupancy(ch)
+    if (occupancy === null || occupancy === 0) {
+      removeIds.push(id)
+    }
+  }
+  if (removeIds.length > 0) {
+    await deleteChannels(removeIds)
+  }
+  const removed = new Set(removeIds)
+  return base.filter((row) => !removed.has(String(row.channel_id).trim()))
+}
+
 export async function getEnrichedChannels(
   guildId: string
 ): Promise<EnrichedVoicemasterChannel[]> {
-  const base = await getChannels(guildId)
+  await invalidateGuildChannelsCache(guildId)
+  let base = await getChannels(guildId)
   let live: GuildChannel[] = []
+  let liveLoaded = false
   try {
-    live = await fetchGuildChannels(guildId)
+    live = await fetchGuildChannels(guildId, { fresh: true })
+    liveLoaded = true
   } catch {
     live = []
+  }
+  if (liveLoaded) {
+    base = await pruneInactiveVoicemasterChannels(guildId, base, live)
   }
   const liveById = new Map(
     live.map((c) => [String(c.id).trim(), c] as const)

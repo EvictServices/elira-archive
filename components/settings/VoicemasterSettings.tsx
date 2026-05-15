@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useConfirm } from '@/components/ConfirmModal'
 import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/bundleClient'
@@ -84,6 +84,33 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
       cancelled = true
     }
   }, [guildId])
+
+  const refreshActiveChannels = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/settings/${guildId}/voicemaster/channels`, {
+        credentials: 'same-origin',
+        cache: 'no-store',
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data.channels)) setChannels(data.channels as VmChannel[])
+    } catch {
+      /* ignore background refresh errors */
+    }
+  }, [guildId])
+
+  useEffect(() => {
+    if (!configuration) return
+    const interval = window.setInterval(refreshActiveChannels, 5000)
+    const onFocus = () => {
+      void refreshActiveChannels()
+    }
+    window.addEventListener('focus', onFocus)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [configuration, refreshActiveChannels])
 
   const channelsById = useMemo(() => {
     const map = new Map<string, GuildChannel>()
@@ -197,7 +224,8 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
       if (Array.isArray(data.failed_user_ids) && data.failed_user_ids.length > 0) {
         setError('Member could not be disconnected (they may have already left).')
       }
-      if (Array.isArray(data.channels)) setChannels(data.channels)
+      if (Array.isArray(data.channels)) setChannels(data.channels as VmChannel[])
+      else void refreshActiveChannels()
     } catch {
       setError('Failed to disconnect member')
     } finally {
@@ -230,7 +258,8 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
         return
       }
       if (data.warning) setError(data.warning)
-      if (Array.isArray(data.channels)) setChannels(data.channels)
+      if (Array.isArray(data.channels)) setChannels(data.channels as VmChannel[])
+      else void refreshActiveChannels()
     } catch {
       setError('Failed to delete')
     } finally {
@@ -245,7 +274,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
   if (!configuration) {
     return (
       <>
-      <div className="autorole-settings">
+      <div className="autorole-settings voicemaster-settings">
         {error && <p className="settings-error">{error}</p>}
         <div className="an-module" style={{ animationDelay: '0.03s' }}>
           <div className="an-module-header">
@@ -283,7 +312,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
 
   return (
     <>
-    <div className="autorole-settings">
+    <div className="autorole-settings voicemaster-settings">
       {error && <p className="settings-error">{error}</p>}
 
       <div className="an-module enabled" style={{ animationDelay: '0.03s' }}>
@@ -513,9 +542,9 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
           </span>
         </div>
         <span className="an-module-desc">
-          Temporary voice channels currently tracked for this server. Deleting a row disconnects
-          every member and removes the channel from Discord; if the channel was already deleted
-          manually, the tracking record is just dropped.
+          Temporary voice channels active on this server. Delete one to disconnect everyone inside
+          and remove it from Discord. If it was already deleted in Discord, delete it here to remove
+          it from this list.
         </span>
         <div className="an-module-body">
           {channels.length === 0 ? (
@@ -539,7 +568,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
                 const ownerPrimary =
                   ownerDisplay ||
                   ownerHandle ||
-                  (ch.owner_id ? 'Unknown member' : 'No owner on record')
+                  (ch.owner_id ? 'Unknown member' : 'No owner')
                 const ownerSecondary = ch.owner_id
                   ? ownerHandle
                     ? `@${ownerHandle} · ${ch.owner_id}`
@@ -589,12 +618,12 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
                           aria-label={
                             channelExists
                               ? `Delete voice channel ${channelPrimary}`
-                              : `Remove tracking entry for channel ${ch.channel_id}`
+                              : `Remove channel ${ch.channel_id} from list`
                           }
                           title={
                             channelExists
                               ? 'Disconnect members and delete the voice channel'
-                              : 'Remove tracking entry'
+                              : 'Remove from list'
                           }
                         >
                           -
@@ -605,7 +634,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
                       )}
                       {!channelExists && (
                         <p className="vm-active-channel-chip-stale-hint">
-                          Not visible in this server — remove to clear the tracking record.
+                          Not visible in this server — remove to clear it from this list.
                         </p>
                       )}
                       {ch.owner_id ? (
@@ -655,23 +684,25 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
 
                               return (
                                 <li key={uid} className="an-access-chip vm-connected-member-chip">
-                                  {member.avatar ? (
-                                    <img
-                                      src={member.avatar}
-                                      alt=""
-                                      className="an-access-chip-avatar"
-                                    />
-                                  ) : (
-                                    <div
-                                      className="an-access-chip-avatar an-access-chip-avatar-placeholder"
-                                      aria-hidden
-                                    >
-                                      {memberInitial}
+                                  <div className="an-access-chip-main">
+                                    {member.avatar ? (
+                                      <img
+                                        src={member.avatar}
+                                        alt=""
+                                        className="an-access-chip-avatar"
+                                      />
+                                    ) : (
+                                      <div
+                                        className="an-access-chip-avatar an-access-chip-avatar-placeholder"
+                                        aria-hidden
+                                      >
+                                        {memberInitial}
+                                      </div>
+                                    )}
+                                    <div className="an-access-chip-text">
+                                      <span className="an-access-chip-name">{memberPrimary}</span>
+                                      <span className="an-access-chip-id">{memberSecondary}</span>
                                     </div>
-                                  )}
-                                  <div className="an-access-chip-text">
-                                    <span className="an-access-chip-name">{memberPrimary}</span>
-                                    <span className="an-access-chip-id">{memberSecondary}</span>
                                   </div>
                                   <button
                                     type="button"
