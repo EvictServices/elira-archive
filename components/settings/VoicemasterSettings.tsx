@@ -163,6 +163,48 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
     }
   }
 
+  const handleDisconnectMember = async (
+    channelId: string,
+    userId: string,
+    memberLabel: string
+  ) => {
+    const ok = await confirm({
+      title: 'Disconnect member?',
+      description: `Remove ${memberLabel} from this voice channel? They will be disconnected from the call.`,
+      confirmLabel: 'Disconnect',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    })
+    if (!ok) return
+
+    const key = `disconnect:${channelId}:${userId}`
+    setSaving(key)
+    setError(null)
+    try {
+      const res = await fetch(
+        `/api/settings/${guildId}/voicemaster/channels/disconnect`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel_id: channelId, user_ids: [userId] }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to disconnect member')
+        return
+      }
+      if (Array.isArray(data.failed_user_ids) && data.failed_user_ids.length > 0) {
+        setError('Member could not be disconnected (they may have already left).')
+      }
+      if (Array.isArray(data.channels)) setChannels(data.channels)
+    } catch {
+      setError('Failed to disconnect member')
+    } finally {
+      setSaving(null)
+    }
+  }
+
   const handleDeleteChannel = async (channelId: string) => {
     const ok = await confirm({
       title: 'Delete this voice channel?',
@@ -481,24 +523,34 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
               No active VoiceMaster channels right now.
             </p>
           ) : (
-            <div className="vm-active-channels">
+            <ul className="an-access-chips vm-active-channels">
               {channels.map((ch) => {
-                const fallback = channelsById.get(ch.channel_id)
-                const displayName = ch.name ?? fallback?.name ?? null
+                const channelKey = String(ch.channel_id).trim()
+                const guildChannel = channelsById.get(channelKey)
+                const channelName = ch.name ?? guildChannel?.name ?? null
+                const channelExists = ch.exists || !!guildChannel
+                const channelPrimary =
+                  channelName ??
+                  (channelExists ? 'Voice channel' : 'Temporary voice channel')
                 const key = `channel:${ch.channel_id}`
                 const busy = saving === key
-                const ownerResolved = !!ch.owner_username?.trim()
-                const ownerLabel =
-                  ch.owner_username?.trim() ||
-                  (ch.owner_id ? 'Unknown member' : null)
+                const ownerHandle = ch.owner_username?.trim() || ''
+                const ownerDisplay = ch.owner_display_name?.trim() || ''
+                const ownerPrimary =
+                  ownerDisplay ||
+                  ownerHandle ||
+                  (ch.owner_id ? 'Unknown member' : 'No owner on record')
+                const ownerSecondary = ch.owner_id
+                  ? ownerHandle
+                    ? `@${ownerHandle} · ${ch.owner_id}`
+                    : `Member · ${ch.owner_id}`
+                  : null
                 const ownerInitial = (
-                  ch.owner_username?.trim()?.[0] ||
-                  ch.owner_id?.[0] ||
-                  '?'
+                  ownerDisplay[0] || ownerHandle[0] || ch.owner_id?.[0] || '?'
                 ).toUpperCase()
 
                 const statParts: string[] = []
-                if (ch.exists) {
+                if (channelExists) {
                   if (ch.member_count != null) {
                     statParts.push(
                       `${ch.member_count} connected${ch.user_limit ? ` (max ${ch.user_limit})` : ''}`
@@ -510,82 +562,144 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
                 }
 
                 return (
-                  <div
+                  <li
                     key={ch.channel_id}
-                    className={`vm-active-channel-card${!ch.exists ? ' vm-active-channel-stale' : ''}`}
+                    className={`an-access-chip vm-active-channel-chip${
+                      !channelExists ? ' vm-active-channel-chip--stale' : ''
+                    }`}
                   >
-                    <div className="vm-active-channel-body">
-                      <div className="vm-active-channel-top">
-                        <span className="vm-active-channel-name">
-                          {displayName ? `#${displayName}` : 'Temporary voice channel'}
-                        </span>
-                        {!ch.exists && (
-                          <span className="vm-active-channel-badge">Not in Discord</span>
-                        )}
-                      </div>
-                      <div className="vm-active-channel-id" title="Channel ID">
-                        {ch.channel_id}
+                    <div className="vm-active-channel-chip-body">
+                      <div className="vm-active-channel-chip-head">
+                        <div className="vm-active-channel-chip-title-wrap">
+                          <div className="an-access-chip-text">
+                            <span className="an-access-chip-name">{channelPrimary}</span>
+                            <span className="an-access-chip-id" title="Channel ID">
+                              {ch.channel_id}
+                            </span>
+                          </div>
+                          {!channelExists && (
+                            <span className="vm-active-channel-badge">Not in Discord</span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="disabled-commands-clear-all"
+                          onClick={() => handleDeleteChannel(ch.channel_id)}
+                          disabled={busy}
+                          aria-label={
+                            channelExists
+                              ? `Delete voice channel ${channelPrimary}`
+                              : `Remove tracking entry for channel ${ch.channel_id}`
+                          }
+                          title={
+                            channelExists
+                              ? 'Disconnect members and delete the voice channel'
+                              : 'Remove tracking entry'
+                          }
+                        >
+                          -
+                        </button>
                       </div>
                       {statParts.length > 0 && (
-                        <div className="vm-active-channel-stats">{statParts.join(' · ')}</div>
+                        <span className="vm-active-channel-chip-meta">{statParts.join(' · ')}</span>
                       )}
-                      {!ch.exists && (
-                        <p className="settings-hint" style={{ margin: 0, fontSize: '0.76rem' }}>
+                      {!channelExists && (
+                        <p className="vm-active-channel-chip-stale-hint">
                           Not visible in this server — remove to clear the tracking record.
                         </p>
                       )}
                       {ch.owner_id ? (
-                        <div className="vm-active-channel-owner-row">
+                        <div className="an-access-chip-main vm-active-channel-owner">
                           {ch.owner_avatar ? (
                             <img
                               src={ch.owner_avatar}
                               alt=""
-                              className="vm-active-channel-owner-avatar"
+                              className="an-access-chip-avatar"
                             />
                           ) : (
                             <div
-                              className="vm-active-channel-owner-avatar-ph"
+                              className="an-access-chip-avatar an-access-chip-avatar-placeholder"
                               aria-hidden
                             >
                               {ownerInitial}
                             </div>
                           )}
-                          <div className="vm-active-channel-owner-text">
-                            <span className="vm-active-channel-owner-label">Owner</span>
-                            <span className="vm-active-channel-owner-name">{ownerLabel}</span>
-                            {ch.owner_id && (ownerResolved || ownerLabel === 'Unknown member') && (
-                              <span className="vm-active-channel-owner-id">{ch.owner_id}</span>
-                            )}
+                          <div className="an-access-chip-text">
+                            <span className="an-access-chip-name">{ownerPrimary}</span>
+                            {ownerSecondary ? (
+                              <span className="an-access-chip-id">{ownerSecondary}</span>
+                            ) : null}
                           </div>
                         </div>
-                      ) : (
-                        <div className="vm-active-channel-owner-missing">No owner on record</div>
-                      )}
+                      ) : null}
+                      {channelExists &&
+                      Array.isArray(ch.connected_members) &&
+                      ch.connected_members.length > 0 ? (
+                        <div className="vm-connected-members">
+                          <span className="vm-connected-members-label">In call</span>
+                          <ul className="an-access-chips vm-connected-member-chips">
+                            {ch.connected_members.map((member) => {
+                              const uid = String(member.user_id).trim()
+                              const handle = member.username?.trim() || ''
+                              const display = member.display_name?.trim() || ''
+                              const memberPrimary =
+                                display || handle || 'Unknown member'
+                              const memberSecondary = handle
+                                ? `@${handle} · ${uid}`
+                                : `Member · ${uid}`
+                              const memberInitial = (
+                                display[0] || handle[0] || uid[0] || '?'
+                              ).toUpperCase()
+                              const disconnectKey = `disconnect:${ch.channel_id}:${uid}`
+                              const disconnectBusy = saving === disconnectKey
+
+                              return (
+                                <li key={uid} className="an-access-chip vm-connected-member-chip">
+                                  {member.avatar ? (
+                                    <img
+                                      src={member.avatar}
+                                      alt=""
+                                      className="an-access-chip-avatar"
+                                    />
+                                  ) : (
+                                    <div
+                                      className="an-access-chip-avatar an-access-chip-avatar-placeholder"
+                                      aria-hidden
+                                    >
+                                      {memberInitial}
+                                    </div>
+                                  )}
+                                  <div className="an-access-chip-text">
+                                    <span className="an-access-chip-name">{memberPrimary}</span>
+                                    <span className="an-access-chip-id">{memberSecondary}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="disabled-commands-clear-all"
+                                    onClick={() =>
+                                      handleDisconnectMember(
+                                        ch.channel_id,
+                                        uid,
+                                        memberPrimary
+                                      )
+                                    }
+                                    disabled={disconnectBusy}
+                                    aria-label={`Disconnect ${memberPrimary} from ${channelPrimary}`}
+                                    title="Disconnect from voice channel"
+                                  >
+                                    -
+                                  </button>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        </div>
+                      ) : null}
                     </div>
-                    <div className="vm-active-channel-actions">
-                      <button
-                        type="button"
-                        className="system-messages-icon-btn system-messages-minus-btn"
-                        onClick={() => handleDeleteChannel(ch.channel_id)}
-                        disabled={busy}
-                        aria-label={
-                          ch.exists
-                            ? `Delete voice channel #${displayName ?? ch.channel_id}`
-                            : `Remove tracking entry for channel ${ch.channel_id}`
-                        }
-                        title={
-                          ch.exists
-                            ? 'Disconnect members and delete the voice channel'
-                            : 'Remove tracking entry'
-                        }
-                      >
-                        -
-                      </button>
-                    </div>
-                  </div>
+                  </li>
                 )
               })}
-            </div>
+            </ul>
           )}
         </div>
       </div>

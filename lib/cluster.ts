@@ -92,6 +92,8 @@ export interface GuildChannel {
   type: number | string
   position: number
   parent_id: string | null
+  member_count?: number
+  connected_member_ids?: string[]
 }
 
 function normalizeSnowflakeInput(v: unknown): string {
@@ -131,17 +133,32 @@ export function normalizeGuildChannel(raw: GuildChannel | Record<string, unknown
   const idRaw = normalizeSnowflakeInput(o.id)
   const id = idRaw || String(o.id ?? '')
 
+  const member_count =
+    typeof o.member_count === 'number' && !Number.isNaN(o.member_count)
+      ? o.member_count
+      : undefined
+  let connected_member_ids: string[] | undefined
+  const rawIds = o.connected_member_ids
+  if (Array.isArray(rawIds)) {
+    const ids = rawIds
+      .map((x) => normalizeSnowflakeInput(x))
+      .filter((x) => x.length > 0)
+    if (ids.length > 0) connected_member_ids = ids
+  }
+
   return {
     id,
     name: typeof o.name === 'string' ? o.name : String(o.name ?? ''),
     type: (o.type ?? 0) as number | string,
     position: typeof o.position === 'number' ? o.position : Number(o.position) || 0,
     parent_id,
+    ...(member_count !== undefined ? { member_count } : {}),
+    ...(connected_member_ids ? { connected_member_ids } : {}),
   }
 }
 
 export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[]> {
-  const cacheKey = `dashboard:channels:v3:${guildId}`
+  const cacheKey = `dashboard:channels:v4:${guildId}`
   const cached = await redis.get(cacheKey)
   if (cached) {
     const parsed = JSON.parse(cached) as GuildChannel[]

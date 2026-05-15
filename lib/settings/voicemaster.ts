@@ -10,6 +10,7 @@ import {
   type VoicemasterConfiguration,
   type VoicemasterChannel,
   type EnrichedVoicemasterChannel,
+  type VoicemasterConnectedMember,
 } from '@/lib/settings/voicemaster_types'
 
 export type {
@@ -17,6 +18,7 @@ export type {
   VoicemasterConfiguration,
   VoicemasterChannel,
   EnrichedVoicemasterChannel,
+  VoicemasterConnectedMember,
 }
 export { REGIONS, MIN_BITRATE_KBPS, MAX_BITRATE_KBPS }
 
@@ -222,27 +224,45 @@ export async function getEnrichedChannels(
   } catch {
     live = []
   }
-  const liveById = new Map(live.map((c) => [String(c.id), c]))
+  const liveById = new Map(
+    live.map((c) => [String(c.id).trim(), c] as const)
+  )
 
-  const ownerIds = [
-    ...new Set(
-      base
-        .map((r) => r.owner_id)
-        .filter((id): id is string => typeof id === 'string' && id.trim() !== '')
-    ),
-  ]
-  const userMap = await fetchUserInfoBatch(ownerIds)
+  const connectedIdsByChannel = new Map<string, string[]>()
+  const allUserIds = new Set<string>()
+
+  for (const row of base) {
+    const ch = liveById.get(String(row.channel_id).trim())
+    const ids = (ch?.connected_member_ids ?? [])
+      .map((id) => String(id).trim())
+      .filter(Boolean)
+    connectedIdsByChannel.set(String(row.channel_id).trim(), ids)
+    for (const id of ids) allUserIds.add(id)
+    if (row.owner_id?.trim()) allUserIds.add(row.owner_id.trim())
+  }
+
+  const userMap = await fetchUserInfoBatch([...allUserIds])
+
+  function memberFromUserId(userId: string): VoicemasterConnectedMember {
+    const u = userMap.get(userId)
+    return {
+      user_id: userId,
+      username: u?.username?.trim() || null,
+      display_name: u?.display_name?.trim() || null,
+      avatar: u?.avatar?.trim() ? u.avatar.trim() : null,
+    }
+  }
 
   return base.map((row) => {
-    const ch = liveById.get(row.channel_id) as
+    const ch = liveById.get(String(row.channel_id).trim()) as
       | (GuildChannel & {
-          member_count?: number
           bitrate?: number
           user_limit?: number
         })
       | undefined
     const oid = row.owner_id?.trim() ? row.owner_id : null
     const u = oid ? userMap.get(oid) : undefined
+    const connectedIds = connectedIdsByChannel.get(String(row.channel_id).trim()) ?? []
     return {
       guild_id: row.guild_id,
       channel_id: row.channel_id,
@@ -253,7 +273,9 @@ export async function getEnrichedChannels(
       user_limit: ch?.user_limit ?? null,
       exists: !!ch,
       owner_username: u?.username?.trim() || null,
+      owner_display_name: u?.display_name?.trim() || null,
       owner_avatar: u?.avatar?.trim() ? u.avatar.trim() : null,
+      connected_members: connectedIds.map(memberFromUserId),
     }
   })
 }
@@ -421,6 +443,77 @@ export async function deleteVoicemasterChannel(
       }
     }
     return { ok: true }
+  } catch (e) {
+    return {
+      ok: false,
+      error:
+        e instanceof Error ? e.message : 'Could not reach cluster (check CLUSTER_API_URL)',
+    }
+  }
+}
+
+export interface VoicemasterMemberDisconnectResult {
+  ok: boolean
+  error?: string
+  disconnected_user_ids?: string[]
+  failed_user_ids?: string[]
+}
+
+export async function disconnectVoicemasterMembers(
+  guildId: string,
+  channelId: string,
+  userIds: string[]
+): Promise<VoicemasterMemberDisconnectResult> {
+  const ids = [...new Set(userIds.map((x) => String(x).trim()).filter(Boolean))]
+  if (ids.length === 0) {
+    return { ok: false, error: 'No user IDs provided' }
+  }
+
+  try {
+    const res = await fetch(
+      `${CLUSTER_API_BASE}/guild/${guildId}/voicemaster/channels/${channelId}/disconnect`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ user_ids: ids }),
+        cache: 'no-store',
+      }
+    )
+    const text = await res.text()
+    if (!text.trim()) {
+      if (!res.ok) {
+        return { ok: false, error: `Cluster API failed (${res.status})` }
+      }
+      return { ok: true, disconnected_user_ids: ids }
+    }
+
+    let raw: Record<string, unknown>
+    try {
+      raw = clusterJsonParse<Record<string, unknown>>(text)
+    } catch {
+      return { ok: false, error: 'Invalid response from cluster' }
+    }
+
+    if (!res.ok || raw.ok === false) {
+      const detail =
+        typeof raw.detail === 'string'
+          ? raw.detail
+          : typeof raw.error === 'string'
+            ? raw.error
+            : `Cluster API failed (${res.status})`
+      return { ok: false, error: detail }
+    }
+
+    const disconnected = normalizeDisconnectedUserIds(raw.disconnected_user_ids) ?? []
+    const failed = normalizeDisconnectedUserIds(raw.failed_user_ids) ?? []
+    return {
+      ok: true,
+      disconnected_user_ids: disconnected.length ? disconnected : ids,
+      failed_user_ids: failed.length ? failed : undefined,
+    }
   } catch (e) {
     return {
       ok: false,

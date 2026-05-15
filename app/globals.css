@@ -5575,45 +5575,100 @@ body:has(.server-layout) > footer {
 }
 
 /* VoiceMaster — active temporary channels */
-.vm-active-channels {
-  display: flex;
+.vm-active-channels.an-access-chips {
+  margin: 2px 0 0;
+}
+
+.vm-active-channel-chip {
   flex-direction: column;
-  gap: 10px;
-  margin-top: 2px;
+  align-items: stretch;
+  gap: 0;
 }
-.vm-active-channel-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px 14px;
-  border-radius: var(--r-sm);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.035);
-}
-.vm-active-channel-card.vm-active-channel-stale {
+
+.vm-active-channel-chip--stale {
   border-color: rgba(248, 113, 113, 0.28);
   background: rgba(248, 113, 113, 0.06);
 }
-.vm-active-channel-body {
-  flex: 1;
-  min-width: 0;
+
+.vm-active-channel-chip-body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
 }
-.vm-active-channel-top {
+
+.vm-active-channel-chip-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vm-active-channel-chip-title-wrap {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
-.vm-active-channel-name {
-  font-size: 0.9rem;
+
+.vm-active-channel-chip-title {
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+}
+
+.vm-active-channel-chip-meta {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+
+.vm-active-channel-chip-stale-hint {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: rgba(251, 191, 36, 0.88);
+}
+
+.vm-active-channel-owner {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.vm-connected-members {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.vm-connected-members-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+
+.vm-connected-member-chips.an-access-chips {
+  margin: 0;
+  gap: 6px;
+}
+
+.vm-connected-member-chip.an-access-chip {
+  width: 100%;
+  box-sizing: border-box;
 }
 .vm-active-channel-badge {
   display: inline-flex;
@@ -5628,100 +5683,6 @@ body:has(.server-layout) > footer {
   color: #fecaca;
   background: rgba(248, 113, 113, 0.14);
 }
-.vm-active-channel-id {
-  font-family: ui-monospace, monospace;
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  opacity: 0.88;
-  word-break: break-all;
-  line-height: 1.35;
-}
-.vm-active-channel-stats {
-  font-size: 0.76rem;
-  color: var(--text-secondary);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-}
-.vm-active-channel-owner-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-}
-.vm-active-channel-owner-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-.vm-active-channel-owner-avatar-ph {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.68rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
-  color: var(--text-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.vm-active-channel-owner-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-.vm-active-channel-owner-label {
-  font-size: 0.62rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-}
-.vm-active-channel-owner-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.vm-active-channel-owner-id {
-  font-family: ui-monospace, monospace;
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  opacity: 0.82;
-}
-.vm-active-channel-owner-missing {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-}
-.vm-active-channel-actions {
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-start;
-}
-@media (max-width: 640px) {
-  .vm-active-channel-card {
-    flex-wrap: wrap;
-  }
-  .vm-active-channel-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
 @media (max-width: 900px) {
   .an-access-panel {
     padding: 12px;
@@ -6634,6 +6595,14 @@ body:has(.server-layout) > footer {
 .autorole-pair-cell > .an-module {
   flex: 1;
   min-height: 0;
+}
+
+.voicemaster-settings .autorole-pair-row + .autorole-pair-row {
+  margin-top: 0;
+}
+
+.voicemaster-settings .autorole-pair-cell > .an-module {
+  height: 100%;
 }
 
 .autorole-list {

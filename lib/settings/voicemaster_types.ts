@@ -37,6 +37,13 @@ export interface VoicemasterChannel {
   owner_id: string | null
 }
 
+export interface VoicemasterConnectedMember {
+  user_id: string
+  username: string | null
+  display_name: string | null
+  avatar: string | null
+}
+
 export interface EnrichedVoicemasterChannel {
   guild_id: string
   channel_id: string
@@ -47,5 +54,7 @@ export interface EnrichedVoicemasterChannel {
   user_limit: number | null
   exists: boolean
   owner_username: string | null
+  owner_display_name: string | null
   owner_avatar: string | null
+  connected_members: VoicemasterConnectedMember[]
 }
