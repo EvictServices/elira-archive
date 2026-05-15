@@ -3,7 +3,12 @@ import { getSession } from '@/lib/auth'
 import { hasGuildAdmin } from '@/lib/discord'
 import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
 import { isDiscordTextChannel } from '@/lib/guild_channel_type'
-import { normalizeCommand, normalizeSnowflakeList } from '@/lib/settings/command_mgmt'
+import {
+  canDisableCommand,
+  normalizeCommand,
+  normalizeSnowflakeList,
+  nonDisableableCommandMessage,
+} from '@/lib/settings/command_mgmt'
 import {
   addDisabledCommandRows,
   listDisabledCommands,
@@ -65,6 +70,13 @@ export async function POST(
         error:
           'Invalid command name. Use the command’s qualified name (letters, numbers, spaces, hyphens). The `command` group cannot be changed here.',
       },
+      { status: 400 }
+    )
+  }
+
+  if (!canDisableCommand(command)) {
+    return NextResponse.json(
+      { error: nonDisableableCommandMessage(command) ?? 'This command cannot be disabled.' },
       { status: 400 }
     )
   }

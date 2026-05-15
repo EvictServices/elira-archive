@@ -471,7 +471,7 @@ export default function RewardsSettings({
       {confirmModal}
       {error && <p className="settings-error">{error}</p>}
 
-      <div className="system-messages-kinds-grid">
+      <div className="system-messages-kinds-grid rewards-kinds-grid">
         <div className="settings-field system-messages-section">
           <div className="system-messages-section-head">
             <label className="settings-label system-messages-section-label">Guild tag rewards</label>
@@ -523,7 +523,7 @@ export default function RewardsSettings({
                   {tag.channel_id ?? 'No channel — open edit to choose one'}
                 </span>
                 <hr className="rewards-card-separator" aria-hidden />
-                <motion.div className="rewards-card-inline">
+                <div className="rewards-card-inline">
                   <span className="settings-label" style={{ fontSize: '0.72rem', marginBottom: 6, display: 'block' }}>
                     Roles to grant
                   </span>
@@ -655,6 +655,7 @@ export default function RewardsSettings({
                 <span className="an-module-desc welcome-message-channel-id">
                   {vanity.channel_id ?? 'No channel — open edit to choose one'}
                 </span>
+                <hr className="rewards-card-separator" aria-hidden />
                 <div className="rewards-card-inline">
                   <span className="settings-label" style={{ fontSize: '0.72rem', marginBottom: 6, display: 'block' }}>
                     Role to grant

@@ -291,12 +291,6 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
     <div className="logging-settings">
       {error && <p className="settings-error">{error}</p>}
 
-      <div className="logging-channels-header">
-        <span className="logging-channels-count">
-          {enabledCount} of {EVENT_TYPES.length} event{enabledCount !== 1 ? 's' : ''} configured
-        </span>
-      </div>
-
       <div className="an-modules">
         {EVENT_TYPES.map((event, i) => (
           <EventCard

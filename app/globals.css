@@ -3821,10 +3821,49 @@ body:has(.server-layout) > footer {
   opacity: 0.55;
 }
 
+.rewards-card-separator {
+  margin: 0.75rem 0 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .rewards-card-inline {
-  margin-top: 0.35rem;
-  padding-top: 0.65rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0.75rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.rewards-kinds-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+}
+
+.rewards-kinds-grid > .system-messages-section:first-child {
+  padding-right: 1.05rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rewards-kinds-grid > .system-messages-section:last-child {
+  padding-left: 1.05rem;
+}
+
+@media (max-width: 960px) {
+  .rewards-kinds-grid {
+    grid-template-columns: 1fr;
+    gap: 1.05rem;
+  }
+
+  .rewards-kinds-grid > .system-messages-section:first-child {
+    padding-right: 0;
+    padding-bottom: 1.05rem;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .rewards-kinds-grid > .system-messages-section:last-child {
+    padding-left: 0;
+    padding-top: 0.15rem;
+  }
 }
 
 .rewards-vanity-hint {
@@ -4138,6 +4177,28 @@ body:has(.server-layout) > footer {
 
 .general-settings-pane--add-rule .general-settings-add-rule-mode .an-dropdown-trigger {
   min-height: 40px;
+}
+
+.cmd-module-picker-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+
+.cmd-module-picker-status {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+.general-settings-pane--add-rule .disabled-commands-add-controls > .an-dropdown {
+  width: 100%;
+  max-width: 240px;
 }
 
 .general-settings-pane--add-rule .disabled-commands-add-controls .settings-input-row {
@@ -6009,6 +6070,132 @@ body:has(.server-layout) > footer {
 .an-dropdown-item:disabled:hover {
   background: transparent;
   opacity: 0.35;
+}
+
+.an-dropdown-menu--grouped {
+  max-height: min(320px, 52vh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.an-dropdown-menu-search {
+  flex-shrink: 0;
+  padding: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.an-dropdown-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color var(--ease);
+}
+
+.an-dropdown-search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.an-dropdown-search-input:focus {
+  border-color: var(--border-hover);
+}
+
+.an-dropdown-menu-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 4px;
+  flex: 1;
+  min-height: 0;
+}
+
+.an-dropdown-empty {
+  margin: 0;
+  padding: 10px 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+.an-dropdown-group + .an-dropdown-group {
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.an-dropdown-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--ease), color var(--ease);
+}
+
+.an-dropdown-group-head:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+}
+
+.an-dropdown-group-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.an-dropdown-group-count {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.an-dropdown-item--command {
+  padding-left: 14px;
+}
+
+.an-dropdown-command-name {
+  flex-shrink: 0;
+  max-width: 58%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+.an-dropdown-item--command .an-dropdown-command-name {
+  max-width: none;
+  flex: 1;
+  min-width: 0;
 }
 
 .autorole-disabled-reason {

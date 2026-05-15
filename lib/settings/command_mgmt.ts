@@ -1,6 +1,25 @@
 export const CMD_MAX = 96
 export const CMD_RE = /^[a-z0-9][a-z0-9 _-]*$/i
 
+/** Commands that cannot be channel-disabled (qualified name, case-insensitive). */
+const NON_DISABLEABLE_COMMANDS = new Set(['help'])
+
+export function canDisableCommand(command: string): boolean {
+  const normalized = normalizeCommand(command)
+  if (!normalized) return false
+  return !NON_DISABLEABLE_COMMANDS.has(normalized.toLowerCase())
+}
+
+export function nonDisableableCommandMessage(command: string): string | null {
+  if (canDisableCommand(command)) return null
+  const normalized = normalizeCommand(command)
+  if (!normalized) return null
+  if (NON_DISABLEABLE_COMMANDS.has(normalized.toLowerCase())) {
+    return 'The help command cannot be disabled.'
+  }
+  return 'This command cannot be disabled.'
+}
+
 export function normalizeCommand(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
   const s = raw.trim().replace(/\s+/g, ' ')

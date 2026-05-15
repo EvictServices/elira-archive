@@ -6,6 +6,9 @@ import { fetchBundle } from '@/lib/bundleClient'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
 import { colorHex, type GuildChannel, type GuildRole } from '@/components/settings/types'
 import { OverflowChipDropdown } from '@/components/settings/OverflowChipDropdown'
+import { CommandModulePicker } from '@/components/settings/CommandModulePicker'
+import type { CatalogCommand } from '@/lib/commands/catalog'
+import { canDisableCommand } from '@/lib/settings/command_mgmt'
 import PrefixSettings from './PrefixSettings'
 
 interface DisabledGroup {
@@ -44,6 +47,9 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
   const [saving, setSaving] = useState(false)
   const [removing, setRemoving] = useState<string | null>(null)
   const [ignoreDraft, setIgnoreDraft] = useState('')
+  const [ignorePickerChannel, setIgnorePickerChannel] = useState('')
+  const [catalogCommands, setCatalogCommands] = useState<CatalogCommand[]>([])
+  const [commandsLoading, setCommandsLoading] = useState(true)
   const [ignoreSaving, setIgnoreSaving] = useState(false)
   const [removingIgnore, setRemovingIgnore] = useState<string | null>(null)
   const [restrictCommandDraft, setRestrictCommandDraft] = useState('')
@@ -76,6 +82,17 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     () => guildRoles.filter((r) => !isEveryoneRole(r) && !r.managed && !r.is_bot_managed),
     [guildRoles]
   )
+
+  const disableableCommands = useMemo(
+    () => catalogCommands.filter((c) => canDisableCommand(c.name)),
+    [catalogCommands]
+  )
+
+  useEffect(() => {
+    if (commandDraft && !canDisableCommand(commandDraft)) {
+      setCommandDraft('')
+    }
+  }, [commandDraft, disableableCommands])
 
   const targetDisplayLabel = (targetId: string) => {
     const ch = channelLabel(targetId)
@@ -137,6 +154,26 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     void load()
   }, [load])
 
+  useEffect(() => {
+    let cancelled = false
+    setCommandsLoading(true)
+    fetch('/api/commands')
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}))
+        if (cancelled) return
+        setCatalogCommands(Array.isArray(data.commands) ? (data.commands as CatalogCommand[]) : [])
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogCommands([])
+      })
+      .finally(() => {
+        if (!cancelled) setCommandsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const addPickerToSelection = () => {
     if (!pickerChannel) return
     setSelectedIds((prev) => (prev.includes(pickerChannel) ? prev : [...prev, pickerChannel]))
@@ -154,7 +191,11 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
   const submitDisable = async () => {
     const cmd = commandDraft.trim()
     if (!cmd || selectedIds.length === 0) {
-      setError('Enter a command name and choose at least one channel.')
+      setError('Select a command and choose at least one channel.')
+      return
+    }
+    if (!canDisableCommand(cmd)) {
+      setError('The help command cannot be disabled.')
       return
     }
     setSaving(true)
@@ -212,8 +253,8 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     }
   }
 
-  const submitIgnore = async () => {
-    const id = ignoreDraft.replace(/\D/g, '')
+  const submitIgnore = async (targetIdOverride?: string) => {
+    const id = (targetIdOverride ?? ignoreDraft).replace(/\D/g, '')
     if (id.length < 17) {
       setAccessError('Enter a 17–20 digit channel or user ID.')
       return
@@ -273,7 +314,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
   const submitRestrict = async () => {
     const cmd = restrictCommandDraft.trim()
     if (!cmd || restrictSelectedRoleIds.length === 0) {
-      setAccessError('Enter a command name and at least one role for restrictions.')
+      setAccessError('Select a command and at least one role for restrictions.')
       return
     }
     setRestrictSaving(true)
@@ -329,10 +370,10 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
 
   const addModeDesc =
     addRuleMode === 'disable'
-      ? 'Command name, then add one or more text channels before saving.'
+      ? 'Pick a command from the list, add channels, then save.'
       : addRuleMode === 'ignore'
-        ? 'Enter a 17–20 digit Discord ID for a channel or member, then add.'
-        : 'Command name, then pick one or more roles. Only members with those roles may use the command (unless they have Administrator).'
+        ? 'Pick a channel by category, or add a member by Discord ID below.'
+        : 'Pick a command from the list, add roles, then save. Only members with those roles may use the command (unless they have Administrator).'
 
   const addRulePanel = (
     <section className="general-settings-pane general-settings-pane--add-rule">
@@ -365,19 +406,23 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
 
       {addRuleMode === 'disable' && (
         <div className="disabled-commands-add-controls">
-          <div className="settings-input-row disabled-commands-command-row">
-            <input
-              type="text"
-              className="settings-input"
-              placeholder="Command name"
-              value={commandDraft}
-              onChange={(e) => {
-                setCommandDraft(e.target.value)
-                setError(null)
-              }}
-              disabled={saving || loading}
-            />
-          </div>
+          <span
+            className="settings-label cmd-module-picker-label"
+            id={`cmd-mgmt-disable-cmd-${guildId}`}
+          >
+            Command
+          </span>
+          <CommandModulePicker
+            commands={disableableCommands}
+            value={commandDraft}
+            onChange={(name) => {
+              setCommandDraft(name)
+              setError(null)
+            }}
+            disabled={saving || loading}
+            loading={commandsLoading}
+            aria-labelledby={`cmd-mgmt-disable-cmd-${guildId}`}
+          />
           <div className="disabled-commands-channel-row">
             <ChannelDropdown
               channels={textChannels}
@@ -462,12 +507,47 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
 
       {addRuleMode === 'ignore' && (
         <div className="disabled-commands-add-controls">
+          <span
+            className="settings-label cmd-module-picker-label"
+            id={`cmd-mgmt-ignore-ch-${guildId}`}
+          >
+            Channel
+          </span>
+          <div className="disabled-commands-channel-row">
+            <ChannelDropdown
+              channels={textChannels}
+              categories={categories}
+              value={ignorePickerChannel}
+              onChange={(id) => {
+                setIgnorePickerChannel(id)
+                setAccessError(null)
+              }}
+              placeholder="Pick a text channel"
+              saving={ignoreSaving || loading}
+            />
+          </div>
+          <div className="disabled-commands-add-actions">
+            <button
+              type="button"
+              className="settings-save-btn"
+              onClick={() => {
+                if (!ignorePickerChannel) return
+                void submitIgnore(ignorePickerChannel).then(() => setIgnorePickerChannel(''))
+              }}
+              disabled={ignoreSaving || loading || !ignorePickerChannel}
+            >
+              {ignoreSaving ? 'Adding…' : 'Add channel'}
+            </button>
+          </div>
+          <span className="settings-label cmd-module-picker-label" style={{ marginTop: '0.75rem' }}>
+            Member
+          </span>
           <div className="settings-input-row" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
             <input
               type="text"
               className="settings-input"
               inputMode="numeric"
-              placeholder="Channel or user ID"
+              placeholder="Member ID"
               value={ignoreDraft}
               onChange={(e) => {
                 setIgnoreDraft(e.target.value.replace(/\D/g, ''))
@@ -481,7 +561,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
               onClick={() => void submitIgnore()}
               disabled={ignoreSaving || loading || ignoreDraft.replace(/\D/g, '').length < 17}
             >
-              {ignoreSaving ? 'Adding…' : 'Add ignore'}
+              {ignoreSaving ? 'Adding…' : 'Add member'}
             </button>
           </div>
         </div>
@@ -489,19 +569,23 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
 
       {addRuleMode === 'restrict' && (
         <div className="disabled-commands-add-controls">
-          <div className="settings-input-row disabled-commands-command-row">
-            <input
-              type="text"
-              className="settings-input"
-              placeholder="Command name"
-              value={restrictCommandDraft}
-              onChange={(e) => {
-                setRestrictCommandDraft(e.target.value)
-                setAccessError(null)
-              }}
-              disabled={restrictSaving || loading}
-            />
-          </div>
+          <span
+            className="settings-label cmd-module-picker-label"
+            id={`cmd-mgmt-restrict-cmd-${guildId}`}
+          >
+            Command
+          </span>
+          <CommandModulePicker
+            commands={catalogCommands}
+            value={restrictCommandDraft}
+            onChange={(name) => {
+              setRestrictCommandDraft(name)
+              setAccessError(null)
+            }}
+            disabled={restrictSaving || loading}
+            loading={commandsLoading}
+            aria-labelledby={`cmd-mgmt-restrict-cmd-${guildId}`}
+          />
           <div className="disabled-commands-channel-row">
             <RoleDropdown
               roles={restrictAssignableRoles}
@@ -729,8 +813,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
         <label className="settings-label">Disabled commands</label>
         <p className="settings-desc">
           Choose where each command cannot be used. Members with Administrator in Discord are not
-          blocked. Use each command’s qualified name (for example <code>ban</code> or{' '}
-          <code>voicemaster setup</code>).
+          blocked.
         </p>
 
         {entries.length === 0 ? (

@@ -41,17 +41,21 @@ export default function HeroStats() {
           try {
             if (cmdRes.ok) {
               const cmdData = await cmdRes.json()
-              const cmdMap: Record<string, unknown[]> = cmdData?.data?.commands ?? {}
-              const seen = new Set<string>()
-              let count = 0
-              Object.entries(cmdMap).forEach(([cat, cmds]) => {
-                if (!Array.isArray(cmds) || cat.toLowerCase() === 'jishaku') return
-                ;(cmds as { qualified_name?: string; name?: string; hidden?: boolean }[]).forEach((cmd) => {
-                  const name = cmd.qualified_name || cmd.name
-                  if (name && !seen.has(name) && !cmd.hidden) { seen.add(name); count++ }
+              if (Array.isArray(cmdData?.commands)) {
+                animateCounter(setCommands, cmdData.commands.length)
+              } else {
+                const cmdMap: Record<string, unknown[]> = cmdData?.data?.commands ?? {}
+                const seen = new Set<string>()
+                let count = 0
+                Object.entries(cmdMap).forEach(([cat, cmds]) => {
+                  if (!Array.isArray(cmds) || cat.toLowerCase() === 'jishaku') return
+                  ;(cmds as { qualified_name?: string; name?: string; hidden?: boolean }[]).forEach((cmd) => {
+                    const name = cmd.qualified_name || cmd.name
+                    if (name && !seen.has(name) && !cmd.hidden) { seen.add(name); count++ }
+                  })
                 })
-              })
-              animateCounter(setCommands, count)
+                animateCounter(setCommands, count)
+              }
             }
           } catch {}
         } else {

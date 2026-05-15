@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 export interface AnGuildChannel {
   id: string
   name: string
-  /** May be string or number from JSON before normalization */
   parent_id?: string | number | null
 }
 
@@ -15,7 +14,7 @@ function snowflakeKey(id: string | number | null | undefined): string {
   return String(id).trim()
 }
 
-function categoryLookupLabel(
+export function categoryLookupLabel(
   parentId: string | number | null | undefined,
   categoryById: Map<string, string>
 ): string {
@@ -143,14 +142,12 @@ export function ChannelDropdown({
   emptyOption,
 }: {
   channels: AnGuildChannel[]
-  /** Category channels (type 4) for resolving \`parent_id\` labels on the right. */
   categories?: AnGuildChannel[]
   value: string
   onChange: (value: string) => void
   placeholder?: string
   prefix?: string
   saving?: boolean
-  /** When set, value \`""\` selects this row (e.g. transcript disabled). */
   emptyOption?: { label: string }
 }) {
   const [open, setOpen] = useState(false)
