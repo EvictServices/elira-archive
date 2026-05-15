@@ -477,8 +477,7 @@ export default function RewardsSettings({
             <label className="settings-label system-messages-section-label">Guild tag rewards</label>
           </div>
           <p className="settings-hint system-messages-section-hint">
-            When someone sets this server as their primary profile tag, grant roles and send an optional notification
-            (Elara <code className="prefix-settings-inline-code">tag</code>).
+            When someone sets this server as their primary profile tag, grant roles and send an optional notification.
           </p>
           <div className="system-messages-section-body">
             <div className="an-modules welcome-message-modules system-messages-modules">
@@ -523,7 +522,8 @@ export default function RewardsSettings({
                 <span className="an-module-desc welcome-message-channel-id">
                   {tag.channel_id ?? 'No channel — open edit to choose one'}
                 </span>
-                <div className="rewards-card-inline">
+                <hr className="rewards-card-separator" aria-hidden />
+                <motion.div className="rewards-card-inline">
                   <span className="settings-label" style={{ fontSize: '0.72rem', marginBottom: 6, display: 'block' }}>
                     Roles to grant
                   </span>
@@ -604,8 +604,7 @@ export default function RewardsSettings({
             <label className="settings-label system-messages-section-label">Vanity URL rewards</label>
           </div>
           <p className="settings-hint system-messages-section-hint">
-            When someone puts your vanity invite in their custom status, grant a role and notify a channel (Elara{' '}
-            <code className="prefix-settings-inline-code">vanity</code>).
+            When someone puts your vanity invite in their custom status, grant a role and notify a channel.
           </p>
           {!vanityUrlCode && (
             <p className="rewards-vanity-hint">

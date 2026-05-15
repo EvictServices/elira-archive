@@ -1,7 +1,6 @@
 import pool from '@/lib/db'
 import redis from '@/lib/redis'
 
-/** Matches Elara `invalidate_roleplay_cache` / cashews key `roleplay_enabled:{guild_id}`. */
 function roleplayCacheKey(guildId: string): string {
   return `roleplay_enabled:${guildId}`
 }
@@ -26,6 +25,5 @@ export async function setGuildRoleplayEnabled(guildId: string, enabled: boolean)
   try {
     await redis.del(roleplayCacheKey(guildId))
   } catch {
-    // best-effort; bot may use a different Redis or key prefix
   }
 }

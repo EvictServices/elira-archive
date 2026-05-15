@@ -203,7 +203,7 @@ const sectionDescriptions: Record<string, string> = {
   antinuke: 'Protect your server from malicious actions by rogue administrators.',
   system: 'Welcome, boost, and leave messages, plus automatic roles when members join.',
   starboard: 'Highlight popular messages in a starboard channel.',
-  rewards: 'Reward members who rep your server tag or vanity invite (Elara tag / vanity parity).',
+  rewards: 'Reward members who rep your server tag or vanity invite.',
   voicemaster: 'Create temporary voice channels on demand.',
   tickets: 'Set up a support ticket system.',
 }
@@ -447,7 +447,13 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
         <div className="server-content-body">
           {activeItem === 'general' && <DisabledCommandsSettings guildId={guild.guild_id} />}
           {activeItem === 'audit' && <AuditLogSettings guildId={guild.guild_id} />}
-          {activeItem === 'antinuke' && <AntinukeSettings guildId={guild.guild_id} />}
+          {activeItem === 'antinuke' && (
+            <AntinukeSettings
+              guildId={guild.guild_id}
+              ownerId={guild.owner_id}
+              currentUserId={user.id}
+            />
+          )}
           {activeItem === 'logging' && <LoggingSettings guildId={guild.guild_id} />}
           {activeItem === 'invoke' && (
             <InvokeSettings

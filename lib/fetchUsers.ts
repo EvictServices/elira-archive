@@ -1,4 +1,10 @@
-type UserInfo = { username?: string; avatar?: string; bot?: boolean; discriminator?: string }
+type UserInfo = {
+  username?: string
+  display_name?: string
+  avatar?: string
+  bot?: boolean
+  discriminator?: string
+}
 
 /** Same origin as `lib/cluster.ts` — batch + per-user lookups hit the cluster API. */
 const CLUSTER_BASE = 'http://localhost:8000'
@@ -7,10 +13,12 @@ function normalizeUserRow(row: Record<string, unknown>): { id: string; info: Use
   const rawId = row.user_id ?? row.id
   if (rawId === undefined || rawId === null) return null
   const id = String(rawId)
-  const username =
+  const display_name =
     (typeof row.display_name === 'string' && row.display_name.trim()) ||
-    (typeof row.username === 'string' && row.username.trim()) ||
+    (typeof row.global_name === 'string' && row.global_name.trim()) ||
     undefined
+  const username =
+    (typeof row.username === 'string' && row.username.trim()) || undefined
   const avatarRaw =
     (typeof row.avatar === 'string' && row.avatar) ||
     (typeof row.avatar_url === 'string' && row.avatar_url) ||
@@ -20,6 +28,7 @@ function normalizeUserRow(row: Record<string, unknown>): { id: string; info: Use
     id,
     info: {
       username,
+      display_name,
       avatar,
       bot: typeof row.bot === 'boolean' ? row.bot : undefined,
       discriminator: typeof row.discriminator === 'string' ? row.discriminator : undefined,
@@ -81,17 +90,19 @@ export async function fetchUserInfoBatch(userIds: string[]): Promise<Map<string,
           result.set(userId, n.info)
           return
         }
-        const username =
+        const display_name =
           (typeof row.display_name === 'string' && row.display_name.trim()) ||
-          (typeof row.username === 'string' && row.username.trim()) ||
+          (typeof row.global_name === 'string' && row.global_name.trim()) ||
           undefined
+        const username =
+          (typeof row.username === 'string' && row.username.trim()) || undefined
         const avatarRaw =
           (typeof row.avatar === 'string' && row.avatar) ||
           (typeof row.avatar_url === 'string' && row.avatar_url) ||
           undefined
         const avatar = avatarRaw?.trim() ? avatarRaw.trim() : undefined
-        if (username || avatar) {
-          result.set(userId, { username, avatar })
+        if (username || display_name || avatar) {
+          result.set(userId, { username, display_name, avatar })
         }
       } catch {
         /* skip */

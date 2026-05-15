@@ -1,4 +1,3 @@
-/** Keys stored in `invoke.base.action_type` (see Elara `ModerationActionHandler` + `invoke` cog). */
 export const INVOKE_ACTION_TYPES = [
   'kicked',
   'banned',
@@ -29,10 +28,6 @@ export const INVOKE_ACTION_LABELS: Record<InvokeActionType, string> = {
   role_removed: 'Role removed',
 }
 
-/**
- * Default success line when no custom invoke script is set (Elara `InvokeScript.send`:
- * `Successfully {action_type} {target.mention}`). `{user.mention}` matches substitution in scripts.
- */
 export const INVOKE_DEFAULT_MESSAGE: Record<InvokeActionType, string> = {
   kicked: 'Successfully kicked {user.mention}',
   banned: 'Successfully banned {user.mention}',

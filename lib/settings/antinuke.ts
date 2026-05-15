@@ -123,6 +123,49 @@ export async function getAntinukeSettings(guildId: string): Promise<AntinukeSett
   return settings
 }
 
+export async function fetchGuildOwnerId(guildId: string): Promise<string | null> {
+  try {
+    const { fetchGuild } = await import('@/lib/cluster')
+    const guild = await fetchGuild(guildId)
+    const oid = guild.owner_id
+    return oid != null && String(oid).trim() ? String(oid).trim() : null
+  } catch {
+    return null
+  }
+}
+
+/** Server owner is always included in trusted admins and whitelist. */
+export function userListWithOwner(ids: string[], ownerId: string | null): string[] {
+  if (!ownerId) return [...ids]
+  if (ids.includes(ownerId)) return [...ids]
+  return [ownerId, ...ids]
+}
+
+export function userListDisplayOrderWithOwner(
+  ids: string[],
+  ownerId: string | null
+): string[] {
+  if (!ownerId) return [...ids]
+  const rest = ids.filter((id) => id !== ownerId)
+  return ids.includes(ownerId) ? [ownerId, ...rest] : [ownerId, ...ids]
+}
+
+export const trustedAdminsWithOwner = userListWithOwner
+export const whitelistWithOwner = userListWithOwner
+export const trustedAdminsDisplayOrder = userListDisplayOrderWithOwner
+
+export async function enrichAntinukeSettingsForClient(
+  guildId: string,
+  settings: AntinukeSettings
+): Promise<AntinukeSettings> {
+  const ownerId = await fetchGuildOwnerId(guildId)
+  return {
+    ...settings,
+    trusted_admins: userListWithOwner(settings.trusted_admins, ownerId),
+    whitelist: userListWithOwner(settings.whitelist, ownerId),
+  }
+}
+
 /**
  * Whether the user may view or edit antinuke for this guild.
  * Reads `trusted_admins` from Postgres (not Redis) so every request is

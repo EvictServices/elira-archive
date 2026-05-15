@@ -381,7 +381,7 @@ export function RoleDropdown({
                     : undefined
                 }
               />
-              {selected.name}
+              <span className="autorole-role-name">{selected.name}</span>
             </span>
           ) : (
             placeholder
@@ -428,7 +428,7 @@ export function RoleDropdown({
                     className="autorole-role-dot"
                     style={hex ? { background: hex } : undefined}
                   />
-                  {role.name}
+                  <span className="autorole-role-name">{role.name}</span>
                 </span>
                 {disabled && reason ? (
                   <span className="autorole-disabled-reason">{reason}</span>

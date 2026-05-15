@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import {
+  enrichAntinukeSettingsForClient,
+  fetchGuildOwnerId,
   getAntinukeSettings,
+  trustedAdminsWithOwner,
+  whitelistWithOwner,
   updateAntinukeModule,
   updateAntinukeBotToggle,
   updateAntinukeWhitelist,
@@ -46,7 +50,7 @@ export async function GET(
     return NextResponse.json({ error: 'You must be a trusted admin or the server owner to access antinuke settings' }, { status: 403 })
   }
 
-  const settings = await getAntinukeSettings(id)
+  const settings = await enrichAntinukeSettingsForClient(id, await getAntinukeSettings(id))
   return NextResponse.json(settings, {
     headers: { 'Cache-Control': 'private, max-age=5, stale-while-revalidate=30' },
   })
@@ -82,14 +86,14 @@ export async function PATCH(
     recordDashboardAudit(session, id, 'antinuke.module.update', {
       module: body.module,
     })
-    const updated = await getAntinukeSettings(id)
+    const updated = await enrichAntinukeSettingsForClient(id, await getAntinukeSettings(id))
     return NextResponse.json(updated)
   }
 
   if (typeof body.bot === 'boolean') {
     await updateAntinukeBotToggle(id, body.bot)
     recordDashboardAudit(session, id, 'antinuke.bot_toggle', { enabled: body.bot })
-    const updated = await getAntinukeSettings(id)
+    const updated = await enrichAntinukeSettingsForClient(id, await getAntinukeSettings(id))
     return NextResponse.json(updated)
   }
 
@@ -98,11 +102,25 @@ export async function PATCH(
     if ('error' in parsed) {
       return NextResponse.json({ error: parsed.error }, { status: 400 })
     }
-    await updateAntinukeWhitelist(id, parsed)
+    const ownerId = await fetchGuildOwnerId(id)
+    if (ownerId && !parsed.includes(ownerId)) {
+      return NextResponse.json(
+        { error: 'The server owner cannot be removed from the whitelist.' },
+        { status: 400 }
+      )
+    }
+    const current = await getAntinukeSettings(id)
+    if (current.whitelist.includes(session.userId) && !parsed.includes(session.userId)) {
+      return NextResponse.json(
+        { error: 'You cannot remove yourself from the whitelist.' },
+        { status: 400 }
+      )
+    }
+    await updateAntinukeWhitelist(id, whitelistWithOwner(parsed, ownerId))
     recordDashboardAudit(session, id, 'antinuke.whitelist.update', {
       count: parsed.length,
     })
-    const updated = await getAntinukeSettings(id)
+    const updated = await enrichAntinukeSettingsForClient(id, await getAntinukeSettings(id))
     return NextResponse.json(updated)
   }
 
@@ -111,11 +129,28 @@ export async function PATCH(
     if ('error' in parsed) {
       return NextResponse.json({ error: parsed.error }, { status: 400 })
     }
-    await updateAntinukeTrustedAdmins(id, parsed)
+    const ownerId = await fetchGuildOwnerId(id)
+    if (ownerId && !parsed.includes(ownerId)) {
+      return NextResponse.json(
+        { error: 'The server owner cannot be removed from trusted admins.' },
+        { status: 400 }
+      )
+    }
+    const current = await getAntinukeSettings(id)
+    if (
+      current.trusted_admins.includes(session.userId) &&
+      !parsed.includes(session.userId)
+    ) {
+      return NextResponse.json(
+        { error: 'You cannot remove yourself from trusted admins.' },
+        { status: 400 }
+      )
+    }
+    await updateAntinukeTrustedAdmins(id, trustedAdminsWithOwner(parsed, ownerId))
     recordDashboardAudit(session, id, 'antinuke.trusted_admins.update', {
       count: parsed.length,
     })
-    const updated = await getAntinukeSettings(id)
+    const updated = await enrichAntinukeSettingsForClient(id, await getAntinukeSettings(id))
     return NextResponse.json(updated)
   }
 

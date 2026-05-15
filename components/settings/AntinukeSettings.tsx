@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useConfirm } from '@/components/ConfirmModal'
 import { Dropdown } from '@/components/settings/AnDropdowns'
 interface ResolvedDiscordUser {
   user_id: string
   username: string
+  display_name?: string | null
   avatar: string | null
 }
 
@@ -53,7 +55,34 @@ function defaultModule(): Module {
 
 const SNOWFLAKE_RE = /^\d{17,20}$/
 
-export default function AntinukeSettings({ guildId }: { guildId: string }) {
+type UserListField = 'whitelist' | 'trusted_admins'
+
+const USER_LIST_OPTIONS: { value: UserListField; label: string }[] = [
+  { value: 'trusted_admins', label: 'Trusted' },
+  { value: 'whitelist', label: 'Whitelist' },
+]
+
+const USER_LIST_META: Record<UserListField, { title: string; description: string }> = {
+  trusted_admins: {
+    title: 'Trusted admins',
+    description:
+      'May configure antinuke from Discord and this dashboard. Treated like the server owner for exemptions.',
+  },
+  whitelist: {
+    title: 'Whitelist',
+    description: 'Exempt from antinuke punishment triggers. Cannot manage antinuke settings.',
+  },
+}
+
+export default function AntinukeSettings({
+  guildId,
+  ownerId,
+  currentUserId,
+}: {
+  guildId: string
+  ownerId: string
+  currentUserId: string
+}) {
   const router = useRouter()
   const exitIfForbidden = useCallback(
     (status: number) => {
@@ -94,15 +123,15 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
   const profileIdsKey = useMemo(() => {
     if (!settings) return ''
     const ids = [
-      ...new Set([...settings.trusted_admins, ...settings.whitelist]),
+      ...new Set([ownerId, ...settings.trusted_admins, ...settings.whitelist]),
     ].sort()
     return ids.join(',')
-  }, [settings])
+  }, [settings, ownerId])
 
   useEffect(() => {
     if (!settings) return
     const ids = [
-      ...new Set([...settings.trusted_admins, ...settings.whitelist]),
+      ...new Set([ownerId, ...settings.trusted_admins, ...settings.whitelist]),
     ]
     if (ids.length === 0) {
       setUserProfiles({})
@@ -137,7 +166,7 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
     return () => {
       cancelled = true
     }
-  }, [guildId, profileIdsKey, exitIfForbidden])
+  }, [guildId, ownerId, profileIdsKey, exitIfForbidden])
 
   const toggleModule = async (name: string) => {
     if (!settings) return
@@ -294,78 +323,81 @@ export default function AntinukeSettings({ guildId }: { guildId: string }) {
             Trusted &amp; whitelisted users
           </h2>
           <p className="server-content-desc">
-            Trusted admins can manage antinuke from Discord and this dashboard. Whitelisted users
-            are ignored by antinuke thresholds.
+            Add users by ID and choose whether they are trusted or whitelisted.
           </p>
         </header>
-        <div className="an-access-panel">
-          <div className="an-access-grid">
-            <SnowflakeUserColumn
-              title="Trusted admins"
-              description="May configure antinuke and appear exempt like the owner."
-              ids={settings.trusted_admins}
-              userProfiles={userProfiles}
-              profilesLoading={profilesLoading}
-              disabled={listSaving !== null}
-              saving={listSaving === 'trusted_admins'}
-              onChange={(next) => {
-                void patchUserList('trusted_admins', next)
-              }}
-            />
-            <SnowflakeUserColumn
-              title="Whitelist"
-              description="Users exempt from antinuke punishment triggers."
-              ids={settings.whitelist}
-              userProfiles={userProfiles}
-              profilesLoading={profilesLoading}
-              disabled={listSaving !== null}
-              saving={listSaving === 'whitelist'}
-              onChange={(next) => {
-                void patchUserList('whitelist', next)
-              }}
-            />
-          </div>
-        </div>
+        <AntinukeUserListsPanel
+          ownerId={ownerId}
+          currentUserId={currentUserId}
+          trustedIds={settings.trusted_admins}
+          whitelistIds={settings.whitelist}
+          userProfiles={userProfiles}
+          profilesLoading={profilesLoading}
+          disabled={listSaving !== null}
+          savingField={listSaving}
+          onTrustedChange={(next) => {
+            void patchUserList('trusted_admins', next)
+          }}
+          onWhitelistChange={(next) => {
+            void patchUserList('whitelist', next)
+          }}
+        />
       </section>
     </div>
   )
 }
 
-function chipUsername(
+function userChipLabels(
   p: ResolvedDiscordUser | undefined,
+  id: string,
   profilesLoading: boolean
-): string {
-  if (p) {
-    const u = p.username.trim()
-    return u || 'Unknown user'
-  }
-  if (profilesLoading) return 'Loading…'
-  return 'Unknown user'
+): { primary: string; secondary: string } {
+  const handle = p?.username?.trim() || ''
+  const display = p?.display_name?.trim() || ''
+  const primary = display || handle || (profilesLoading ? 'Loading…' : 'Unknown user')
+  const secondary = handle ? `@${handle} · ${id}` : `Member · ${id}`
+  return { primary, secondary }
 }
 
-function SnowflakeUserColumn({
-  title,
-  description,
-  ids,
+function ownerListDisplayIds(ids: string[], ownerId: string): string[] {
+  const rest = ids.filter((id) => id !== ownerId)
+  return ids.includes(ownerId) ? [ownerId, ...rest] : [ownerId, ...ids]
+}
+
+function AntinukeUserListsPanel({
+  ownerId,
+  currentUserId,
+  trustedIds,
+  whitelistIds,
   userProfiles,
   profilesLoading,
   disabled,
-  saving,
-  onChange,
+  savingField,
+  onTrustedChange,
+  onWhitelistChange,
 }: {
-  title: string
-  description: string
-  ids: string[]
+  ownerId: string
+  currentUserId: string
+  trustedIds: string[]
+  whitelistIds: string[]
   userProfiles: Record<string, ResolvedDiscordUser>
   profilesLoading: boolean
   disabled: boolean
-  saving: boolean
-  onChange: (next: string[]) => void
+  savingField: UserListField | null
+  onTrustedChange: (next: string[]) => void
+  onWhitelistChange: (next: string[]) => void
 }) {
+  const { confirm, modal: confirmModal } = useConfirm()
+  const [addTarget, setAddTarget] = useState<UserListField>('trusted_admins')
   const [input, setInput] = useState('')
   const [localError, setLocalError] = useState<string | null>(null)
 
-  const add = () => {
+  const lists: Record<UserListField, { ids: string[]; onChange: (next: string[]) => void }> = {
+    trusted_admins: { ids: trustedIds, onChange: onTrustedChange },
+    whitelist: { ids: whitelistIds, onChange: onWhitelistChange },
+  }
+
+  const add = async () => {
     const t = input.trim()
     setLocalError(null)
     if (!t) return
@@ -373,99 +405,192 @@ function SnowflakeUserColumn({
       setLocalError('Use a 17–20 digit Discord user ID.')
       return
     }
-    if (ids.includes(t)) {
-      setLocalError('Already in this list.')
+    const { ids, onChange } = lists[addTarget]
+    if (t === ownerId) {
+      setLocalError(
+        addTarget === 'trusted_admins'
+          ? 'The server owner is already a trusted admin.'
+          : 'The server owner is already on the whitelist.'
+      )
       return
+    }
+    if (ids.includes(t)) {
+      setLocalError(`Already in ${USER_LIST_META[addTarget].title.toLowerCase()}.`)
+      return
+    }
+    if (addTarget === 'trusted_admins') {
+      const ok = await confirm({
+        title: 'Add trusted admin?',
+        description:
+          'Trusted admins can configure antinuke from Discord and this dashboard, and are treated like the server owner for exemptions. Only add people you fully trust.',
+        confirmLabel: 'Add trusted',
+        cancelLabel: 'Cancel',
+        destructive: true,
+      })
+      if (!ok) return
     }
     onChange([...ids, t])
     setInput('')
   }
 
+  const removeUser = async (field: UserListField, id: string, label: string) => {
+    const meta = USER_LIST_META[field]
+    const ok = await confirm({
+      title: `Remove from ${meta.title}?`,
+      description:
+        field === 'trusted_admins'
+          ? `${label} will no longer be a trusted admin and may lose access to configure antinuke.`
+          : `${label} will no longer be exempt from antinuke punishment triggers.`,
+      confirmLabel: 'Remove',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    })
+    if (!ok) return
+    const { ids, onChange } = lists[field]
+    onChange(ids.filter((x) => x !== id))
+  }
+
   return (
-    <div className="an-module">
-      <div className="an-module-header">
-        <span className="an-module-name">{title}</span>
-        <span className="an-access-card-count">{ids.length}</span>
+    <>
+    <div className="an-access-panel an-access-panel--unified an-module">
+      <div className="an-access-unified-add">
+        <label className="an-access-unified-label" htmlFor="antinuke-add-list-type">
+          List type
+        </label>
+        <div className="an-access-unified-add-row">
+          <div className="an-access-unified-type" id="antinuke-add-list-type">
+            <Dropdown
+              value={addTarget}
+              options={USER_LIST_OPTIONS}
+              onChange={(v) => {
+                setLocalError(null)
+                setAddTarget(v as UserListField)
+              }}
+              disabled={disabled}
+            />
+          </div>
+          <div className="an-access-add an-access-unified-id">
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="User ID"
+              value={input}
+              disabled={disabled}
+              onChange={(e) => {
+                setLocalError(null)
+                setInput(e.target.value.replace(/\D/g, '').slice(0, 20))
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  void add()
+                }
+              }}
+              className="settings-input an-access-input"
+            />
+            <button
+              type="button"
+              className="system-messages-icon-btn system-messages-plus-btn"
+              onClick={() => void add()}
+              disabled={disabled || !input.trim()}
+              aria-label={`Add to ${USER_LIST_META[addTarget].title}`}
+              title={`Add to ${USER_LIST_META[addTarget].title}`}
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <p className="an-access-unified-type-desc">{USER_LIST_META[addTarget].description}</p>
+        {localError && <p className="an-access-local-error">{localError}</p>}
       </div>
-      <span className="an-module-desc">{description}</span>
-      <div className="an-access-add">
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          placeholder="User ID"
-          value={input}
-          disabled={disabled}
-          onChange={(e) => {
-            setLocalError(null)
-            setInput(e.target.value.replace(/\D/g, '').slice(0, 20))
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              add()
-            }
-          }}
-          className="settings-input an-access-input"
-        />
-        <button
-          type="button"
-          className="system-messages-icon-btn system-messages-plus-btn"
-          onClick={add}
-          disabled={disabled || !input.trim()}
-          aria-label={`Add to ${title}`}
-          title={`Add to ${title}`}
-        >
-          +
-        </button>
-      </div>
-      {localError && <p className="an-access-local-error">{localError}</p>}
-      <ul className="an-access-chips" aria-label={title}>
-        {ids.length === 0 ? (
-          <li className="an-access-empty">No users yet</li>
-        ) : (
-          ids.map((id) => {
-            const p = userProfiles[id]
-            const name = chipUsername(p, profilesLoading)
-            return (
-              <li key={id} className="an-access-chip">
-                <div className="an-access-chip-main">
-                  {p?.avatar ? (
-                    <img
-                      src={p.avatar}
-                      alt=""
-                      className="an-access-chip-avatar"
-                    />
-                  ) : (
-                    <div
-                      className="an-access-chip-avatar an-access-chip-avatar-placeholder"
-                      aria-hidden
-                    >
-                      {(name[0] || '?').toUpperCase()}
-                    </div>
-                  )}
-                  <div className="an-access-chip-text">
-                    <span className="an-access-chip-name">{name}</span>
-                    <span className="an-access-chip-id">{id}</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="system-messages-icon-btn system-messages-minus-btn"
-                  aria-label={`Remove user ${id} from ${title}`}
-                  title="Remove"
-                  disabled={disabled}
-                  onClick={() => onChange(ids.filter((x) => x !== id))}
-                >
-                  -
-                </button>
-              </li>
-            )
-          })
-        )}
-      </ul>
-      {saving && <p className="settings-hint">Saving…</p>}
+
+      {(['trusted_admins', 'whitelist'] as const).map((field) => {
+        const meta = USER_LIST_META[field]
+        const { ids, onChange } = lists[field]
+        const displayIds = ownerListDisplayIds(ids, ownerId)
+        return (
+          <section
+            key={field}
+            className="an-access-list-section"
+            aria-labelledby={`an-access-list-${field}`}
+          >
+            <div className="an-access-list-section-header">
+              <h3 id={`an-access-list-${field}`} className="an-access-list-section-title">
+                {meta.title}
+              </h3>
+              <span className="an-access-card-count">{displayIds.length}</span>
+            </div>
+            <p className="an-module-desc an-access-list-section-desc">{meta.description}</p>
+            <ul className="an-access-chips" aria-label={meta.title}>
+              {displayIds.length === 0 ? (
+                <li className="an-access-empty">No users yet</li>
+              ) : (
+                displayIds.map((id) => {
+                  const p = userProfiles[id]
+                  const { primary, secondary } = userChipLabels(p, id, profilesLoading)
+                  const isOwner = id === ownerId
+                  const isSelf = id === currentUserId
+                  return (
+                    <li key={id} className="an-access-chip">
+                      <div className="an-access-chip-main">
+                        {p?.avatar ? (
+                          <img
+                            src={p.avatar}
+                            alt=""
+                            className="an-access-chip-avatar"
+                          />
+                        ) : (
+                          <div
+                            className="an-access-chip-avatar an-access-chip-avatar-placeholder"
+                            aria-hidden
+                          >
+                            {(primary[0] || '?').toUpperCase()}
+                          </div>
+                        )}
+                        <div className="an-access-chip-text">
+                          <span className="an-access-chip-name">{primary}</span>
+                          <span className="an-access-chip-id">{secondary}</span>
+                        </div>
+                      </div>
+                      {isOwner ? (
+                        <span
+                          className="an-access-chip-owner-hint"
+                          title={`Server owner cannot be removed from the ${meta.title.toLowerCase()}`}
+                        >
+                          Owner
+                        </span>
+                      ) : !isSelf ? (
+                        <button
+                          type="button"
+                          className="system-messages-icon-btn system-messages-minus-btn"
+                          aria-label={`Remove ${primary} from ${meta.title}`}
+                          title="Remove"
+                          disabled={disabled}
+                          onClick={() => void removeUser(field, id, primary)}
+                        >
+                          -
+                        </button>
+                      ) : (
+                        <span
+                          className="an-access-chip-self-hint"
+                          title="You cannot remove yourself from this list"
+                        >
+                          You
+                        </span>
+                      )}
+                    </li>
+                  )
+                })
+              )}
+            </ul>
+            {savingField === field && <p className="settings-hint">Saving…</p>}
+          </section>
+        )
+      })}
     </div>
+    {confirmModal}
+    </>
   )
 }
 

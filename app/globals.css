@@ -3931,14 +3931,15 @@ body:has(.server-layout) > footer {
 
 .disabled-commands-clear-all {
   flex-shrink: 0;
+  box-sizing: border-box;
   width: 28px;
   height: 28px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: 1.1rem;
+  font-weight: 600;
   line-height: 1;
   font-family: inherit;
   color: #f87171;
@@ -3973,8 +3974,8 @@ body:has(.server-layout) > footer {
 .disabled-commands-chip {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px 5px 2px 7px;
+  gap: 6px;
+  padding: 2px 6px 2px 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -3983,13 +3984,21 @@ body:has(.server-layout) > footer {
 }
 
 .disabled-commands-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0;
   background: rgba(248, 113, 113, 0.08);
   color: #f87171;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1;
-  padding: 0 4px;
   border-radius: 4px;
   border: 1px solid rgba(248, 113, 113, 0.25);
   transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
@@ -4247,7 +4256,14 @@ body:has(.server-layout) > footer {
 }
 
 .disabled-commands-overflow-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  padding: 0;
   border: 1px solid rgba(248, 113, 113, 0.25);
   background: rgba(248, 113, 113, 0.08);
   color: #f87171;
@@ -4255,7 +4271,6 @@ body:has(.server-layout) > footer {
   font-size: 1rem;
   font-weight: 600;
   line-height: 1;
-  padding: 2px 5px;
   border-radius: 4px;
   transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
@@ -5296,6 +5311,107 @@ body:has(.server-layout) > footer {
   margin-bottom: 14px;
 }
 
+.antinuke-settings .an-access-panel--unified {
+  max-width: min(100%, 520px);
+}
+
+.an-access-unified-add {
+  margin-bottom: 20px;
+}
+
+.an-access-unified-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.an-access-unified-add-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 148px) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.an-access-unified-type .an-dropdown {
+  width: 100%;
+}
+
+.an-access-unified-id {
+  min-width: 0;
+}
+
+.an-access-unified-type-desc {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.an-access-list-section {
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.an-access-unified-add + .an-access-list-section {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+
+.an-access-list-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.an-access-list-section-title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.an-access-list-section-desc {
+  margin-bottom: 12px !important;
+}
+
+.an-access-chip-self-hint,
+.an-access-chip-owner-hint {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.an-access-chip-owner-hint {
+  color: rgba(251, 191, 36, 0.85);
+  border-color: rgba(251, 191, 36, 0.25);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+@media (max-width: 640px) {
+  .an-access-unified-add-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .antinuke-settings .an-access-panel--unified {
+    max-width: 100%;
+  }
+}
+
 .an-access-card-count {
   flex-shrink: 0;
   font-size: 0.72rem;
@@ -5836,6 +5952,7 @@ body:has(.server-layout) > footer {
   padding: 4px;
   z-index: 50;
   max-height: 200px;
+  overflow-x: hidden;
   overflow-y: auto;
   animation: dropdownIn 0.15s ease both;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -5850,7 +5967,9 @@ body:has(.server-layout) > footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   width: 100%;
+  min-width: 0;
   padding: 8px 10px;
   border: none;
   border-radius: 8px;
@@ -5860,7 +5979,14 @@ body:has(.server-layout) > footer {
   font-family: inherit;
   font-size: 0.83rem;
   cursor: pointer;
+  overflow: hidden;
   transition: background var(--ease), opacity var(--ease);
+}
+
+.an-dropdown-item > .autorole-role {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .an-dropdown-item:hover {
@@ -5889,9 +6015,13 @@ body:has(.server-layout) > footer {
   font-size: 0.7rem;
   color: rgb(230, 140, 140);
   font-weight: 500;
-  margin-left: 8px;
   text-align: right;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 52%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .settings-loading {

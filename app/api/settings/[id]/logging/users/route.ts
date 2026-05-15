@@ -39,7 +39,12 @@ export async function POST(
   const batch = await fetchUserInfoBatch(filtered)
   const users: Record<
     string,
-    { user_id: string; username: string; avatar: string | null }
+    {
+      user_id: string
+      username: string
+      display_name: string | null
+      avatar: string | null
+    }
   > = {}
   for (const id of filtered) {
     const info = batch.get(id)
@@ -47,6 +52,7 @@ export async function POST(
     users[id] = {
       user_id: id,
       username: info.username?.trim() || 'Unknown user',
+      display_name: info.display_name?.trim() || null,
       avatar: info.avatar?.trim() ? info.avatar.trim() : null,
     }
   }

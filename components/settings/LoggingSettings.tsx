@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useConfirm } from '@/components/ConfirmModal'
 import { ChannelDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/bundleClient'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
@@ -19,6 +20,7 @@ interface Settings {
 interface ResolvedUser {
   user_id: string
   username: string
+  display_name?: string | null
   avatar: string | null
 }
 
@@ -407,10 +409,29 @@ function IgnoreSection({
   onAdd: (id: string) => void
   onRemove: (id: string) => void
 }) {
+  const { confirm, modal: confirmModal } = useConfirm()
   const [manualId, setManualId] = useState('')
   const [localError, setLocalError] = useState<string | null>(null)
 
   const ignoredSet = useMemo(() => new Set(ignored), [ignored])
+
+  const requestRemove = async (
+    id: string,
+    opts: { kind: 'channel'; name: string } | { kind: 'user'; label: string }
+  ) => {
+    const ok = await confirm({
+      title: opts.kind === 'channel' ? 'Stop ignoring channel?' : 'Stop ignoring user?',
+      description:
+        opts.kind === 'channel'
+          ? `#${opts.name} will start generating logs again.`
+          : `${opts.label} will start generating logs again.`,
+      confirmLabel: 'Remove',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    })
+    if (!ok) return
+    onRemove(id)
+  }
 
   const availableChannels = useMemo(
     () => allChannels.filter((c) => !ignoredSet.has(String(c.id))),
@@ -434,6 +455,7 @@ function IgnoreSection({
   }
 
   return (
+    <>
     <section className="an-access logging-ignore-section" aria-labelledby="logging-ignore-heading">
       <header className="server-content-header">
         <h2 id="logging-ignore-heading" className="server-content-title">
@@ -522,7 +544,9 @@ function IgnoreSection({
                       aria-label={`Stop ignoring #${channel.name}`}
                       title="Remove"
                       disabled={removing}
-                      onClick={() => onRemove(id)}
+                      onClick={() =>
+                        void requestRemove(id, { kind: 'channel', name: channel.name })
+                      }
                     >
                       -
                     </button>
@@ -530,11 +554,10 @@ function IgnoreSection({
                 )
               }
 
-              const name = user?.username?.trim()
-                ? user.username
-                : profilesLoading
-                  ? 'Loading…'
-                  : 'Unknown user'
+              const handle = user?.username?.trim() || ''
+              const display = user?.display_name?.trim() || ''
+              const primary = display || handle || (profilesLoading ? 'Loading…' : 'Unknown user')
+              const secondary = handle ? `@${handle} · ${id}` : `Member · ${id}`
               return (
                 <li key={id} className="an-access-chip">
                   <div className="an-access-chip-main">
@@ -546,21 +569,21 @@ function IgnoreSection({
                         className="an-access-chip-avatar an-access-chip-avatar-placeholder"
                         aria-hidden
                       >
-                        {(name[0] || '?').toUpperCase()}
+                        {(primary[0] || '?').toUpperCase()}
                       </div>
                     )}
                     <div className="an-access-chip-text">
-                      <span className="an-access-chip-name">{name}</span>
-                      <span className="an-access-chip-id">Member · {id}</span>
+                      <span className="an-access-chip-name">{primary}</span>
+                      <span className="an-access-chip-id">{secondary}</span>
                     </div>
                   </div>
                   <button
                     type="button"
                     className="system-messages-icon-btn system-messages-minus-btn"
-                    aria-label={`Stop ignoring ${name}`}
+                    aria-label={`Stop ignoring ${primary}`}
                     title="Remove"
                     disabled={removing}
-                    onClick={() => onRemove(id)}
+                    onClick={() => void requestRemove(id, { kind: 'user', label: primary })}
                   >
                     -
                   </button>
@@ -571,5 +594,7 @@ function IgnoreSection({
         </ul>
       </div>
     </section>
+    {confirmModal}
+    </>
   )
 }
