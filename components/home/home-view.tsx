@@ -1,6 +1,7 @@
 import { INVITE_URL, SUPPORT_URL } from '@/lib/discord/urls'
 import HeroStats from '@/components/home/hero-stats'
 import Stars from '@/components/home/stars'
+import FeaturesSection from '@/components/home/features-section'
 
 function Divider() {
   return (
@@ -43,6 +44,10 @@ export default function HomeView() {
           <HeroStats />
         </div>
       </section>
+
+      <Divider />
+
+      <FeaturesSection />
 
       <Divider />
 

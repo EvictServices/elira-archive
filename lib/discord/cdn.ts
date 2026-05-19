@@ -9,10 +9,24 @@ export function userAvatarUrl(
   avatarHash: string | null | undefined,
   size = 128
 ): string {
-  if (avatarHash) {
-    return `${CDN}/avatars/${userId}/${avatarHash}.webp?size=${size}`
+  const raw = avatarHash?.trim()
+  if (!raw) {
+    return `${CDN}/embed/avatars/${defaultUserAvatarIndex(userId)}.png`
   }
-  return `${CDN}/embed/avatars/${defaultUserAvatarIndex(userId)}.png`
+
+  // Cluster API often returns a full CDN URL instead of a hash.
+  if (raw.startsWith('http://') || raw.startsWith('https://')) {
+    try {
+      const url = new URL(raw)
+      url.searchParams.set('size', String(size))
+      return url.toString()
+    } catch {
+      return raw
+    }
+  }
+
+  const ext = raw.startsWith('a_') ? 'gif' : 'webp'
+  return `${CDN}/avatars/${userId}/${raw}.${ext}?size=${size}`
 }
 
 export function guildIconUrl(
