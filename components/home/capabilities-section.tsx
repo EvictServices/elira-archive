@@ -118,7 +118,7 @@ const CAPABILITIES: Capability[] = [
 
 export default function CapabilitiesSection() {
   return (
-    <section className="cap" aria-labelledby="cap-heading" data-reveal>
+    <section id="capabilities" className="cap" aria-labelledby="cap-heading" data-reveal>
       <header className="cap-head">
         <h2 id="cap-heading" className="cap-title">
           Plenty more <span className="cap-accent">under the surface</span>

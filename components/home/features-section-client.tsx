@@ -212,7 +212,7 @@ export default function FeaturesSectionClient({ voiceMembers }: Props) {
   const channelName = owner ? channelLabel(owner) : 'voice lounge'
 
   return (
-    <section className="feat" aria-labelledby="feat-heading">
+    <section id="features" className="feat" aria-labelledby="feat-heading">
       <p id="feat-heading" className="sr-only">
         Product features
       </p>
