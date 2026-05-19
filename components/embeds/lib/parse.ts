@@ -46,7 +46,7 @@ export interface ParsedEmbedPatch {
   addButtons?: EmbedButton[]
 }
 
-export interface ExtractResult {
+interface ExtractResult {
   cleaned: string
   patch: ParsedEmbedPatch
   matched: boolean

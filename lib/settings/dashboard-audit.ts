@@ -11,7 +11,7 @@ export interface DashboardAuditEntry {
   created_at: string
 }
 
-export async function appendDashboardAudit(params: {
+async function appendDashboardAudit(params: {
   guildId: string
   userId: string
   actorUsername: string | null

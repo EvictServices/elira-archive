@@ -1,5 +1,5 @@
 import pool from '@/lib/infra/db'
-import { isValidGuildSnowflake } from '@/lib/discord/api'
+import { isSnowflake } from '@/lib/discord/api'
 
 export interface TicketConfigPublic {
   guild_id: string
@@ -86,7 +86,7 @@ async function hasTicketConfig(guildId: string): Promise<boolean> {
 }
 
 function assertSnowflake(id: string, label: string) {
-  if (!isValidGuildSnowflake(id)) {
+  if (!isSnowflake(id)) {
     throw new Error(`Invalid ${label}`)
   }
 }

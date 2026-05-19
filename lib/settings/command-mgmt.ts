@@ -1,7 +1,7 @@
 import { SNOWFLAKE_RE } from '@/lib/discord/snowflakes'
 
-export const CMD_MAX = 96
-export const CMD_RE = /^[a-z0-9][a-z0-9 _-]*$/i
+const CMD_MAX = 96
+const CMD_RE = /^[a-z0-9][a-z0-9 _-]*$/i
 
 /** Commands that cannot be channel-disabled (qualified name, case-insensitive). */
 const NON_DISABLEABLE_COMMANDS = new Set(['help'])

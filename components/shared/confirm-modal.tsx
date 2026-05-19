@@ -60,7 +60,7 @@ interface ConfirmModalProps {
   onCancel: () => void
 }
 
-export default function ConfirmModal({
+function ConfirmModal({
   title,
   description,
   confirmLabel = 'Confirm',

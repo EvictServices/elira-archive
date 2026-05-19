@@ -13,26 +13,9 @@ function safeParse<T>(text: string): T {
   return JSON.parse(safe) as T
 }
 
-export async function clusterGet<T>(path: string): Promise<T> {
+async function clusterGet<T>(path: string): Promise<T> {
   const res = await fetch(`${CLUSTER_API}${path}`, {
     headers: { Accept: 'application/json' },
-    cache: 'no-store',
-  })
-  if (!res.ok) {
-    throw new Error(`Cluster API ${path} failed: ${res.status}`)
-  }
-  const text = await res.text()
-  return safeParse<T>(text)
-}
-
-export async function clusterPost<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${CLUSTER_API}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify(body),
     cache: 'no-store',
   })
   if (!res.ok) {
@@ -102,7 +85,7 @@ function normalizeSnowflakeInput(v: unknown): string {
   return String(v).trim()
 }
 
-export function normalizeGuildChannel(raw: GuildChannel | Record<string, unknown>): GuildChannel {
+function normalizeGuildChannel(raw: GuildChannel | Record<string, unknown>): GuildChannel {
   const o = raw as Record<string, unknown>
   const pickParent = (v: unknown): string | null => {
     if (v === undefined || v === null) return null
@@ -147,7 +130,7 @@ export function normalizeGuildChannel(raw: GuildChannel | Record<string, unknown
   }
 }
 
-export function guildChannelsCacheKey(guildId: string): string {
+function guildChannelsCacheKey(guildId: string): string {
   return `dashboard:channels:v4:${guildId}`
 }
 

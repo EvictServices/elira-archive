@@ -25,7 +25,6 @@ export type {
   EnrichedVoicemasterChannel,
   VoicemasterConnectedMember,
 }
-export { REGIONS, MIN_BITRATE_KBPS, MAX_BITRATE_KBPS }
 
 function clusterJsonParse<T>(text: string): T {
   const safe = text.replace(/"(id|guild_id|owner_id)":\s*(\d{15,})/g, '"$1":"$2"')
@@ -208,7 +207,7 @@ export async function updateBitrate(
   await invalidateConfigCache(guildId)
 }
 
-export async function getChannels(guildId: string): Promise<VoicemasterChannel[]> {
+async function getChannels(guildId: string): Promise<VoicemasterChannel[]> {
   const res = await pool.query(
     `SELECT guild_id, channel_id, owner_id
      FROM voicemaster.channels
@@ -230,7 +229,7 @@ function voiceChannelOccupancy(ch: GuildChannel | undefined): number | null {
 }
 
 /** Drop dashboard entries for channels gone from Discord or with nobody connected. */
-export async function pruneInactiveVoicemasterChannels(
+async function pruneInactiveVoicemasterChannels(
   _guildId: string,
   base: VoicemasterChannel[],
   live: GuildChannel[]
@@ -322,35 +321,6 @@ export async function getEnrichedChannels(
       connected_members: connectedIds.map(memberFromUserId),
     }
   })
-}
-
-export async function getAllChannels(): Promise<VoicemasterChannel[]> {
-  const res = await pool.query(
-    `SELECT guild_id, channel_id, owner_id FROM voicemaster.channels`
-  )
-  return res.rows.map(rowToChannel)
-}
-
-export async function getChannelOwner(channelId: string): Promise<string | null> {
-  const res = await pool.query(
-    `SELECT owner_id FROM voicemaster.channels WHERE channel_id = $1`,
-    [channelId]
-  )
-  if (res.rows.length === 0 || res.rows[0].owner_id == null) return null
-  return String(res.rows[0].owner_id)
-}
-
-export async function createChannel(
-  guildId: string,
-  channelId: string,
-  ownerId: string
-): Promise<void> {
-  await pool.query(
-    `INSERT INTO voicemaster.channels (guild_id, channel_id, owner_id)
-     VALUES ($1, $2, $3)`,
-    [guildId, channelId, ownerId]
-  )
-  await invalidateChannelCache(channelId)
 }
 
 export async function deleteChannel(channelId: string): Promise<string | null> {

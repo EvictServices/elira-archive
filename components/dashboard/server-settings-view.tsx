@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
 import { useDashboardGuildBreadcrumb } from '@/components/dashboard/breadcrumb-context'
 import { useGuildSettingsMobileNav } from '@/components/dashboard/mobile-nav-context'
-import { useMediaQuery } from '@/hooks/use-media-query'
+import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { guildInitials } from '@/lib/discord/format'
 import { userAvatarUrl as discordUserAvatarUrl } from '@/lib/discord/cdn'
 

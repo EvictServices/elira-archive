@@ -10,9 +10,9 @@ import {
   updateRole,
   updateRegion,
   updateBitrate,
-  REGIONS,
   type Region,
 } from '@/lib/settings/voicemaster'
+import { REGIONS } from '@/lib/settings/voicemaster-types'
 import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 function asSnowflakeOrNull(value: unknown): string | null {

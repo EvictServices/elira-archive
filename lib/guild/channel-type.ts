@@ -10,7 +10,7 @@ const TYPE_NAME_TO_CODE: Record<string, number> = {
   GUILD_FORUM: 15,
 }
 
-export function discordChannelTypeCode(type: GuildChannel['type']): number | null {
+function discordChannelTypeCode(type: GuildChannel['type']): number | null {
   if (type === undefined || type === null) return null
   if (typeof type === 'number' && !Number.isNaN(type)) return type
   if (typeof type === 'string') {

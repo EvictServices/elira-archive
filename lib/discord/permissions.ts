@@ -1,4 +1,4 @@
-export const PERMISSIONS = {
+const PERMISSIONS = {
   KICK_MEMBERS: 1n << 1n,
   BAN_MEMBERS: 1n << 2n,
   ADMINISTRATOR: 1n << 3n,
@@ -15,7 +15,7 @@ export const PERMISSIONS = {
 
 export type PermissionName = keyof typeof PERMISSIONS
 
-export const DANGEROUS_PERMISSIONS: PermissionName[] = [
+const DANGEROUS_PERMISSIONS: PermissionName[] = [
   'ADMINISTRATOR',
   'MANAGE_GUILD',
   'MANAGE_ROLES',
@@ -29,11 +29,6 @@ export const DANGEROUS_PERMISSIONS: PermissionName[] = [
   'MODERATE_MEMBERS',
   'MANAGE_EMOJIS_AND_STICKERS',
 ]
-
-const DANGEROUS_MASK = DANGEROUS_PERMISSIONS.reduce(
-  (acc, name) => acc | PERMISSIONS[name],
-  0n
-)
 
 function toBigInt(permissions: string | number | bigint): bigint {
   if (typeof permissions === 'bigint') return permissions
@@ -49,12 +44,6 @@ export function getDangerousPermissions(
 ): PermissionName[] {
   const bits = toBigInt(permissions)
   return DANGEROUS_PERMISSIONS.filter((name) => (bits & PERMISSIONS[name]) !== 0n)
-}
-
-export function hasDangerousPermissions(
-  permissions: string | number | bigint
-): boolean {
-  return (toBigInt(permissions) & DANGEROUS_MASK) !== 0n
 }
 
 const PERMISSION_LABELS: Record<PermissionName, string> = {

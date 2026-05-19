@@ -6,7 +6,6 @@ import {
 } from '@/lib/settings/rewards-types'
 
 export type { TagRewardsState, VanityRewardsState } from '@/lib/settings/rewards-types'
-export { MAX_TAG_REWARD_ROLES } from '@/lib/settings/rewards-types'
 
 const MAX_TEMPLATE_LEN = 12000
 

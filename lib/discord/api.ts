@@ -13,7 +13,7 @@ function guildsCacheKey(accessToken: string) {
   return createHash('sha256').update(accessToken).digest('hex')
 }
 
-export { isSnowflake, isSnowflake as isValidGuildSnowflake } from '@/lib/discord/snowflakes'
+export { isSnowflake } from '@/lib/discord/snowflakes'
 
 export function buildDiscordAuthorizeUrl(state: string): string {
   const params = new URLSearchParams({

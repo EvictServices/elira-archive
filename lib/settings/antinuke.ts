@@ -1,7 +1,7 @@
 import pool from '@/lib/infra/db'
 import redis from '@/lib/infra/redis'
 import { xxh32 } from '@/lib/infra/hash'
-import { isValidGuildSnowflake } from '@/lib/discord/api'
+import { isSnowflake } from '@/lib/discord/api'
 
 export interface AntinukeModule {
   threshold: number
@@ -135,24 +135,14 @@ export async function fetchGuildOwnerId(guildId: string): Promise<string | null>
 }
 
 /** Server owner is always included in trusted admins and whitelist. */
-export function userListWithOwner(ids: string[], ownerId: string | null): string[] {
+function userListWithOwner(ids: string[], ownerId: string | null): string[] {
   if (!ownerId) return [...ids]
   if (ids.includes(ownerId)) return [...ids]
   return [ownerId, ...ids]
 }
 
-export function userListDisplayOrderWithOwner(
-  ids: string[],
-  ownerId: string | null
-): string[] {
-  if (!ownerId) return [...ids]
-  const rest = ids.filter((id) => id !== ownerId)
-  return ids.includes(ownerId) ? [ownerId, ...rest] : [ownerId, ...ids]
-}
-
 export const trustedAdminsWithOwner = userListWithOwner
 export const whitelistWithOwner = userListWithOwner
-export const trustedAdminsDisplayOrder = userListDisplayOrderWithOwner
 
 export async function enrichAntinukeSettingsForClient(
   guildId: string,
@@ -172,7 +162,7 @@ export async function enrichAntinukeSettingsForClient(
  * authorized against current data, not a cached row.
  */
 export async function isAntinukeAdmin(guildId: string, userId: string): Promise<boolean> {
-  if (!isValidGuildSnowflake(guildId) || !isValidGuildSnowflake(userId)) {
+  if (!isSnowflake(guildId) || !isSnowflake(userId)) {
     return false
   }
 

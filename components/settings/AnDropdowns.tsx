@@ -14,7 +14,7 @@ function snowflakeKey(id: string | number | null | undefined): string {
   return String(id).trim()
 }
 
-export function categoryLookupLabel(
+function categoryLookupLabel(
   parentId: string | number | null | undefined,
   categoryById: Map<string, string>
 ): string {

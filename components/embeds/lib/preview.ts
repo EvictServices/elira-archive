@@ -29,9 +29,9 @@ const DEFAULT_USER_AVATAR = 'https://cdn.discordapp.com/embed/avatars/0.png'
 const DEFAULT_MODERATOR_AVATAR = 'https://cdn.discordapp.com/embed/avatars/1.png'
 const DEFAULT_GUILD_ICON = 'https://cdn.discordapp.com/embed/avatars/3.png'
 
-export type ResolvedVariableKind = 'mention' | 'channel' | 'role' | 'text' | 'url' | 'unknown'
+type ResolvedVariableKind = 'mention' | 'channel' | 'role' | 'text' | 'url' | 'unknown'
 
-export interface ResolvedVariable {
+interface ResolvedVariable {
   kind: ResolvedVariableKind
   value: string
 }

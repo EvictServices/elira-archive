@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { Command } from '@/lib/commands/types'
 
-export type { Command }
-
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }

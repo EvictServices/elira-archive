@@ -1,6 +1,6 @@
 const CDN = 'https://cdn.discordapp.com'
 
-export function defaultUserAvatarIndex(userId: string): number {
+function defaultUserAvatarIndex(userId: string): number {
   return (Number(userId) >> 22) % 6
 }
 
