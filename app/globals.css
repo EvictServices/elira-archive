@@ -740,10 +740,13 @@ body.nav-open {
   gap: 0.75rem; flex-wrap: wrap;
 }
 
+.hero-stats-block {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
 .hero-stats {
   display: flex; justify-content: center; gap: 2.5rem;
-  margin-top: 3rem; padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 .hero-stat { text-align: center; }
 .hero-stat-value {
@@ -756,6 +759,134 @@ body.nav-open {
   text-transform: uppercase; letter-spacing: 0.06em;
   margin-top: 0.15rem;
   opacity: 0.7;
+}
+
+.guild-carousel {
+  margin-top: 2.5rem;
+  width: 100%;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+.guild-carousel-label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin: 0 0 0.85rem;
+  opacity: 0.65;
+}
+.guild-carousel-viewport {
+  overflow: hidden;
+  border-radius: var(--r-md);
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+}
+.guild-carousel-track {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: max-content;
+  animation: guildCarouselScroll 55s linear infinite;
+}
+.guild-carousel-viewport:hover .guild-carousel-track {
+  animation-play-state: paused;
+}
+@keyframes guildCarouselScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.guild-carousel-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-shrink: 0;
+  padding: 0.5rem 0.95rem 0.5rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  max-width: 280px;
+}
+.guild-carousel-chip-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color var(--ease), background var(--ease), transform var(--ease);
+}
+.guild-carousel-chip-link:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+.guild-carousel-chip-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.guild-carousel-chip-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  display: block;
+}
+.guild-carousel-chip-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.guild-carousel-chip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  text-align: left;
+}
+.guild-carousel-chip-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+.guild-carousel-chip-count {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guild-carousel-track {
+    animation: none;
+  }
 }
 
 .features-grid {

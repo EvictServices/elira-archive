@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { animateCounter } from '@/lib/animateCounter'
+import GuildCarousel from '@/components/GuildCarousel'
 
 export default function HeroStats() {
   const [online, setOnline] = useState<boolean | null>(null)
@@ -84,19 +85,22 @@ export default function HeroStats() {
         />
       </div>
 
-      <div className="hero-stats">
-        <div className="hero-stat">
-          <div className="hero-stat-value">{servers}</div>
-          <div className="hero-stat-label">Servers</div>
+      <div className="hero-stats-block">
+        <div className="hero-stats">
+          <div className="hero-stat">
+            <div className="hero-stat-value">{servers}</div>
+            <div className="hero-stat-label">Servers</div>
+          </div>
+          <div className="hero-stat">
+            <div className="hero-stat-value">{users}</div>
+            <div className="hero-stat-label">Users</div>
+          </div>
+          <div className="hero-stat">
+            <div className="hero-stat-value">{commands}</div>
+            <div className="hero-stat-label">Commands</div>
+          </div>
         </div>
-        <div className="hero-stat">
-          <div className="hero-stat-value">{users}</div>
-          <div className="hero-stat-label">Users</div>
-        </div>
-        <div className="hero-stat">
-          <div className="hero-stat-value">{commands}</div>
-          <div className="hero-stat-label">Commands</div>
-        </div>
+        <GuildCarousel />
       </div>
     </>
   )

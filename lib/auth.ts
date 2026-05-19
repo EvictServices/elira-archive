@@ -23,7 +23,6 @@ type StoredSession = {
   accessToken: string
   refreshToken: string
   accessTokenExpiresAt: number
-  /** SHA-256 hex of User-Agent at login; mismatch invalidates session. */
   uaFingerprint: string
 }
 
@@ -137,9 +136,7 @@ export async function getSession(): Promise<Session | null> {
       if (current !== stored.uaFingerprint) {
         try {
           await redis.del(sessionKey(sid))
-        } catch {
-          // ignore
-        }
+        } catch {}
         return null
       }
     }
@@ -165,7 +162,6 @@ export async function destroySession(): Promise<void> {
   try {
     await redis.del(sessionKey(sid))
   } catch {
-    // best effort
   }
 }
 
@@ -187,7 +183,6 @@ export function clearSessionCookie() {
   }
 }
 
-/** Clear pre-__Host `session` cookie after hardening deploy (production only). */
 export function clearLegacySessionCookie() {
   if (process.env.NODE_ENV !== 'production') return null
   return {
