@@ -1,4 +1,4 @@
-import pool from '@/lib/db'
+import pool from '@/lib/infra/db'
 
 export async function listIgnoredTargets(guildId: string): Promise<string[]> {
   const res = await pool.query(

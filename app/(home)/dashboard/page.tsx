@@ -1,7 +1,7 @@
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/auth/index'
 import { redirect } from 'next/navigation'
-import { loadDashboardGuildLists } from '@/lib/dashboardGuilds'
-import DashboardView from './DashboardView'
+import { loadDashboardGuildLists } from '@/lib/dashboard/guilds'
+import DashboardView from '@/components/dashboard/DashboardView'
 
 export const metadata = { title: 'Dashboard' }
 

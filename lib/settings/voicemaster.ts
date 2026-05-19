@@ -1,12 +1,12 @@
-import pool from '@/lib/db'
-import redis from '@/lib/redis'
+import pool from '@/lib/infra/db'
+import redis from '@/lib/infra/redis'
 import {
   CLUSTER_API_BASE,
   fetchGuildChannels,
   invalidateGuildChannelsCache,
   type GuildChannel,
-} from '@/lib/cluster'
-import { fetchUserInfoBatch } from '@/lib/fetchUsers'
+} from '@/lib/cluster/client'
+import { fetchUserInfoBatch } from '@/lib/cluster/fetch-users'
 import {
   REGIONS,
   MIN_BITRATE_KBPS,

@@ -1,4 +1,4 @@
-import pool from '@/lib/db'
+import pool from '@/lib/infra/db'
 
 export interface DisabledCommandGroup {
   command: string

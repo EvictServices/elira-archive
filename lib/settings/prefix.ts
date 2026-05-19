@@ -1,5 +1,5 @@
-import pool from '@/lib/db'
-import redis from '@/lib/redis'
+import pool from '@/lib/infra/db'
+import redis from '@/lib/infra/redis'
 
 const DEFAULT_PREFIX = ';'
 const REDIS_TTL = 3600

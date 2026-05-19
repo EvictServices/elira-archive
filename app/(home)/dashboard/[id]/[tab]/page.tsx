@@ -1,8 +1,8 @@
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/auth/index'
 import { redirect } from 'next/navigation'
-import { fetchGuild, fetchMutualGuilds } from '@/lib/cluster'
+import { fetchGuild, fetchMutualGuilds } from '@/lib/cluster/client'
 import { isAntinukeAdmin } from '@/lib/settings/antinuke'
-import { hasGuildAdmin } from '@/lib/discord'
+import { hasGuildAdmin } from '@/lib/discord/api'
 import ServerSettingsView from '../ServerSettingsView'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {

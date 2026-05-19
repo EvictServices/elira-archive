@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { SESSION_COOKIE } from '@/lib/session_meta'
-import { parseSignedSessionCookieEdge } from '@/lib/session_cookie_edge'
+import { SESSION_COOKIE } from '@/lib/auth/session-meta'
+import { parseSignedSessionCookieEdge } from '@/lib/auth/session-cookie-edge'
 
 const PROTECTED_PATHS = ['/dashboard']
 

@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useConfirm } from '@/components/ConfirmModal'
 import { ChannelDropdown } from '@/components/settings/AnDropdowns'
-import { fetchBundle } from '@/lib/bundleClient'
-import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
+import { fetchBundle } from '@/lib/dashboard/bundle-client'
+import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild/channel-type'
 import type { GuildChannel } from '@/components/settings/types'
 
 interface LoggingChannel {

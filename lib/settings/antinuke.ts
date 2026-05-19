@@ -1,7 +1,7 @@
-import pool from '@/lib/db'
-import redis from '@/lib/redis'
-import { xxh32 } from '@/lib/hash'
-import { isValidGuildSnowflake } from '@/lib/discord'
+import pool from '@/lib/infra/db'
+import redis from '@/lib/infra/redis'
+import { xxh32 } from '@/lib/infra/hash'
+import { isValidGuildSnowflake } from '@/lib/discord/api'
 
 export interface AntinukeModule {
   threshold: number
@@ -125,7 +125,7 @@ export async function getAntinukeSettings(guildId: string): Promise<AntinukeSett
 
 export async function fetchGuildOwnerId(guildId: string): Promise<string | null> {
   try {
-    const { fetchGuild } = await import('@/lib/cluster')
+    const { fetchGuild } = await import('@/lib/cluster/client')
     const guild = await fetchGuild(guildId)
     const oid = guild.owner_id
     return oid != null && String(oid).trim() ? String(oid).trim() : null
@@ -186,7 +186,7 @@ export async function isAntinukeAdmin(guildId: string, userId: string): Promise<
   }
 
   try {
-    const { fetchGuild } = await import('@/lib/cluster')
+    const { fetchGuild } = await import('@/lib/cluster/client')
     const guild = await fetchGuild(guildId)
     if (guild.owner_id === userId) return true
   } catch {}

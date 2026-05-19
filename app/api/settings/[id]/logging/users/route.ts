@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
-import { fetchUserInfoBatch } from '@/lib/fetchUsers'
+import { getSession } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
+import { fetchUserInfoBatch } from '@/lib/cluster/fetch-users'
 
 const SNOWFLAKE_RE = /^\d{17,20}$/
 

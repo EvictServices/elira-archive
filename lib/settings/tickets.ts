@@ -1,5 +1,5 @@
-import pool from '@/lib/db'
-import { isValidGuildSnowflake } from '@/lib/discord'
+import pool from '@/lib/infra/db'
+import { isValidGuildSnowflake } from '@/lib/discord/api'
 
 export interface TicketConfigPublic {
   guild_id: string

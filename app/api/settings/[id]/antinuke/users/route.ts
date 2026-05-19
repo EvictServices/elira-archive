@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/auth/index'
 import { isAntinukeAdmin } from '@/lib/settings/antinuke'
-import { fetchUserInfoBatch } from '@/lib/fetchUsers'
+import { fetchUserInfoBatch } from '@/lib/cluster/fetch-users'
 
 const SNOWFLAKE_RE = /^\d{17,20}$/
 

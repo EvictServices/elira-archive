@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, type Session } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
+import { getSession, type Session } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
 import { listMessages } from '@/lib/settings/script_messages'
 import { getAutoroleSettings } from '@/lib/settings/autorole'
 import { getLoggingSettings } from '@/lib/settings/logging'
@@ -9,7 +9,7 @@ import {
   getConfiguration as getVoicemasterConfiguration,
   getEnrichedChannels as getVoicemasterChannels,
 } from '@/lib/settings/voicemaster'
-import { fetchGuildChannels, fetchGuildRoles, fetchGuildMember } from '@/lib/cluster'
+import { fetchGuildChannels, fetchGuildRoles, fetchGuildMember } from '@/lib/cluster/client'
 
 interface ResourceLoader {
   load: (id: string, session: Session) => Promise<unknown>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
-import { fetchGuildMember, fetchGuildRoles } from '@/lib/cluster'
+import { getSession } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
+import { fetchGuildMember, fetchGuildRoles } from '@/lib/cluster/client'
 import {
   getDangerousPermissions,
   permissionLabel,

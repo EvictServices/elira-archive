@@ -19,8 +19,8 @@ import {
 } from '@/app/(home)/embeds/lib/types'
 import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
 import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
-import { fetchBundle } from '@/lib/bundleClient'
-import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild_channel_type'
+import { fetchBundle } from '@/lib/dashboard/bundle-client'
+import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild/channel-type'
 import {
   getDangerousPermissions,
   permissionLabel,

@@ -1,5 +1,5 @@
-import pool from '@/lib/db'
-import redis from '@/lib/redis'
+import pool from '@/lib/infra/db'
+import redis from '@/lib/infra/redis'
 
 function roleplayCacheKey(guildId: string): string {
   return `roleplay_enabled:${guildId}`

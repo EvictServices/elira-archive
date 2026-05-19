@@ -1,4 +1,4 @@
-import { proxyGet } from '@/lib/proxyGet'
+import { proxyGet } from '@/lib/cluster/proxy'
 import { parseCommandsCatalog } from '@/lib/commands/catalog'
 
 export function GET() {

@@ -1,8 +1,8 @@
 import { randomBytes } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { oauthStateCookieSet } from '@/lib/auth'
+import { oauthStateCookieSet } from '@/lib/auth/index'
 import { authRateLimitLogin, clientIpFromRequest } from '@/lib/auth_ratelimit'
-import { buildDiscordAuthorizeUrl } from '@/lib/discord'
+import { buildDiscordAuthorizeUrl } from '@/lib/discord/api'
 
 export async function GET(req: NextRequest) {
   const ip = clientIpFromRequest(req)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
+import { getSession } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
 import { getVanityRewards, patchVanityRewards } from '@/lib/settings/rewards'
 import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 

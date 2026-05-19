@@ -1,3 +1,5 @@
+import { SNOWFLAKE_RE } from '@/lib/discord/snowflakes'
+
 export const CMD_MAX = 96
 export const CMD_RE = /^[a-z0-9][a-z0-9 _-]*$/i
 
@@ -35,7 +37,7 @@ export function normalizeSnowflakeList(raw: unknown): string[] | null {
   for (const x of raw) {
     if (typeof x !== 'string' && typeof x !== 'number') return null
     const id = String(x).trim()
-    if (!/^\d{17,20}$/.test(id)) return null
+    if (!SNOWFLAKE_RE.test(id)) return null
     out.push(id)
   }
   return [...new Set(out)]

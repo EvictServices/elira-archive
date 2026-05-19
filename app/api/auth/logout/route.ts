@@ -4,7 +4,7 @@ import {
   clearSessionCookie,
   destroySession,
   oauthStateCookieClear,
-} from '@/lib/auth'
+} from '@/lib/auth/index'
 
 export async function GET(req: NextRequest) {
   await destroySession()

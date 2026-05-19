@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
-import { useDashboardGuildBreadcrumb } from '@/components/DashboardGuildBreadcrumbContext'
-import { useGuildSettingsMobileNav } from '@/components/GuildSettingsMobileNavContext'
-import { useMediaQuery } from '@/lib/useMediaQuery'
+import { useDashboardGuildBreadcrumb } from '@/components/dashboard/DashboardGuildBreadcrumbContext'
+import { useGuildSettingsMobileNav } from '@/components/dashboard/GuildSettingsMobileNavContext'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { guildInitials } from '@/lib/discord/format'
+import { userAvatarUrl as discordUserAvatarUrl } from '@/lib/discord/cdn'
 
 const DisabledCommandsSettings = dynamic(() => import('@/components/settings/DisabledCommandsSettings'))
 const AntinukeSettings = dynamic(() => import('@/components/settings/AntinukeSettings'))
@@ -38,20 +40,7 @@ interface User {
 }
 
 function userAvatarUrl(user: User) {
-  if (user.avatar) {
-    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=64`
-  }
-  const index = (Number(user.id) >> 22) % 6
-  return `https://cdn.discordapp.com/embed/avatars/${index}.png`
-}
-
-function guildInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 3)
-    .toUpperCase()
+  return discordUserAvatarUrl(user.id, user.avatar, 64)
 }
 
 interface SidebarSection {

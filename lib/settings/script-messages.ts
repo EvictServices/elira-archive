@@ -1,4 +1,4 @@
-import pool from '@/lib/db'
+import pool from '@/lib/infra/db'
 
 export type ScriptMessageKind = 'welcome' | 'boost' | 'goodbye'
 

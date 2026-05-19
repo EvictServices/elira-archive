@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
-import pool from '@/lib/db'
+import { getSession } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
+import pool from '@/lib/infra/db'
 
 export const dynamic = 'force-dynamic'
 

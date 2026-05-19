@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import TicketView from './TicketView'
 import { fetchTicket } from './fetchTicket'
-import { fetchUserInfoBatch } from '@/lib/fetchUsers'
+import { fetchUserInfoBatch } from '@/lib/cluster/fetch-users'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params

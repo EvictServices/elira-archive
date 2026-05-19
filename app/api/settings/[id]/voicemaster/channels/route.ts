@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
+import { getSession } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
 import {
   getEnrichedChannels,
   deleteChannel,
@@ -9,7 +9,7 @@ import {
   updateChannelOwner,
   type VoicemasterChannelDeleteResult,
 } from '@/lib/settings/voicemaster'
-import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster'
+import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster/client'
 import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
 
 async function loadGuildVoiceState(guildId: string): Promise<{

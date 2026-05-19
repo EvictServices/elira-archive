@@ -12,7 +12,7 @@ import {
 import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
 import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
 import { categoryLabel, ScriptEditorModal, type ScriptEditorModalMode } from '@/components/settings/SystemMessagesScriptModal'
-import { fetchBundle } from '@/lib/bundleClient'
+import { fetchBundle } from '@/lib/dashboard/bundle-client'
 import type { GuildChannel } from '@/components/settings/types'
 
 type MessageKind = 'welcome' | 'boost' | 'goodbye'

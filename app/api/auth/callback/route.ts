@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { exchangeCode, fetchDiscordUser } from '@/lib/discord'
+import { exchangeCode, fetchDiscordUser } from '@/lib/discord/api'
 import {
   createSession,
   oauthStateCookieClear,
   sessionCookieOptions,
   OAUTH_STATE_COOKIE,
-} from '@/lib/auth'
+} from '@/lib/auth/index'
 import { authRateLimitCallback, clientIpFromRequest } from '@/lib/auth_ratelimit'
 
 export async function GET(req: NextRequest) {

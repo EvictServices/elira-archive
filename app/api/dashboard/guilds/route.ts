@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { loadDashboardGuildLists } from '@/lib/dashboardGuilds'
+import { getSession } from '@/lib/auth/index'
+import { loadDashboardGuildLists } from '@/lib/dashboard/guilds'
 
 export async function GET() {
   const session = await getSession()

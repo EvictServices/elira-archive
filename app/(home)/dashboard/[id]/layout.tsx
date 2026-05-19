@@ -1,5 +1,5 @@
-import { getSession } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
+import { getSession } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
 import { redirect } from 'next/navigation'
 
 export default async function GuildDashboardLayout({

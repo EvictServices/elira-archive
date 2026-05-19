@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import AppProviders from '@/components/AppProviders'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import ScrollRevealInit from '@/components/ScrollRevealInit'
-import CursorEffects from '@/components/CursorEffects'
+import AppProviders from '@/components/layout/AppProviders'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import ScrollRevealInit from '@/components/layout/ScrollRevealInit'
+import CursorEffects from '@/components/layout/CursorEffects'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://evict.bot'),

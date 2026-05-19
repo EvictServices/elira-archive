@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { hasGuildAdmin } from '@/lib/discord'
-import { fetchGuildRoles, type GuildRole } from '@/lib/cluster'
+import { getSession } from '@/lib/auth/index'
+import { hasGuildAdmin } from '@/lib/discord/api'
+import { fetchGuildRoles, type GuildRole } from '@/lib/cluster/client'
 import { normalizeCommand, normalizeSnowflakeList } from '@/lib/settings/command_mgmt'
 import {
   addRestrictionRows,

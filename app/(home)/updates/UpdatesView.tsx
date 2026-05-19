@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { timeAgo, type Update } from '@/lib/parseYaml'
+import { timeAgo, type Update } from '@/lib/marketing/parse-yaml'
 
 interface Props {
   updates: Update[]

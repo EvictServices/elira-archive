@@ -7,7 +7,7 @@ import {
 } from '@/lib/discord/permissions'
 import { useConfirm } from '@/components/ConfirmModal'
 import { Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
-import { fetchBundle } from '@/lib/bundleClient'
+import { fetchBundle } from '@/lib/dashboard/bundle-client'
 import {
   colorHex,
   type GuildMemberInfo,

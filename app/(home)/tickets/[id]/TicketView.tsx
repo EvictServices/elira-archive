@@ -2,7 +2,7 @@
 
 import type { TicketData } from './types'
 import { formatTimestamp, getFallbackAvatar, getAvatarUrl } from './helpers'
-import TranscriptView from '@/components/TranscriptView'
+import TranscriptView from '@/components/shared/TranscriptView'
 
 interface Props {
   ticketData: TicketData

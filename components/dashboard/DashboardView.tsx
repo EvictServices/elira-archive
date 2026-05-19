@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { INVITE_URL } from '@/lib/constants'
+import { botInviteUrl, INVITE_URL } from '@/lib/discord/urls'
+import { compactNumber, guildInitials } from '@/lib/discord/format'
+import { userAvatarUrl } from '@/lib/discord/cdn'
 
 interface DashboardUser {
   id: string
@@ -25,31 +27,8 @@ interface InviteGuild {
   banner_url?: string | null
 }
 
-function avatarUrl(user: DashboardUser) {
-  if (user.avatar) {
-    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=128`
-  }
-  const index = (Number(user.id) >> 22) % 6
-  return `https://cdn.discordapp.com/embed/avatars/${index}.png`
-}
-
-function guildInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 3)
-    .toUpperCase()
-}
-
-function compactNumber(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1) + 'M'
-  if (n >= 1_000) return (n / 1_000).toFixed(n >= 10_000 ? 0 : 1) + 'K'
-  return n.toString()
-}
-
 function inviteHref(guildId: string) {
-  return `${INVITE_URL}&guild_id=${guildId}&disable_guild_select=true`
+  return botInviteUrl(guildId)
 }
 
 function bannerBackdropStyle(bannerUrl: string | null | undefined) {
@@ -96,7 +75,7 @@ export default function DashboardView({
           <div className="dashboard-hero-row">
             <span className="dashboard-hero-avatar-wrap">
               <img
-                src={avatarUrl(user)}
+                src={userAvatarUrl(user.id, user.avatar, 128)}
                 alt={user.username}
                 className="dashboard-hero-avatar"
               />

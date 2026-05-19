@@ -1,4 +1,4 @@
-import pool from '@/lib/db'
+import pool from '@/lib/infra/db'
 import { isInvokeActionType, type InvokeActionType } from './invoke_constants'
 
 export * from './invoke_constants'

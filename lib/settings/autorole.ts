@@ -1,6 +1,6 @@
-import pool from '@/lib/db'
-import redis from '@/lib/redis'
-import { xxh32 } from '@/lib/hash'
+import pool from '@/lib/infra/db'
+import redis from '@/lib/infra/redis'
+import { xxh32 } from '@/lib/infra/hash'
 import {
   ACTIONS,
   MIN_DELAY,

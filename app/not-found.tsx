@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import NotFoundView from '@/components/NotFoundView'
+import NotFoundView from '@/components/shared/NotFoundView'
 
 export const metadata: Metadata = { title: '404 — Not Found' }
 

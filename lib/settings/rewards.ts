@@ -1,4 +1,4 @@
-import pool from '@/lib/db'
+import pool from '@/lib/infra/db'
 import {
   MAX_TAG_REWARD_ROLES,
   type TagRewardsState,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { fetchTopGuilds } from '@/lib/topGuilds'
+import { fetchTopGuilds } from '@/lib/marketing/top-guilds'
 
 export const dynamic = 'force-dynamic'
 

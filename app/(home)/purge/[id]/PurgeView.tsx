@@ -2,7 +2,7 @@
 
 import type { PurgeData } from './types'
 import { getFallbackAvatar, getAvatarUrl } from '../../tickets/[id]/helpers'
-import TranscriptView from '@/components/TranscriptView'
+import TranscriptView from '@/components/shared/TranscriptView'
 
 interface Props {
   purgeData: PurgeData

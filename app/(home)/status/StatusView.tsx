@@ -148,7 +148,7 @@ function fmtMem(mb: number): string {
   return mb + ' MB'
 }
 
-import { animateCounter } from '@/lib/animateCounter'
+import { animateCounter } from '@/lib/marketing/animate-counter'
 
 export default function StatusView() {
   const [guilds, setGuilds] = useState('—')
