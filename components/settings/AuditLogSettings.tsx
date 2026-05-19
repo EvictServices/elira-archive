@@ -464,7 +464,7 @@ export default function AuditLogSettings({ guildId }: { guildId: string }) {
   const load = useCallback(() => {
     setLoading(true)
     setError(null)
-    fetch(`/api/settings/${guildId}/audit?limit=80`)
+    fetch(`/api/guilds/${guildId}/audit?limit=80`)
       .then((r) => {
         if (!r.ok) throw new Error('Failed to load audit log')
         return r.json()

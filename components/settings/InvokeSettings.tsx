@@ -103,7 +103,7 @@ export default function InvokeSettings({
     setError(null)
     setLoading(true)
     try {
-      const res = await fetch(`/api/settings/${guildId}/invoke`)
+      const res = await fetch(`/api/guilds/${guildId}/invoke`)
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         setError(typeof data.error === 'string' ? data.error : 'Failed to load invoke messages')
@@ -246,7 +246,7 @@ export default function InvokeSettings({
     setModalSaving(true)
     setModalError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/invoke`, {
+      const res = await fetch(`/api/guilds/${guildId}/invoke`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ actionType: editingKey, template: script }),
@@ -277,7 +277,7 @@ export default function InvokeSettings({
     setSavingKey(key)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/invoke?actionType=${encodeURIComponent(key)}`, {
+      const res = await fetch(`/api/guilds/${guildId}/invoke?actionType=${encodeURIComponent(key)}`, {
         method: 'DELETE',
       })
       const data = await res.json().catch(() => ({}))

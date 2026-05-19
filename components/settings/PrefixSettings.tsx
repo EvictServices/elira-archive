@@ -20,8 +20,8 @@ export default function PrefixSettings({ guildId }: { guildId: string }) {
     void (async () => {
       try {
         const [pr, rr] = await Promise.all([
-          fetch(`/api/settings/${guildId}/prefix`),
-          fetch(`/api/settings/${guildId}/roleplay`),
+          fetch(`/api/guilds/${guildId}/prefix`),
+          fetch(`/api/guilds/${guildId}/roleplay`),
         ])
         const pj = await pr.json().catch(() => ({}))
         const rj = await rr.json().catch(() => ({}))
@@ -59,7 +59,7 @@ export default function PrefixSettings({ guildId }: { guildId: string }) {
     setError(null)
 
     try {
-      const res = await fetch(`/api/settings/${guildId}/prefix`, {
+      const res = await fetch(`/api/guilds/${guildId}/prefix`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prefix }),
@@ -84,7 +84,7 @@ export default function PrefixSettings({ guildId }: { guildId: string }) {
     setRpSaving(true)
     setRpError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/roleplay`, {
+      const res = await fetch(`/api/guilds/${guildId}/roleplay`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: next }),

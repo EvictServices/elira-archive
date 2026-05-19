@@ -76,7 +76,7 @@ export default function AutoroleSettings({ guildId }: { guildId: string }) {
     setSaving(savingKey)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/autorole`, {
+      const res = await fetch(`/api/guilds/${guildId}/autorole`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ op, ...payload }),

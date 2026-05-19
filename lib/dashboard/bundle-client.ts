@@ -1,3 +1,5 @@
+import { apiGuild } from '@/lib/routes'
+
 export type BundleResource =
   | 'system'
   | 'boost'
@@ -51,9 +53,7 @@ function flush(): void {
     const union = Array.from(
       new Set(list.flatMap((req) => req.resources))
     ).sort()
-    const url = `/api/settings/${guildId}/bundle?include=${encodeURIComponent(
-      union.join(',')
-    )}`
+    const url = `${apiGuild(guildId, 'bundle')}?include=${encodeURIComponent(union.join(','))}`
 
     fetch(url, { credentials: 'same-origin' })
       .then(async (response) => {

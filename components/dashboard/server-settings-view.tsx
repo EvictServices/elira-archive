@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useDashboardGuildBreadcrumb } from '@/components/dashboard/breadcrumb-context'
 import { useGuildSettingsMobileNav } from '@/components/dashboard/mobile-nav-context'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
+import { routes } from '@/lib/routes'
 import { guildInitials } from '@/lib/discord/format'
 import { userAvatarUrl as discordUserAvatarUrl } from '@/lib/discord/cdn'
 
@@ -228,7 +229,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
   const navigateToTab = useCallback(
     (itemId: string) => {
       closeMobileNav()
-      const href = `/dashboard/${guild.guild_id}/${itemId}`
+      const href = routes.guild(guild.guild_id, itemId)
       router.push(href)
     },
     [closeMobileNav, guild.guild_id, router]
@@ -236,7 +237,7 @@ export default function ServerSettingsView({ guild, user, activeTab, canAccessAn
 
   const goBackToServers = useCallback(() => {
     closeMobileNav()
-    router.push('/dashboard')
+    router.push(routes.dashboard)
   }, [closeMobileNav, router])
 
   useEffect(() => {

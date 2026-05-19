@@ -12,6 +12,7 @@ type TopGuild = {
 }
 
 import { guildInitials } from '@/lib/discord/format'
+import { api } from '@/lib/routes'
 
 function GuildChip({ guild }: { guild: TopGuild }) {
   const label = `${guild.name}, ${guild.member_count.toLocaleString()} members`
@@ -62,7 +63,7 @@ export default function GuildCarousel() {
     if (fetched.current) return
     fetched.current = true
 
-    fetch('/api/top-guilds')
+    fetch(api.guildsTop)
       .then((r) => (r.ok ? r.json() : { guilds: [] }))
       .then((data: { guilds?: TopGuild[] }) => {
         const list = Array.isArray(data.guilds) ? data.guilds : []

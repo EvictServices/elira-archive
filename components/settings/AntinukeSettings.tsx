@@ -106,7 +106,7 @@ export default function AntinukeSettings({
   const [profilesLoading, setProfilesLoading] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/settings/${guildId}/antinuke`)
+    fetch(`/api/guilds/${guildId}/antinuke`)
       .then(async (r) => {
         if (exitIfForbidden(r.status)) return
         const data = await r.json()
@@ -140,7 +140,7 @@ export default function AntinukeSettings({
 
     let cancelled = false
     setProfilesLoading(true)
-    fetch(`/api/settings/${guildId}/antinuke/users`, {
+    fetch(`/api/guilds/${guildId}/antinuke/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids }),
@@ -176,7 +176,7 @@ export default function AntinukeSettings({
     setSaving(name)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/antinuke`, {
+      const res = await fetch(`/api/guilds/${guildId}/antinuke`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ module: name, config: next }),
@@ -199,7 +199,7 @@ export default function AntinukeSettings({
     setSaving(name)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/antinuke`, {
+      const res = await fetch(`/api/guilds/${guildId}/antinuke`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ module: name, config }),
@@ -223,7 +223,7 @@ export default function AntinukeSettings({
     setSaving('bot')
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/antinuke`, {
+      const res = await fetch(`/api/guilds/${guildId}/antinuke`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bot: !settings.bot }),
@@ -249,7 +249,7 @@ export default function AntinukeSettings({
     setListSaving(field)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/antinuke`, {
+      const res = await fetch(`/api/guilds/${guildId}/antinuke`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: next }),

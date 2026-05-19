@@ -87,7 +87,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
 
   const refreshActiveChannels = useCallback(async () => {
     try {
-      const res = await fetch(`/api/settings/${guildId}/voicemaster/channels`, {
+      const res = await fetch(`/api/guilds/${guildId}/voicemaster/channels`, {
         credentials: 'same-origin',
         cache: 'no-store',
       })
@@ -133,7 +133,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
     setSaving(savingKey)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/voicemaster`, {
+      const res = await fetch(`/api/guilds/${guildId}/voicemaster`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -171,7 +171,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
     setSaving('reset')
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/voicemaster`, {
+      const res = await fetch(`/api/guilds/${guildId}/voicemaster`, {
         method: 'DELETE',
       })
       if (!res.ok) {
@@ -181,7 +181,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
       }
       setConfiguration(null)
       setBitrateDraft('')
-      const ch = await fetch(`/api/settings/${guildId}/voicemaster/channels`).then((r) => r.json())
+      const ch = await fetch(`/api/guilds/${guildId}/voicemaster/channels`).then((r) => r.json())
       if (Array.isArray(ch?.channels)) setChannels(ch.channels)
     } catch {
       setError('Failed to reset')
@@ -209,7 +209,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
     setError(null)
     try {
       const res = await fetch(
-        `/api/settings/${guildId}/voicemaster/channels/disconnect`,
+        `/api/guilds/${guildId}/voicemaster/channels/disconnect`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -247,7 +247,7 @@ export default function VoicemasterSettings({ guildId }: { guildId: string }) {
     setSaving(`channel:${channelId}`)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/voicemaster/channels`, {
+      const res = await fetch(`/api/guilds/${guildId}/voicemaster/channels`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channel_id: channelId, mode: 'hard' }),

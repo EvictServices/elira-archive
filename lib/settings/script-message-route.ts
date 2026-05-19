@@ -44,17 +44,17 @@ function parseOptionalDeleteAfter(
 type Session = NonNullable<Awaited<ReturnType<typeof getSession>>>
 
 async function authorize(
-  ctx: { params: Promise<{ id: string }> }
-): Promise<{ ok: true; session: Session; id: string } | { ok: false; response: NextResponse }> {
+  ctx: { params: Promise<{ guildId: string }> }
+): Promise<{ ok: true; session: Session; guildId: string } | { ok: false; response: NextResponse }> {
   const session = await getSession()
   if (!session) {
     return { ok: false, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
   }
-  const { id } = await ctx.params
-  if (!(await hasGuildAdmin(session.accessToken, id))) {
+  const { guildId } = await ctx.params
+  if (!(await hasGuildAdmin(session.accessToken, guildId))) {
     return { ok: false, response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
   }
-  return { ok: true, session, id }
+  return { ok: true, session, guildId }
 }
 
 async function readJsonBody(
@@ -70,11 +70,11 @@ async function readJsonBody(
 export async function handleScriptMessagePatch(
   kind: ScriptMessageKind,
   req: NextRequest,
-  ctx: { params: Promise<{ id: string }> }
+  ctx: { params: Promise<{ guildId: string }> }
 ): Promise<NextResponse> {
   const auth = await authorize(ctx)
   if (!auth.ok) return auth.response
-  const { session, id } = auth
+  const { session, guildId } = auth
 
   const body = await readJsonBody(req)
   if (body instanceof NextResponse) return body
@@ -98,28 +98,28 @@ export async function handleScriptMessagePatch(
   }
 
   try {
-    await upsertMessage(kind, id, channelId, resolved.template, fromChannelId, deleteAfter)
+    await upsertMessage(kind, guildId, channelId, resolved.template, fromChannelId, deleteAfter)
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 })
   }
 
-  recordDashboardAudit(session, id, `${AUDIT_PREFIX[kind]}.upsert`, {
+  recordDashboardAudit(session, guildId, `${AUDIT_PREFIX[kind]}.upsert`, {
     channel_id: channelId,
     ...(fromChannelId && fromChannelId !== channelId ? { from_channel_id: fromChannelId } : {}),
     ...(deleteAfter !== undefined ? { delete_after: deleteAfter } : {}),
   })
-  const messages = await listMessages(kind, id)
+  const messages = await listMessages(kind, guildId)
   return NextResponse.json({ messages })
 }
 
 export async function handleScriptMessageDelete(
   kind: ScriptMessageKind,
   req: NextRequest,
-  ctx: { params: Promise<{ id: string }> }
+  ctx: { params: Promise<{ guildId: string }> }
 ): Promise<NextResponse> {
   const auth = await authorize(ctx)
   if (!auth.ok) return auth.response
-  const { session, id } = auth
+  const { session, guildId } = auth
 
   const body = await readJsonBody(req)
   if (body instanceof NextResponse) return body
@@ -129,12 +129,12 @@ export async function handleScriptMessageDelete(
     return NextResponse.json({ error: 'Invalid channel_id' }, { status: 400 })
   }
 
-  const removed = await deleteMessage(kind, id, channelId)
+  const removed = await deleteMessage(kind, guildId, channelId)
   if (!removed) {
     return NextResponse.json({ error: NOT_FOUND_MESSAGE[kind] }, { status: 404 })
   }
 
-  recordDashboardAudit(session, id, `${AUDIT_PREFIX[kind]}.delete`, { channel_id: channelId })
-  const messages = await listMessages(kind, id)
+  recordDashboardAudit(session, guildId, `${AUDIT_PREFIX[kind]}.delete`, { channel_id: channelId })
+  const messages = await listMessages(kind, guildId)
   return NextResponse.json({ messages })
 }

@@ -149,6 +149,7 @@ function fmtMem(mb: number): string {
 }
 
 import { animateCounter } from '@/lib/marketing/animate-counter'
+import { api } from '@/lib/routes'
 
 export default function StatusView() {
   const [guilds, setGuilds] = useState('—')
@@ -185,15 +186,15 @@ export default function StatusView() {
 
   const load = useCallback(async () => {
     const [healthRes, sysRes, cmdRes] = await Promise.allSettled([
-      fetch('/api/health').then((r) => {
+      fetch(api.cluster.health).then((r) => {
         if (!r.ok) throw 0
         return r.json()
       }),
-      fetch('/api/status').then((r) => {
+      fetch(api.cluster.status).then((r) => {
         if (!r.ok) throw 0
         return r.json()
       }),
-      fetch('/api/top-commands').then((r) => {
+      fetch(api.stats.topCommands).then((r) => {
         if (!r.ok) throw 0
         return r.json()
       }),

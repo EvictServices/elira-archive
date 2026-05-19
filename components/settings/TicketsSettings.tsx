@@ -110,7 +110,7 @@ export default function TicketsSettings({ guildId }: { guildId: string }) {
     setSaving(key)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/tickets`, {
+      const res = await fetch(`/api/guilds/${guildId}/tickets`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

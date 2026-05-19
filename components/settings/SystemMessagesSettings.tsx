@@ -497,7 +497,7 @@ export default function SystemMessagesSettings({
       if (modalMode === 'edit' && editSourceChannelId && editSourceChannelId !== draftChannelId) {
         body.from_channel_id = editSourceChannelId
       }
-      const res = await fetch(`/api/settings/${guildId}/${cfg.apiPath}`, {
+      const res = await fetch(`/api/guilds/${guildId}/${cfg.apiPath}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -532,7 +532,7 @@ export default function SystemMessagesSettings({
     const cfg = KIND_CONFIG[kind]
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/${cfg.apiPath}`, {
+      const res = await fetch(`/api/guilds/${guildId}/${cfg.apiPath}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channel_id: cid }),

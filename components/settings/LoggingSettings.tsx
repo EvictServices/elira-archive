@@ -170,7 +170,7 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
     const ids = memberIgnoredIdsKey.split(',')
     let cancelled = false
     setProfilesLoading(true)
-    fetch(`/api/settings/${guildId}/logging/users`, {
+    fetch(`/api/guilds/${guildId}/logging/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids }),
@@ -210,7 +210,7 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
     setSaving(event)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/logging`, {
+      const res = await fetch(`/api/guilds/${guildId}/logging`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event, channel_id: channelId }),
@@ -237,7 +237,7 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
     setIgnoreSaving(targetId)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/logging`, {
+      const res = await fetch(`/api/guilds/${guildId}/logging`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'add_ignored', target_id: targetId }),
@@ -259,7 +259,7 @@ export default function LoggingSettings({ guildId }: { guildId: string }) {
     setIgnoreSaving(targetId)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/logging`, {
+      const res = await fetch(`/api/guilds/${guildId}/logging`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'remove_ignored', target_id: targetId }),

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { botInviteUrl, INVITE_URL } from '@/lib/discord/urls'
+import { routes } from '@/lib/routes'
 import { compactNumber, guildInitials } from '@/lib/discord/format'
 import { userAvatarUrl } from '@/lib/discord/cdn'
 
@@ -260,7 +261,7 @@ export default function DashboardView({
           {filtered.map((guild, idx) => (
             <Link
               key={guild.id}
-              href={`/dashboard/${guild.id}`}
+              href={routes.guild(guild.id)}
               className={`guild-card${guild.banner_url ? ' guild-card-has-banner' : ''}`}
               style={{ animationDelay: `${Math.min(idx * 0.04, 0.4)}s` }}
             >

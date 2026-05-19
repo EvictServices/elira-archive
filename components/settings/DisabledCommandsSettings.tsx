@@ -106,9 +106,9 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     try {
       const [bundle, disabledRes, ignoreRes, restrictRes] = await Promise.all([
         fetchBundle(guildId, ['channels', 'roles']),
-        fetch(`/api/settings/${guildId}/disabled-commands`),
-        fetch(`/api/settings/${guildId}/command-ignore`),
-        fetch(`/api/settings/${guildId}/command-restrict`),
+        fetch(`/api/guilds/${guildId}/disabled-commands`),
+        fetch(`/api/guilds/${guildId}/command-ignore`),
+        fetch(`/api/guilds/${guildId}/command-restrict`),
       ])
       const raw = (bundle.channels ?? []) as GuildChannel[]
       const text = raw.filter((c) => isDiscordTextChannel(c))
@@ -157,7 +157,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
   useEffect(() => {
     let cancelled = false
     setCommandsLoading(true)
-    fetch('/api/commands')
+    fetch('/api/cluster/commands')
       .then(async (r) => {
         const data = await r.json().catch(() => ({}))
         if (cancelled) return
@@ -201,7 +201,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     setSaving(true)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/disabled-commands`, {
+      const res = await fetch(`/api/guilds/${guildId}/disabled-commands`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: cmd, channelIds: selectedIds }),
@@ -235,7 +235,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     setRemoving(key)
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/disabled-commands`, {
+      const res = await fetch(`/api/guilds/${guildId}/disabled-commands`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command, channelIds }),
@@ -262,7 +262,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     setIgnoreSaving(true)
     setAccessError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/command-ignore`, {
+      const res = await fetch(`/api/guilds/${guildId}/command-ignore`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ targetId: id }),
@@ -285,7 +285,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     setRemovingIgnore(targetId)
     setAccessError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/command-ignore`, {
+      const res = await fetch(`/api/guilds/${guildId}/command-ignore`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ targetId }),
@@ -320,7 +320,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     setRestrictSaving(true)
     setAccessError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/command-restrict`, {
+      const res = await fetch(`/api/guilds/${guildId}/command-restrict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: cmd, roleIds: restrictSelectedRoleIds }),
@@ -346,7 +346,7 @@ export default function DisabledCommandsSettings({ guildId }: { guildId: string 
     setRemovingRestrict(key)
     setAccessError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/command-restrict`, {
+      const res = await fetch(`/api/guilds/${guildId}/command-restrict`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command, roleIds }),

@@ -8,15 +8,16 @@ import { useDashboardGuildBreadcrumb } from '@/components/dashboard/breadcrumb-c
 import DashboardGuildSwitcher from '@/components/dashboard/guild-switcher'
 import { useGuildSettingsMobileNav } from '@/components/dashboard/mobile-nav-context'
 import UserMenu from '@/components/shared/user-menu'
+import { routes } from '@/lib/routes'
 
 const GUILD_SETTINGS_SCROLL_CLASS = 'guild-settings-mobile-scroll-away'
 
 const MAIN_LINKS: { href: string; page: string; label: string; external?: boolean }[] = [
-  { href: '/', page: 'home', label: 'Home' },
-  { href: '/commands', page: 'commands', label: 'Commands' },
-  { href: '/embeds', page: 'embeds', label: 'Embeds' },
-  { href: '/updates', page: 'updates', label: 'Updates' },
-  { href: '/status', page: 'status', label: 'Status' },
+  { href: routes.home, page: 'home', label: 'Home' },
+  { href: routes.commands, page: 'commands', label: 'Commands' },
+  { href: routes.embeds, page: 'embeds', label: 'Embeds' },
+  { href: routes.updates, page: 'updates', label: 'Updates' },
+  { href: routes.status, page: 'status', label: 'Status' },
 ]
 
 export default function Navbar() {
@@ -127,13 +128,13 @@ export default function Navbar() {
       >
         <div className="site-nav__shell site-nav__shell--dashboard">
           <div className="site-nav__dash-left">
-            <Link href="/" className="site-nav__brand">
+            <Link href={routes.home} className="site-nav__brand">
               <img src="/img/evict.webp" alt="" className="site-nav__logo" width={28} height={28} />
               <span className="site-nav__wordmark">evict</span>
             </Link>
             <span className="site-nav__dash-rule" aria-hidden />
             <Link
-              href="/dashboard"
+              href={routes.dashboard}
               className={`site-nav__crumb${pathname === '/dashboard' ? ' is-active' : ''}`}
             >
               Dashboard

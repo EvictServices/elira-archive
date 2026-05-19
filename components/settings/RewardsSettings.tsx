@@ -141,8 +141,8 @@ export default function RewardsSettings({
 
   const loadRewards = useCallback(async () => {
     const [tagRes, vanityRes] = await Promise.all([
-      fetch(`/api/settings/${guildId}/rewards/tag`, { credentials: 'same-origin' }),
-      fetch(`/api/settings/${guildId}/rewards/vanity`, { credentials: 'same-origin' }),
+      fetch(`/api/guilds/${guildId}/rewards/tag`, { credentials: 'same-origin' }),
+      fetch(`/api/guilds/${guildId}/rewards/vanity`, { credentials: 'same-origin' }),
     ])
     const tagData = await tagRes.json().catch(() => ({}))
     const vanityData = await vanityRes.json().catch(() => ({}))
@@ -233,7 +233,7 @@ export default function RewardsSettings({
   const patchTag = async (body: Record<string, unknown>) => {
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/rewards/tag`, {
+      const res = await fetch(`/api/guilds/${guildId}/rewards/tag`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -254,7 +254,7 @@ export default function RewardsSettings({
   const patchVanity = async (body: Record<string, unknown>) => {
     setError(null)
     try {
-      const res = await fetch(`/api/settings/${guildId}/rewards/vanity`, {
+      const res = await fetch(`/api/guilds/${guildId}/rewards/vanity`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

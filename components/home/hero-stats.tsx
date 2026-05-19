@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { animateCounter } from '@/lib/marketing/animate-counter'
+import { api } from '@/lib/routes'
 import GuildCarousel from '@/components/home/guild-carousel'
 
 export default function HeroStats() {
@@ -18,8 +19,8 @@ export default function HeroStats() {
     async function load() {
       try {
         const [res, cmdRes] = await Promise.all([
-          fetch('/api/health'),
-          fetch('/api/commands'),
+          fetch(api.cluster.health),
+          fetch(api.cluster.commands),
         ])
 
         if (!res.ok) throw new Error()

@@ -1,4 +1,5 @@
 import { INVITE_URL, SUPPORT_URL } from '@/lib/discord/urls'
+import { routes } from '@/lib/routes'
 
 export default function Footer() {
   return (
@@ -17,9 +18,9 @@ export default function Footer() {
             <span className="footer-sep">&middot;</span>
             <a href="https://docs.evict.bot" target="_blank" rel="noopener" className="footer-link">Docs</a>
             <span className="footer-sep">&middot;</span>
-            <a href="/terms" className="footer-link">Terms</a>
+            <a href={routes.terms} className="footer-link">Terms</a>
             <span className="footer-sep">&middot;</span>
-            <a href="/privacy" className="footer-link">Privacy</a>
+            <a href={routes.privacy} className="footer-link">Privacy</a>
           </div>
         </div>
         <div className="footer-bottom">

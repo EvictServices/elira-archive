@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { api, routes } from '@/lib/routes'
 
 type GuildRow = { id: string; name: string; icon_url: string | null; member_count: number }
 
@@ -48,7 +49,7 @@ export default function DashboardGuildSwitcher() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch('/api/dashboard/guilds', { credentials: 'same-origin' })
+        const res = await fetch(api.guilds, { credentials: 'same-origin' })
         if (!res.ok) return
         const data = (await res.json()) as { guilds: GuildRow[] }
         const list = [...(data.guilds ?? [])].sort((a, b) =>
@@ -121,7 +122,7 @@ export default function DashboardGuildSwitcher() {
             return (
               <Link
                 key={g.id}
-                href={`/dashboard/${g.id}/${activeTab}`}
+                href={routes.guild(g.id, activeTab)}
                 role="option"
                 aria-selected={isActive}
                 className={`an-dropdown-item site-nav__guild-switcher-item${isActive ? ' active' : ''}`}
