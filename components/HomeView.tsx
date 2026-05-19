@@ -1,10 +1,6 @@
 import { INVITE_URL, SUPPORT_URL } from '@/lib/constants'
 import HeroStats from '@/components/HeroStats'
 import Stars from '@/components/Stars'
-import MusicSection from '@/components/features/MusicSection'
-import SocialSection from '@/components/features/SocialSection'
-import VoiceMasterSection from '@/components/features/VoiceMasterSection'
-import AntinukeSection from '@/components/features/AntinukeSection'
 
 function Divider() {
   return (
@@ -47,15 +43,6 @@ export default function HomeView() {
           <HeroStats />
         </div>
       </section>
-
-      <Divider />
-      <MusicSection />
-      <Divider />
-      <SocialSection />
-      <Divider />
-      <VoiceMasterSection />
-      <Divider />
-      <AntinukeSection />
 
       <Divider />
 
