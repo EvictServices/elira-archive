@@ -1,7 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ComponentType } from 'react'
+import {
+  VmIconActivity,
+  VmIconClaim,
+  VmIconDecrease,
+  VmIconDisconnect,
+  VmIconGhost,
+  VmIconIncrease,
+  VmIconLock,
+  VmIconReveal,
+  VmIconUnlock,
+  VmIconView,
+} from '@/components/home/vm-action-icons'
 import type { VoicemasterDemoMember } from '@/lib/marketing/voicemaster-demo'
+
+type VoiceAction = {
+  id: string
+  label: string
+  desc: string
+  Icon: ComponentType<{ className?: string }>
+}
 
 type ModTab = 'antinuke' | 'logging' | 'invoke' | 'automod'
 
@@ -67,25 +86,29 @@ const MOD_COPY: Record<
   },
 }
 
-const VOICE_ACTIONS = [
-  { id: 'lock', label: 'Lock', hint: 'Only people you allow can enter the channel.' },
-  { id: 'limit', label: 'Cap', hint: 'Set a max headcount for the room.' },
-  { id: 'rename', label: 'Rename', hint: 'Change the channel name on the fly.' },
-  { id: 'bitrate', label: 'Bitrate', hint: 'Adjust audio quality in kbps.' },
-  { id: 'claim', label: 'Claim', hint: 'Take ownership if the owner left.' },
-  { id: 'ghost', label: 'Ghost', hint: 'Hide the channel from the public list.' },
-] as const
+const VM_USAGE_ACTIONS: VoiceAction[] = [
+  { id: 'lock', label: 'Lock', desc: 'the voice channel', Icon: VmIconLock },
+  { id: 'unlock', label: 'Unlock', desc: 'the voice channel', Icon: VmIconUnlock },
+  { id: 'ghost', label: 'Ghost', desc: 'the voice channel', Icon: VmIconGhost },
+  { id: 'reveal', label: 'Reveal', desc: 'the voice channel', Icon: VmIconReveal },
+  { id: 'claim', label: 'Claim', desc: 'the voice channel', Icon: VmIconClaim },
+  { id: 'disconnect', label: 'Disconnect', desc: 'a member', Icon: VmIconDisconnect },
+  { id: 'activity', label: 'Start', desc: 'a new voice channel activity', Icon: VmIconActivity },
+  { id: 'view', label: 'View', desc: 'channel information', Icon: VmIconView },
+  { id: 'decrease', label: 'Decrease', desc: 'the user limit', Icon: VmIconDecrease },
+  { id: 'increase', label: 'Increase', desc: 'the user limit', Icon: VmIconIncrease },
+]
 
 const WAVE_BAR_COUNT = 32
 
 type AuditCategory = 'channels' | 'messages' | 'roles' | 'members' | 'moderation'
 
-const AUDIT_CATEGORIES: { id: AuditCategory; num: string; label: string; count: string }[] = [
-  { id: 'channels', num: '01', label: 'Channels', count: '6 routes' },
-  { id: 'messages', num: '02', label: 'Messages', count: '5 routes' },
-  { id: 'roles', num: '03', label: 'Roles', count: '4 routes' },
-  { id: 'members', num: '04', label: 'Members', count: '7 routes' },
-  { id: 'moderation', num: '05', label: 'Moderation', count: '8 routes' },
+const AUDIT_CATEGORIES: { id: AuditCategory; label: string; count: string }[] = [
+  { id: 'channels', label: 'Channels', count: '6 routes' },
+  { id: 'messages', label: 'Messages', count: '5 routes' },
+  { id: 'roles', label: 'Roles', count: '4 routes' },
+  { id: 'members', label: 'Members', count: '7 routes' },
+  { id: 'moderation', label: 'Moderation', count: '8 routes' },
 ]
 
 const AUDIT_COPY: Record<AuditCategory, { title: string; body: string; route: string }> = {
@@ -168,16 +191,19 @@ function channelLabel(owner: VoicemasterDemoMember): string {
   return `${short}'s lounge`
 }
 
+function formatAuditMsg(ev: AuditEvent): string {
+  if (ev.target) return `${ev.actor} → ${ev.target} · ${ev.detail}`
+  return `${ev.actor} · ${ev.detail}`
+}
+
 type Props = {
   voiceMembers: VoicemasterDemoMember[]
 }
 
 export default function FeaturesSectionClient({ voiceMembers }: Props) {
   const [modTab, setModTab] = useState<ModTab>('antinuke')
-  const [voiceAction, setVoiceAction] = useState<string>('lock')
   const [auditCategory, setAuditCategory] = useState<AuditCategory>('channels')
   const mod = MOD_COPY[modTab]
-  const voice = VOICE_ACTIONS.find((a) => a.id === voiceAction) ?? VOICE_ACTIONS[0]
   const auditEvents = AUDIT_EVENTS[auditCategory]
   const audit = AUDIT_COPY[auditCategory]
 
@@ -261,7 +287,7 @@ export default function FeaturesSectionClient({ voiceMembers }: Props) {
         </header>
 
         <div className="feat-deck">
-          <div className="feat-deck-visual">
+          <div className="feat-deck-visual" aria-label="Voice channel preview">
             <div className="feat-wave" aria-hidden>
               {Array.from({ length: WAVE_BAR_COUNT }, (_, i) => (
                 <span
@@ -277,9 +303,7 @@ export default function FeaturesSectionClient({ voiceMembers }: Props) {
             <div className="feat-deck-channel">
               <span className="feat-deck-live" />
               <span className="feat-deck-channel-name">{channelName}</span>
-              <span className="feat-deck-channel-meta">
-                {connectedCount} connected
-              </span>
+              <span className="feat-deck-channel-meta">{connectedCount} connected</span>
             </div>
             <div className="feat-deck-avatars" aria-hidden>
               {voiceMembers.map((member, i) => (
@@ -314,23 +338,26 @@ export default function FeaturesSectionClient({ voiceMembers }: Props) {
           </div>
 
           <div className="feat-deck-actions">
-            <p className="feat-deck-actions-label">Owner toolkit</p>
-            <div className="feat-chips" role="group" aria-label="Channel controls">
-              {VOICE_ACTIONS.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  className={`feat-chip${voiceAction === a.id ? ' is-active' : ''}`}
-                  aria-pressed={voiceAction === a.id}
-                  onClick={() => setVoiceAction(a.id)}
-                >
-                  {a.label}
-                </button>
-              ))}
-            </div>
-            <p className="feat-deck-note">
-              <strong>{voice.label}</strong> — {voice.hint}
-            </p>
+            <p className="feat-deck-actions-label">Button usage</p>
+            <ul className="feat-vm-usage" aria-label="Voice channel controls (preview)">
+              {VM_USAGE_ACTIONS.map((a) => {
+                const Icon = a.Icon
+                return (
+                  <li key={a.id}>
+                    <div
+                      className={`feat-vm-usage-row${a.id === 'lock' ? ' is-active' : ''}`}
+                      aria-hidden
+                    >
+                      <Icon className="feat-vm-usage-icon" />
+                      <span className="feat-vm-usage-copy">
+                        <span className="feat-vm-usage-pill">{a.label}</span>
+                        <span className="feat-vm-usage-desc">{a.desc}</span>
+                      </span>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
           </div>
         </div>
       </article>
@@ -349,69 +376,45 @@ export default function FeaturesSectionClient({ voiceMembers }: Props) {
           </div>
         </header>
 
-        <div className="feat-tape">
-          <div className="feat-tape-routes">
-            <p className="feat-tape-routes-label">Event routes</p>
-            <nav className="feat-tape-track" role="tablist" aria-label="Log categories">
-              {AUDIT_CATEGORIES.map((cat, i) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={auditCategory === cat.id}
-                  className={`feat-tape-node feat-tape-node--${cat.id}${auditCategory === cat.id ? ' is-active' : ''}`}
-                  onClick={() => setAuditCategory(cat.id)}
-                >
-                  <span className="feat-tape-node-rail" aria-hidden>
-                    {i < AUDIT_CATEGORIES.length - 1 && <span className="feat-tape-node-line" />}
-                    <span className="feat-tape-node-dot" />
-                  </span>
-                  <span className="feat-tape-node-text">
-                    <span className="feat-tape-node-num">{cat.num}</span>
-                    <span className="feat-tape-node-label">{cat.label}</span>
-                    <span className="feat-tape-node-meta">{cat.count}</span>
-                  </span>
-                </button>
-              ))}
-            </nav>
-            <div className={`feat-tape-sink feat-tape-sink--${auditCategory}`}>
-              <span className="feat-tape-sink-ring" aria-hidden />
-              <span className="feat-tape-sink-label">delivering to</span>
-              <span className="feat-tape-sink-channel">{audit.route}</span>
-            </div>
-          </div>
+        <div className="feat-panel feat-panel--audit">
+          <nav className="feat-tabs" role="tablist" aria-label="Log categories">
+            {AUDIT_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                role="tab"
+                aria-selected={auditCategory === cat.id}
+                className={`feat-tab${auditCategory === cat.id ? ' is-active' : ''}`}
+                onClick={() => setAuditCategory(cat.id)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </nav>
 
-          <div className="feat-tape-stream" role="tabpanel" key={auditCategory}>
-            <div className="feat-tape-scan" aria-hidden />
-            <div className="feat-tape-stream-head">
+          <div className="feat-console-main" role="tabpanel" key={auditCategory}>
+            <div className="feat-console-top">
               <div>
-                <h3 className="feat-tape-stream-title">{audit.title}</h3>
-                <p className="feat-tape-stream-desc">{audit.body}</p>
+                <h3 className="feat-console-title">{audit.title}</h3>
+                <p className="feat-console-desc">{audit.body}</p>
               </div>
+              <span className="feat-console-stat">{audit.route}</span>
             </div>
-            <ul className="feat-tape-events" aria-label={`${audit.title} log preview`}>
+            <ol className="feat-log" aria-label={`${audit.title} log preview`}>
               {auditEvents.map((ev, i) => (
                 <li
                   key={ev.id}
-                  className={`feat-tape-event feat-tape-event--${auditCategory}${i === 0 ? ' is-fresh' : ''}`}
-                  style={{ animationDelay: `${i * 0.07}s` }}
+                  className="feat-log-line"
+                  style={{ animationDelay: `${0.06 + i * 0.07}s` }}
                 >
-                  <span className="feat-tape-event-time">{ev.time}</span>
-                  <span className="feat-tape-event-code">{ev.action}</span>
-                  <span className="feat-tape-event-main">
-                    <span className="feat-tape-event-actor">{ev.actor}</span>
-                    {ev.target && (
-                      <>
-                        <span className="feat-tape-event-arrow">→</span>
-                        <span className="feat-tape-event-target">{ev.target}</span>
-                      </>
-                    )}
+                  <span className="feat-log-time">{ev.time}</span>
+                  <span className={`feat-log-code feat-log-code--${auditCategory}`}>
+                    {ev.action}
                   </span>
-                  <span className="feat-tape-event-detail">{ev.detail}</span>
+                  <span className="feat-log-msg">{formatAuditMsg(ev)}</span>
                 </li>
               ))}
-            </ul>
-            <span className="feat-tape-cursor" aria-hidden />
+            </ol>
           </div>
         </div>
       </article>

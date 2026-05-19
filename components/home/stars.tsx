@@ -86,16 +86,5 @@ export default function Stars() {
     }
   }, [])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 0,
-        opacity: 0.8,
-      }}
-    />
-  )
+  return <canvas ref={canvasRef} className="hero-stars" aria-hidden />
 }
