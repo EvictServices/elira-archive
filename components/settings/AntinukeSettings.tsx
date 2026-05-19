@@ -451,7 +451,6 @@ function AntinukeUserListsPanel({
   }
 
   return (
-    <>
     <div className="an-access-panel an-access-panel--unified an-module">
       <div className="an-access-unified-add">
         <label className="an-access-unified-label" htmlFor="antinuke-add-list-type">
@@ -505,6 +504,7 @@ function AntinukeUserListsPanel({
         {localError && <p className="an-access-local-error">{localError}</p>}
       </div>
 
+      <div className="an-access-grid">
       {(['trusted_admins', 'whitelist'] as const).map((field) => {
         const meta = USER_LIST_META[field]
         const { ids, onChange } = lists[field]
@@ -588,9 +588,9 @@ function AntinukeUserListsPanel({
           </section>
         )
       })}
+      </div>
+      {confirmModal}
     </div>
-    {confirmModal}
-    </>
   )
 }
 
