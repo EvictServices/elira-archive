@@ -1,53 +1,57 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { animateCounter } from '@/lib/marketing/animate-counter'
+import { useCallback, useEffect, useState } from 'react'
+import AnimatedCounter from '@/components/shared/animated-counter'
 import { api } from '@/lib/routes'
 
+const POLL_MS = 5000
+
+function sumGuilds(d: {
+  guilds?: number
+  clusters?: Record<string, { guilds?: number; shards?: { guilds?: number }[] }>
+}): number {
+  if (d.guilds != null) return d.guilds
+  return Object.values(d.clusters || {}).reduce((sum, c) => {
+    return (
+      sum +
+      (c.guilds || (c.shards || []).reduce((s2, sh) => s2 + (sh.guilds || 0), 0))
+    )
+  }, 0)
+}
+
 export default function HeroProof() {
-  const [servers, setServers] = useState('—')
-  const [users, setUsers] = useState('—')
-  const fetched = useRef(false)
+  const [users, setUsers] = useState<number | null>(null)
+  const [servers, setServers] = useState<number | null>(null)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(api.cluster.health)
+      if (!res.ok) throw new Error()
+      const d = await res.json()
+
+      if (d.users != null) {
+        setUsers(d.users)
+        setServers(sumGuilds(d))
+      } else {
+        setUsers(0)
+        setServers(0)
+      }
+    } catch {
+      setUsers(0)
+      setServers(0)
+    }
+  }, [])
 
   useEffect(() => {
-    if (fetched.current) return
-    fetched.current = true
-
-    async function load() {
-      try {
-        const res = await fetch(api.cluster.health)
-        if (!res.ok) throw new Error()
-        const d = await res.json()
-
-        if (d.users != null) {
-          const guilds =
-            d.guilds ||
-            Object.values(d.clusters || {}).reduce((sum: number, c: unknown) => {
-              const cluster = c as { guilds?: number; shards?: { guilds?: number }[] }
-              return (
-                sum +
-                (cluster.guilds ||
-                  (cluster.shards || []).reduce((s2: number, sh) => s2 + (sh.guilds || 0), 0))
-              )
-            }, 0)
-          animateCounter(setServers, guilds)
-          animateCounter(setUsers, d.users)
-        } else {
-          setServers('0')
-          setUsers('0')
-        }
-      } catch {
-        setServers('0')
-        setUsers('0')
-      }
-    }
     load()
-  }, [])
+    const interval = window.setInterval(load, POLL_MS)
+    return () => window.clearInterval(interval)
+  }, [load])
 
   return (
     <p className="hero-proof" aria-live="polite">
-      Powering <strong className="hero-proof-strong">{users}</strong> users across{' '}
-      <strong className="hero-proof-strong">{servers}</strong> servers
+      Powering <AnimatedCounter value={users} className="hero-proof-strong" /> users across{' '}
+      <AnimatedCounter value={servers} className="hero-proof-strong" /> servers
     </p>
   )
 }

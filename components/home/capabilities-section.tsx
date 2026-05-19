@@ -105,8 +105,8 @@ const CAPABILITIES: Capability[] = [
     ),
   },
   {
-    title: 'Prefix, custom & slash',
-    body: 'Server-wide prefix, personal overrides, and slash commands — pick how your staff and members actually type.',
+    title: 'Custom & server prefix',
+    body: 'Set a server-wide default prefix and let members use their own custom prefix when they run commands.',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
         <polyline points="4 17 10 11 4 5" />

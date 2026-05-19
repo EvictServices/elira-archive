@@ -25,7 +25,7 @@ export type HeroBentoCard =
       id: string
       title: string
       icon: HeroBentoIcon
-      body: { type: 'wave' }
+      body: { type: 'wave'; desc: string }
     }
   | {
       id: string
@@ -50,6 +50,15 @@ export type HeroBentoCard =
       title: string
       icon: HeroBentoIcon
       body: { type: 'stat'; value: string }
+    }
+  | {
+      id: string
+      title: string
+      icon: HeroBentoIcon
+      body: {
+        type: 'giveaway'
+        frames: { entries: number; ends: string; fill: number }[]
+      }
     }
   | {
       id: string
@@ -90,7 +99,7 @@ export const HERO_BENTO_SETS: HeroBentoSet[] = [
         id: 'voicemaster',
         title: 'Voicemaster',
         icon: 'voice',
-        body: { type: 'wave' },
+        body: { type: 'wave', desc: 'Join-to-create · Lock · Claim · Limits' },
       },
       {
         id: 'moderation',
@@ -120,7 +129,15 @@ export const HERO_BENTO_SETS: HeroBentoSet[] = [
         id: 'giveaways',
         title: 'Giveaways',
         icon: 'gift',
-        body: { type: 'stat', value: '48 entries · ends in 3h 12m' },
+        body: {
+          type: 'giveaway',
+          frames: [
+            { entries: 48, ends: '3h 12m', fill: 62 },
+            { entries: 51, ends: '3h 08m', fill: 68 },
+            { entries: 54, ends: '3h 04m', fill: 74 },
+            { entries: 58, ends: '2h 58m', fill: 81 },
+          ],
+        },
       },
       {
         id: 'starboard',
@@ -235,9 +252,9 @@ export const HERO_BENTO_SETS: HeroBentoSet[] = [
       },
       {
         id: 'commands',
-        title: 'Prefix & slash',
+        title: 'Custom & server prefix',
         icon: 'terminal',
-        body: { type: 'stat', value: '/help · ;prefix · per-user overrides' },
+        body: { type: 'stat', value: 'Server ;evict · custom ;p · per-user' },
       },
     ],
   },

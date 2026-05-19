@@ -249,8 +249,8 @@ export default function StatusView() {
         }
       }
 
-      animateCounter(setGuilds, d.guilds || totalGuilds, 900)
-      animateCounter(setUsers, d.users || 0, 900)
+      animateCounter(setGuilds, d.guilds || totalGuilds)
+      animateCounter(setUsers, d.users || 0)
       setShards(String(totalShards))
       setClusters(newClusters)
 

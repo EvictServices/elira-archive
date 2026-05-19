@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import AnimatedCounter from '@/components/shared/animated-counter'
 import {
   HERO_BENTO_CYCLE_MS,
   HERO_BENTO_SETS,
@@ -128,11 +129,14 @@ function CardBody({
 
   if (body.type === 'wave') {
     return (
-      <div className="hero-bento-wave is-idle" aria-hidden>
-        {Array.from({ length: WAVE_BARS }, (_, i) => (
-          <span key={i} className="hero-bento-bar" style={{ ['--i' as string]: i }} />
-        ))}
-      </div>
+      <>
+        <p className="hero-bento-stat">{body.desc}</p>
+        <div className="hero-bento-wave is-idle" aria-hidden>
+          {Array.from({ length: WAVE_BARS }, (_, i) => (
+            <span key={i} className="hero-bento-bar" style={{ ['--i' as string]: i }} />
+          ))}
+        </div>
+      </>
     )
   }
 
@@ -174,6 +178,23 @@ function CardBody({
           </span>
         </div>
       </div>
+    )
+  }
+
+  if (body.type === 'giveaway') {
+    const frame = body.frames[wrapIndex(logOffset, body.frames.length)]
+    return (
+      <>
+        <p className="hero-bento-stat hero-bento-stat--lg hero-bento-stat--tick">
+          <strong>
+            <AnimatedCounter value={frame.entries} duration={600} />
+          </strong>{' '}
+          entries · ends in {frame.ends}
+        </p>
+        <div className="hero-bento-meter" aria-hidden>
+          <span className="hero-bento-meter-fill" style={{ width: `${frame.fill}%` }} />
+        </div>
+      </>
     )
   }
 
