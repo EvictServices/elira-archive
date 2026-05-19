@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { fetchCommands } from '@/lib/cluster/fetch-commands'
-import CommandsView from './CommandsView'
+import CommandsView from '@/components/commands/commands-view'
 
 export const metadata: Metadata = {
   title: 'Commands',

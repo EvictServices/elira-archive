@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { handleScriptMessagePatch, handleScriptMessageDelete } from '@/lib/settings/script_message_route'
+import { handleScriptMessagePatch, handleScriptMessageDelete } from '@/lib/settings/script-message-route'
 
 export function PATCH(
   req: NextRequest,

@@ -4,7 +4,7 @@ import {
   type EmbedButton,
   type EmbedData,
   type EmbedField,
-} from '@/app/(home)/embeds/lib/types'
+} from '@/components/embeds/lib/types'
 
 export const CHANNEL_SNOWFLAKE = /^\d{15,22}$/
 

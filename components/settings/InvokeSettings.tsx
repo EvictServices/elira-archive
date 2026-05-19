@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react'
-import { useConfirm } from '@/components/ConfirmModal'
+import { useConfirm } from '@/components/shared/confirm-modal'
 import EmbedScriptEditorModal from '@/components/settings/EmbedScriptEditorModal'
 import {
   defaultEmbed,
@@ -10,15 +10,15 @@ import {
   type EmbedButton,
   type EmbedData,
   type EmbedField,
-} from '@/app/(home)/embeds/lib/types'
-import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
-import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
+} from '@/components/embeds/lib/types'
+import type { ParsedEmbedPatch } from '@/components/embeds/lib/parse'
+import type { PreviewContext } from '@/components/embeds/lib/preview'
 import {
   INVOKE_ACTION_TYPES,
   INVOKE_ACTION_LABELS,
   INVOKE_DEFAULT_MESSAGE,
   type InvokeActionType,
-} from '@/lib/settings/invoke_constants'
+} from '@/lib/settings/invoke-constants'
 
 export interface InvokeSettingsUser {
   id: string

@@ -8,7 +8,7 @@ import { colorHex, type GuildChannel, type GuildRole } from '@/components/settin
 import { OverflowChipDropdown } from '@/components/settings/OverflowChipDropdown'
 import { CommandModulePicker } from '@/components/settings/CommandModulePicker'
 import type { CatalogCommand } from '@/lib/commands/catalog'
-import { canDisableCommand } from '@/lib/settings/command_mgmt'
+import { canDisableCommand } from '@/lib/settings/command-mgmt'
 import PrefixSettings from './PrefixSettings'
 
 interface DisabledGroup {

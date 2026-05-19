@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import pool from '@/lib/infra/db'
 

@@ -8,7 +8,7 @@ import {
   type AutoroleAction,
   type AutoroleEntry,
   type AutoroleSettings,
-} from '@/lib/settings/autorole_types'
+} from '@/lib/settings/autorole-types'
 
 export type { AutoroleAction, AutoroleEntry, AutoroleSettings }
 export { ACTIONS, MIN_DELAY, MAX_DELAY }

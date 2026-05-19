@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 import type { Metadata } from 'next'
 import { parseYAML, type Update } from '@/lib/marketing/parse-yaml'
-import UpdatesView from './UpdatesView'
+import UpdatesView from '@/components/updates/updates-view'
 
 export const metadata: Metadata = { title: 'Updates' }
 

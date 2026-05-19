@@ -8,7 +8,7 @@ import {
   categoryLabel,
   type ScriptEditorModalMode,
 } from '@/components/settings/SystemMessagesScriptModal'
-import { useConfirm } from '@/components/ConfirmModal'
+import { useConfirm } from '@/components/shared/confirm-modal'
 import {
   defaultEmbed,
   generateScript,
@@ -16,9 +16,9 @@ import {
   type EmbedButton,
   type EmbedData,
   type EmbedField,
-} from '@/app/(home)/embeds/lib/types'
-import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
-import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
+} from '@/components/embeds/lib/types'
+import type { ParsedEmbedPatch } from '@/components/embeds/lib/parse'
+import type { PreviewContext } from '@/components/embeds/lib/preview'
 import { fetchBundle } from '@/lib/dashboard/bundle-client'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild/channel-type'
 import {
@@ -26,8 +26,8 @@ import {
   permissionLabel,
 } from '@/lib/discord/permissions'
 import type { GuildChannel, GuildMemberInfo, GuildRole } from '@/components/settings/types'
-import { MAX_TAG_REWARD_ROLES, type TagRewardsState, type VanityRewardsState } from '@/lib/settings/rewards_types'
-import { TAG_REWARDS_DEFAULT_TEMPLATE, vanityRewardsDefaultTemplate } from '@/lib/settings/rewards_constants'
+import { MAX_TAG_REWARD_ROLES, type TagRewardsState, type VanityRewardsState } from '@/lib/settings/rewards-types'
+import { TAG_REWARDS_DEFAULT_TEMPLATE, vanityRewardsDefaultTemplate } from '@/lib/settings/rewards-constants'
 
 export interface RewardsSettingsUser {
   id: string

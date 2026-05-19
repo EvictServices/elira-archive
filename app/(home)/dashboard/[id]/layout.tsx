@@ -1,4 +1,4 @@
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import { redirect } from 'next/navigation'
 

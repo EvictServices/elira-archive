@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { loadDashboardGuildLists } from '@/lib/dashboard/guilds'
 
 export async function GET() {

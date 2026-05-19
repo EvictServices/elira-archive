@@ -2,13 +2,13 @@
 
 import { useEffect, useState, type FocusEvent, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
-import EmbedEditor from '@/app/(home)/embeds/components/EmbedEditor'
-import EmbedPreview from '@/app/(home)/embeds/components/EmbedPreview'
-import VariablesPaginator from '@/app/(home)/embeds/components/VariablesPaginator'
-import Autocomplete from '@/app/(home)/embeds/components/Autocomplete'
-import { generateScript, type EmbedButton, type EmbedData, type EmbedField } from '@/app/(home)/embeds/lib/types'
-import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
-import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
+import EmbedEditor from '@/components/embeds/embed-editor'
+import EmbedPreview from '@/components/embeds/embed-preview'
+import VariablesPaginator from '@/components/embeds/variables-paginator'
+import Autocomplete from '@/components/embeds/autocomplete'
+import { generateScript, type EmbedButton, type EmbedData, type EmbedField } from '@/components/embeds/lib/types'
+import type { ParsedEmbedPatch } from '@/components/embeds/lib/parse'
+import type { PreviewContext } from '@/components/embeds/lib/preview'
 
 const containerStyle = {
   background: 'rgba(255,255,255,0.025)',

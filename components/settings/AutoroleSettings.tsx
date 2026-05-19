@@ -5,7 +5,7 @@ import {
   getDangerousPermissions,
   permissionLabel,
 } from '@/lib/discord/permissions'
-import { useConfirm } from '@/components/ConfirmModal'
+import { useConfirm } from '@/components/shared/confirm-modal'
 import { Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/dashboard/bundle-client'
 import {
@@ -13,7 +13,7 @@ import {
   type GuildMemberInfo,
   type GuildRole,
 } from '@/components/settings/types'
-import { MIN_DELAY, MAX_DELAY, type AutoroleEntry } from '@/lib/settings/autorole_types'
+import { MIN_DELAY, MAX_DELAY, type AutoroleEntry } from '@/lib/settings/autorole-types'
 
 interface AutoroleSettingsData {
   roles: AutoroleEntry[]

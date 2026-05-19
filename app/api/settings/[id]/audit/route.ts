@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
-import { listDashboardAuditLogs } from '@/lib/settings/dashboard_audit'
+import { listDashboardAuditLogs } from '@/lib/settings/dashboard-audit'
 
 export async function GET(
   req: NextRequest,

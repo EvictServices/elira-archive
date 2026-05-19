@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import { fetchGuildChannels, type GuildChannel } from '@/lib/cluster/client'
 import { isDiscordTextChannel } from '@/lib/guild/channel-type'
@@ -8,13 +8,13 @@ import {
   normalizeCommand,
   normalizeSnowflakeList,
   nonDisableableCommandMessage,
-} from '@/lib/settings/command_mgmt'
+} from '@/lib/settings/command-mgmt'
 import {
   addDisabledCommandRows,
   listDisabledCommands,
   removeDisabledCommandRows,
-} from '@/lib/settings/disabled_commands'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+} from '@/lib/settings/disabled-commands'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 function textChannelIds(channels: GuildChannel[]): Set<string> {
   const set = new Set<string>()

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { isAntinukeAdmin } from '@/lib/settings/antinuke'
 import { fetchUserInfoBatch } from '@/lib/cluster/fetch-users'
 

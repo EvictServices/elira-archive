@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import PurgeView from './PurgeView'
-import { fetchPurge } from './fetchPurge'
+import PurgeView from '@/components/transcripts/purge-view'
+import { fetchPurge } from '@/components/transcripts/fetch-purge'
 import { fetchUserInfoBatch } from '@/lib/cluster/fetch-users'
 
 export const metadata: Metadata = {

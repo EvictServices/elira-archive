@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import {
   enrichAntinukeSettingsForClient,
   fetchGuildOwnerId,
@@ -12,7 +12,7 @@ import {
   updateAntinukeTrustedAdmins,
   isAntinukeAdmin,
 } from '@/lib/settings/antinuke'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 const SNOWFLAKE_RE = /^\d{17,20}$/
 

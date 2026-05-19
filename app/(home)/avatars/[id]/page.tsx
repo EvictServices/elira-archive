@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import AvatarsView from './AvatarsView'
+import AvatarsView from '@/components/avatars/avatars-view'
 
 interface Avatar {
   id: number

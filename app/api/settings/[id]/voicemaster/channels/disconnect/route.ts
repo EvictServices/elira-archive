@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import {
   disconnectVoicemasterMembers,
   getEnrichedChannels,
 } from '@/lib/settings/voicemaster'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 export async function POST(
   req: NextRequest,

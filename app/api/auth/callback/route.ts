@@ -5,8 +5,8 @@ import {
   oauthStateCookieClear,
   sessionCookieOptions,
   OAUTH_STATE_COOKIE,
-} from '@/lib/auth/index'
-import { authRateLimitCallback, clientIpFromRequest } from '@/lib/auth_ratelimit'
+} from '@/lib/auth/session'
+import { authRateLimitCallback, clientIpFromRequest } from '@/lib/auth/ratelimit'
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code')

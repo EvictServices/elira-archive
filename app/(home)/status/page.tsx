@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import StatusView from './StatusView'
+import StatusView from '@/components/status/status-view'
 
 export const metadata: Metadata = {
   title: 'Status',

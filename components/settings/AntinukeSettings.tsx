@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useConfirm } from '@/components/ConfirmModal'
+import { useConfirm } from '@/components/shared/confirm-modal'
 import { Dropdown } from '@/components/settings/AnDropdowns'
 interface ResolvedDiscordUser {
   user_id: string

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import { fetchGuildRoles, type GuildRole } from '@/lib/cluster/client'
-import { normalizeCommand, normalizeSnowflakeList } from '@/lib/settings/command_mgmt'
+import { normalizeCommand, normalizeSnowflakeList } from '@/lib/settings/command-mgmt'
 import {
   addRestrictionRows,
   listCommandRestrictions,
   removeRestrictionRows,
-} from '@/lib/settings/command_restrict'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+} from '@/lib/settings/command-restrict'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 function assignableRoleIds(roles: GuildRole[]): Set<string> {
   const set = new Set<string>()

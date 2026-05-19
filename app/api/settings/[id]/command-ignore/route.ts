@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import { fetchGuildChannels, fetchGuildMember, type GuildChannel } from '@/lib/cluster/client'
-import { normalizeSnowflake } from '@/lib/settings/command_mgmt'
-import { addIgnoreTarget, listIgnoredTargets, removeIgnoreTarget } from '@/lib/settings/command_ignore'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+import { normalizeSnowflake } from '@/lib/settings/command-mgmt'
+import { addIgnoreTarget, listIgnoredTargets, removeIgnoreTarget } from '@/lib/settings/command-ignore'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 function channelIdsSet(channels: GuildChannel[]): Set<string> {
   return new Set(channels.map((c) => String(c.id).trim()).filter(Boolean))

@@ -1,5 +1,5 @@
 import http from 'http'
-import type { Command } from '@/app/(home)/commands/CommandsView'
+import type { Command } from '@/lib/commands/types'
 import { parseCommandsCatalog } from '@/lib/commands/catalog'
 import { clusterUrl } from '@/lib/cluster/config'
 

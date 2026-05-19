@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useConfirm } from '@/components/ConfirmModal'
+import { useConfirm } from '@/components/shared/confirm-modal'
 import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/dashboard/bundle-client'
 import {
@@ -16,7 +16,7 @@ import {
   MAX_BITRATE_KBPS as MAX_BITRATE,
   type EnrichedVoicemasterChannel as VmChannel,
   type VoicemasterConfiguration as Configuration,
-} from '@/lib/settings/voicemaster_types'
+} from '@/lib/settings/voicemaster-types'
 
 const REGION_LABELS: Record<string, string> = {
   brazil: 'Brazil',

@@ -16,7 +16,7 @@ import {
   type VoicemasterChannel,
   type EnrichedVoicemasterChannel,
   type VoicemasterConnectedMember,
-} from '@/lib/settings/voicemaster_types'
+} from '@/lib/settings/voicemaster-types'
 
 export type {
   Region,

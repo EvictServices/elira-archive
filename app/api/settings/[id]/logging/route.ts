@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import {
   getLoggingSettings,
@@ -11,7 +11,7 @@ import {
   EVENT_TYPES,
   type EventType,
 } from '@/lib/settings/logging'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 export async function PATCH(
   req: NextRequest,

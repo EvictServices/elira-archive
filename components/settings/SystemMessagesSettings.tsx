@@ -8,9 +8,9 @@ import {
   type EmbedButton,
   type EmbedData,
   type EmbedField,
-} from '@/app/(home)/embeds/lib/types'
-import type { ParsedEmbedPatch } from '@/app/(home)/embeds/lib/parse'
-import type { PreviewContext } from '@/app/(home)/embeds/lib/preview'
+} from '@/components/embeds/lib/types'
+import type { ParsedEmbedPatch } from '@/components/embeds/lib/parse'
+import type { PreviewContext } from '@/components/embeds/lib/preview'
 import { categoryLabel, ScriptEditorModal, type ScriptEditorModalMode } from '@/components/settings/SystemMessagesScriptModal'
 import { fetchBundle } from '@/lib/dashboard/bundle-client'
 import type { GuildChannel } from '@/components/settings/types'

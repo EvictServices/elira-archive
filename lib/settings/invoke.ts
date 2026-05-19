@@ -1,7 +1,7 @@
 import pool from '@/lib/infra/db'
-import { isInvokeActionType, type InvokeActionType } from './invoke_constants'
+import { isInvokeActionType, type InvokeActionType } from './invoke-constants'
 
-export * from './invoke_constants'
+export * from './invoke-constants'
 
 const MAX_TEMPLATE_LEN = 12000
 

@@ -1,4 +1,4 @@
-import type { Session } from '@/lib/auth/index'
+import type { Session } from '@/lib/auth/session'
 import pool from '@/lib/infra/db'
 
 export interface DashboardAuditEntry {

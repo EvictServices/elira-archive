@@ -1,9 +1,9 @@
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 import { fetchGuild, fetchMutualGuilds } from '@/lib/cluster/client'
 import { isAntinukeAdmin } from '@/lib/settings/antinuke'
 import { hasGuildAdmin } from '@/lib/discord/api'
-import ServerSettingsView from '../ServerSettingsView'
+import ServerSettingsView from '@/components/dashboard/server-settings-view'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

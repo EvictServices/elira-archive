@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import {
   CHANNEL_SNOWFLAKE,
   resolveScriptTemplateFromBody,
-} from '@/lib/settings/script_message_template'
+} from '@/lib/settings/script-message-template'
 import {
   listMessages,
   upsertMessage,
   deleteMessage,
   type ScriptMessageKind,
-} from '@/lib/settings/script_messages'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+} from '@/lib/settings/script-messages'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 const AUDIT_PREFIX: Record<ScriptMessageKind, string> = {
   welcome: 'welcome',

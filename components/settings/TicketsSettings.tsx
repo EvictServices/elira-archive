@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useConfirm } from '@/components/ConfirmModal'
+import { useConfirm } from '@/components/shared/confirm-modal'
 import { ChannelDropdown, Dropdown, RoleDropdown } from '@/components/settings/AnDropdowns'
 import { fetchBundle } from '@/lib/dashboard/bundle-client'
 import { isDiscordCategoryChannel, isDiscordTextChannel } from '@/lib/guild/channel-type'

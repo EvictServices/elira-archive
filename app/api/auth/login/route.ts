@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { oauthStateCookieSet } from '@/lib/auth/index'
-import { authRateLimitLogin, clientIpFromRequest } from '@/lib/auth_ratelimit'
+import { oauthStateCookieSet } from '@/lib/auth/session'
+import { authRateLimitLogin, clientIpFromRequest } from '@/lib/auth/ratelimit'
 import { buildDiscordAuthorizeUrl } from '@/lib/discord/api'
 
 export async function GET(req: NextRequest) {

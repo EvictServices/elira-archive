@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/index'
+import { getSession } from '@/lib/auth/session'
 import { hasGuildAdmin } from '@/lib/discord/api'
 import { fetchGuildMember, fetchGuildRoles } from '@/lib/cluster/client'
 import {
@@ -18,7 +18,7 @@ import {
   setReassignIgnoreIds,
   setReassignRoles,
 } from '@/lib/settings/autorole'
-import { recordDashboardAudit } from '@/lib/settings/dashboard_audit'
+import { recordDashboardAudit } from '@/lib/settings/dashboard-audit'
 
 function isSnowflake(value: unknown): value is string {
   return typeof value === 'string' && /^\d{15,21}$/.test(value)
