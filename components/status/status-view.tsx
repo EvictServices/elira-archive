@@ -302,7 +302,7 @@ export default function StatusView() {
   }
 
   return (
-    <div className="st-wrap" style={{ background: '#1a1a1a', minHeight: '100vh' }}>
+    <div className="st-wrap" style={{ minHeight: '100vh' }}>
       <div className="container">
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
           <h2 className="section-title">Status</h2>

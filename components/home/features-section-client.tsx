@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ComponentType } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import {
   VmIconActivity,
   VmIconClaim,
@@ -211,8 +211,21 @@ export default function FeaturesSectionClient({ voiceMembers }: Props) {
   const connectedCount = voiceMembers.length
   const channelName = owner ? channelLabel(owner) : 'voice lounge'
 
+  useEffect(() => {
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) e.target.classList.add('visible')
+        })
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    )
+    document.querySelectorAll('#features [data-reveal]').forEach((el) => revealObserver.observe(el))
+    return () => revealObserver.disconnect()
+  }, [])
+
   return (
-    <section id="features" className="feat" aria-labelledby="feat-heading">
+    <section id="features" className="feat feat--unlocked" aria-labelledby="feat-heading">
       <p id="feat-heading" className="sr-only">
         Product features
       </p>

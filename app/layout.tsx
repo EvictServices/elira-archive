@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import ScrollRevealInit from '@/components/layout/scroll-reveal-init'
 import CursorEffects from '@/components/layout/cursor-effects'
+import SiteDots from '@/components/layout/site-dots'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://evict.bot'),
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ScrollRevealInit />
           <CursorEffects />
         </AppProviders>
+        <SiteDots />
       </body>
     </html>
   )

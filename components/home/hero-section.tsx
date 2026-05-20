@@ -3,18 +3,17 @@ import { INVITE_URL, SUPPORT_URL } from '@/lib/discord/urls'
 import GuildCarousel from '@/components/home/guild-carousel'
 import HeroBento from '@/components/home/hero-bento'
 import HeroProof from '@/components/home/hero-proof'
-import Stars from '@/components/home/stars'
 
 export default function HeroSection() {
   return (
     <section className="hero" aria-label="Introduction">
-      <Stars />
       <div className="hero-inner">
         <div className="hero-shell" data-reveal>
           <div className="hero-copy">
             <h1 className="hero-headline">
               <span className="hero-headline-accent">
-                evict<span className="hero-headline-mark">.</span>
+                <span className="hero-headline-word">evict</span>
+                <span className="hero-headline-mark">.</span>
               </span>
             </h1>
             <p className="hero-desc">
