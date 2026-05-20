@@ -1,7 +1,7 @@
 export default function LegalLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
-  return <>{children}</>;
+  return <div className="legal-page doc-page">{children}</div>
 }

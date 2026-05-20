@@ -74,9 +74,11 @@ export default function Footer() {
               </div>
             </div>
 
-            <FooterNavColumn title="Product" links={PRODUCT_LINKS} />
-            <FooterNavColumn title="Resources" links={RESOURCE_LINKS} />
-            <FooterNavColumn title="Legal" links={LEGAL_LINKS} />
+            <div className="footer-nav">
+              <FooterNavColumn title="Product" links={PRODUCT_LINKS} />
+              <FooterNavColumn title="Resources" links={RESOURCE_LINKS} />
+              <FooterNavColumn title="Legal" links={LEGAL_LINKS} />
+            </div>
           </div>
 
           <div className="footer-bottom">

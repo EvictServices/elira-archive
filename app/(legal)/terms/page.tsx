@@ -6,35 +6,14 @@ export const metadata: Metadata = {
 
 export default function Terms() {
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh', color: '#dbdee1' }}>
-      <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '10px',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              padding: '0.9rem 1.25rem',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <span style={{ fontWeight: 600, fontSize: '1rem', color: '#fff' }}>
-              Terms of Service
-            </span>
-            <span style={{ fontSize: '0.75rem', color: '#949ba4' }}>
-              Last updated: 2026-03-30
-            </span>
-          </div>
+    <div className="container">
+      <div className="doc-card">
+        <header className="doc-card-header">
+          <span className="doc-card-title">Terms of Service</span>
+          <span className="doc-card-meta">Last updated: 2026-03-30</span>
+        </header>
 
-          <div style={{ padding: '1.3rem' }}>
+        <div className="doc-card-body doc-prose">
             <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
               By visiting (&quot;Evict&quot;) or inviting (&quot;Evict Bot&quot;) to your Discord
               or logging into our website (&quot;evict.bot&quot;), you agree and consent to the terms displayed on this page,
@@ -146,9 +125,8 @@ export default function Terms() {
               terms and violation of our terms of service could result in a
               permanent ban across all of our services.
             </p>
-          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

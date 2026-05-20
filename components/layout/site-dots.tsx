@@ -16,6 +16,9 @@ interface Dot {
 const LINK_DIST = 95
 
 function dotCountForViewport(width: number, height: number) {
+  if (width < 768) {
+    return Math.min(50, Math.max(32, Math.floor((width * height) / 24_000)))
+  }
   return Math.min(120, Math.max(55, Math.floor((width * height) / 14_000)))
 }
 
@@ -42,6 +45,8 @@ export default function SiteDots() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dotsRef = useRef<Dot[]>([])
   const mouseRef = useRef({ x: -9999, y: -9999 })
+  const pointerFineRef = useRef(false)
+  const lastTouchAtRef = useRef(0)
   const frameRef = useRef<number | undefined>(undefined)
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
   const drawLinksRef = useRef(true)
@@ -56,6 +61,13 @@ export default function SiteDots() {
     if (!ctx) return
 
     const slowMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const pointerFineMq = window.matchMedia('(pointer: fine)')
+    pointerFineRef.current = pointerFineMq.matches
+
+    const onPointerFineChange = (e: MediaQueryListEvent) => {
+      pointerFineRef.current = e.matches
+      if (!e.matches) mouseRef.current = { x: -9999, y: -9999 }
+    }
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -75,11 +87,23 @@ export default function SiteDots() {
     resize()
     window.addEventListener('resize', resize)
 
+    const markTouch = () => {
+      lastTouchAtRef.current = Date.now()
+      mouseRef.current = { x: -9999, y: -9999 }
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
+      if (!pointerFineRef.current) return
+      if (Date.now() - lastTouchAtRef.current < 500) return
       mouseRef.current = { x: e.clientX, y: e.clientY }
     }
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    pointerFineMq.addEventListener('change', onPointerFineChange)
+    window.addEventListener('touchstart', markTouch, { passive: true })
+    window.addEventListener('touchmove', markTouch, { passive: true })
+    if (pointerFineRef.current) {
+      window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    }
 
     const animate = (time: number) => {
       const { width, height } = sizeRef.current
@@ -101,7 +125,7 @@ export default function SiteDots() {
         if (dot.x < 0 || dot.x > width) dot.vx *= -1
         if (dot.y < 0 || dot.y > height) dot.vy *= -1
 
-        if (!slowMotion) {
+        if (!slowMotion && pointerFineRef.current) {
           const dx = dot.x - mouseRef.current.x
           const dy = dot.y - mouseRef.current.y
           const dist = Math.sqrt(dx * dx + dy * dy)
@@ -146,6 +170,9 @@ export default function SiteDots() {
     return () => {
       window.removeEventListener('resize', resize)
       window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchstart', markTouch)
+      window.removeEventListener('touchmove', markTouch)
+      pointerFineMq.removeEventListener('change', onPointerFineChange)
       if (frameRef.current) cancelAnimationFrame(frameRef.current)
     }
   }, [])

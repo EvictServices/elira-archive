@@ -67,7 +67,7 @@ function CommandModal({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <article className="cmds-modal" onClick={(e) => e.stopPropagation()}>
+      <article className="cmds-modal cmds-modal--open" onClick={(e) => e.stopPropagation()}>
         <header className="cmds-modal-head">
           <span className="cmds-modal-cat">{(command.category || 'uncategorized').toUpperCase()}</span>
           <button type="button" className="cmds-modal-close" onClick={onClose} aria-label="Close">
@@ -118,6 +118,8 @@ export default function CommandsView({ commands }: Props) {
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [modalCmd, setModalCmd] = useState<CatalogCommand | null>(null)
+  const [pageReady, setPageReady] = useState(false)
+  const [gridEntering, setGridEntering] = useState(true)
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>()
@@ -134,6 +136,17 @@ export default function CommandsView({ commands }: Props) {
     }
     return list
   }, [catalog, search, category])
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setPageReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  useEffect(() => {
+    setGridEntering(true)
+    const t = window.setTimeout(() => setGridEntering(false), 720)
+    return () => window.clearTimeout(t)
+  }, [category, search])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -153,11 +166,16 @@ export default function CommandsView({ commands }: Props) {
   }, [modalCmd])
 
   return (
-    <div className="cmds-page">
+    <div className={`cmds-page cmds-ease${pageReady ? ' is-ready' : ''}`}>
       <div className="container">
         <header className="cmds-header">
           <h1>Commands</h1>
           <p>Browse all available commands. Click on a command for detailed usage.</p>
+          <p className="cmds-header-meta" aria-live="polite">
+            {filtered.length === catalog.length
+              ? `${catalog.length} commands · ${categories.length} modules`
+              : `${filtered.length} of ${catalog.length} commands`}
+          </p>
         </header>
 
         <div className="cmds-toolbar">
@@ -194,14 +212,26 @@ export default function CommandsView({ commands }: Props) {
         </div>
 
         {filtered.length === 0 ? (
-          <p className="cmds-empty">No commands match your search.</p>
+          <p className={`cmds-empty${pageReady ? ' is-visible' : ''}`}>
+            No commands match your search.
+          </p>
         ) : (
-          <div className="cmds-grid" role="list">
-            {filtered.map((c) => (
+          <div
+            key={`${category}-${search.trim().toLowerCase()}`}
+            className={`cmds-grid${gridEntering ? ' is-entering' : ''}${pageReady ? ' is-visible' : ''}`}
+            role="list"
+            aria-label={
+              category === 'all'
+                ? 'All commands'
+                : `${formatCategory(category)} commands`
+            }
+          >
+            {filtered.map((c, i) => (
               <article
                 key={c.name}
                 role="listitem"
                 className="cmds-card"
+                style={{ '--cmds-i': i } as React.CSSProperties}
                 tabIndex={0}
                 onClick={() => setModalCmd(c)}
                 onKeyDown={(e) => {

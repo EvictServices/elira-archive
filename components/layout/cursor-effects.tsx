@@ -1,13 +1,22 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function CursorEffects() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const trailRef = useRef<{ x: number; y: number; opacity: number }[]>([])
   const frameRef = useRef<number | undefined>(undefined)
+  const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
+    const coarse = window.matchMedia('(pointer: coarse)').matches
+    const narrow = window.matchMedia('(max-width: 900px)').matches
+    setEnabled(!(coarse || narrow))
+  }, [])
+
+  useEffect(() => {
+    if (!enabled) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -41,7 +50,7 @@ export default function CursorEffects() {
         ctx.fillStyle = `rgba(255, 255, 255, ${point.opacity * 0.3})`
         ctx.fill()
       })
-      trailRef.current = trailRef.current.filter(p => p.opacity > 0.01)
+      trailRef.current = trailRef.current.filter((p) => p.opacity > 0.01)
 
       frameRef.current = requestAnimationFrame(animate)
     }
@@ -53,19 +62,15 @@ export default function CursorEffects() {
       window.removeEventListener('mousemove', handleMouseMove)
       if (frameRef.current) cancelAnimationFrame(frameRef.current)
     }
-  }, [])
+  }, [enabled])
+
+  if (!enabled) return null
 
   return (
     <canvas
       ref={canvasRef}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 999,
-        opacity: 1,
-        mixBlendMode: 'screen',
-      }}
+      className="cursor-fx-canvas"
+      aria-hidden
     />
   )
 }

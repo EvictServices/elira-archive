@@ -121,11 +121,13 @@ export default function CapabilitiesSection() {
     <section id="capabilities" className="cap" aria-labelledby="cap-heading" data-reveal>
       <header className="cap-head">
         <h2 id="cap-heading" className="cap-title">
-          Plenty more <span className="cap-accent">under the surface</span>
+          Plenty more
+          <br className="cap-title-break" />
+          <span className="cap-accent">under the surface</span>
         </h2>
         <p className="cap-lead">
-          Custom branding, giveaways, fake permissions, role menus, tickets, highlights, and more — utility that
-          usually means stacking extra bots on top of moderation.
+          Giveaways, fake permissions, role menus, tickets, highlights, and custom branding — without stacking
+          extra bots on moderation.
         </p>
       </header>
 

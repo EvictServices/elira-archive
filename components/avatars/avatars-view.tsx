@@ -241,8 +241,8 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
   const hasMore = visibleCount < avatars.length
 
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh' }}>
-      <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
+    <div className="avatars-page doc-page">
+      <div className="container">
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
           <h2 className="section-title">
             {username ? `${username}'s Avatar History` : 'Avatar History'}
@@ -253,120 +253,36 @@ export default function AvatarsView({ avatars, userId, username }: AvatarsViewPr
           </p>
         </div>
 
-        <div
-          className="avatar-grid"
-          data-reveal
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-            maxWidth: 'calc(160px * 5 + 1rem * 4)',
-            gap: '0.85rem',
-            marginTop: '2rem',
-          }}
-        >
+        <div className="avatars-grid" data-reveal>
           {visibleAvatars.map((avatar, idx) => {
             return (
               <div
                 key={`${avatar.url}-${idx}`}
                 className="avatar-card"
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  borderRadius: '10px',
-                  overflow: 'hidden',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)'
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                  e.currentTarget.style.boxShadow = 'none'
-                }}
                 onClick={() => setSelectedAvatar(avatar)}
                 title={formatFullDate(avatar.created_at)}
               >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    paddingBottom: '100%',
-                    background: 'rgba(0,0,0,0.2)',
-                  }}
-                >
+                <div className="avatar-card-media">
                   <img
                     src={avatar.url}
                     alt={`Avatar from ${formatFullDate(avatar.created_at)}`}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
                     loading="lazy"
                   />
                 </div>
-                <div
-                  style={{
-                    padding: '0.65rem',
-                    textAlign: 'center',
-                    background: 'rgba(0,0,0,0.3)',
-                  }}
-                >
-                  <span
-                    style={{
-                      color: 'rgba(255,255,255,0.4)',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      display: 'block',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    #{avatar.id}
-                  </span>
-                  <span
-                    style={{
-                      color: 'rgba(255,255,255,0.7)',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {formatFullDate(avatar.created_at)}
-                  </span>
+                <div className="avatar-card-foot">
+                  <span className="avatar-card-id">#{avatar.id}</span>
+                  <span className="avatar-card-date">{formatFullDate(avatar.created_at)}</span>
                 </div>
               </div>
             )
           })}
         </div>
         {hasMore && (
-          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          <div className="avatars-load-more">
             <button
+              type="button"
+              className="avatars-load-more-btn"
               onClick={() => setVisibleCount((c) => Math.min(c + PAGE_SIZE, avatars.length))}
-              style={{
-                padding: '0.65rem 1.65rem',
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '10px',
-                color: 'rgba(255,255,255,0.8)',
-                fontSize: '0.9rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-              }}
             >
               Load More ({Math.min(PAGE_SIZE, avatars.length - visibleCount)} remaining)
             </button>

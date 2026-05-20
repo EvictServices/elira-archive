@@ -28,6 +28,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
   themeColor: '#1a1a1a',
 }
 
@@ -35,14 +36,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <AppProviders>
-          <Navbar />
-          <div className="page">{children}</div>
-          <Footer />
-          <ScrollRevealInit />
-          <CursorEffects />
-        </AppProviders>
         <SiteDots />
+        <div className="site-shell">
+          <AppProviders>
+            <Navbar />
+            <div className="page">{children}</div>
+            <Footer />
+            <ScrollRevealInit />
+            <CursorEffects />
+          </AppProviders>
+        </div>
       </body>
     </html>
   )
