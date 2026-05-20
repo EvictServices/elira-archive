@@ -1,9 +1,9 @@
 module.exports = {
   apps: [
     {
-      name: 'elira-dashboard',
+      name: 'elira',
       script: 'node_modules/.bin/next',
-      args: 'start -p 4002',
+      args: 'start -p 3000',
       cwd: '/root/elira',
       instances: 1,
       exec_mode: 'fork',

@@ -4,13 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { INVITE_URL, SUPPORT_URL, DOCS_URL } from '@/lib/discord/urls'
-import { useDashboardGuildBreadcrumb } from '@/components/dashboard/breadcrumb-context'
-import DashboardGuildSwitcher from '@/components/dashboard/guild-switcher'
-import { useGuildSettingsMobileNav } from '@/components/dashboard/mobile-nav-context'
 import UserMenu from '@/components/shared/user-menu'
 import { routes } from '@/lib/routes'
-
-const GUILD_SETTINGS_SCROLL_CLASS = 'guild-settings-mobile-scroll-away'
 
 const PAGES: { href: string; page: string; label: string }[] = [
   { href: routes.home, page: 'home', label: 'Home' },
@@ -36,72 +31,8 @@ export default function Navbar() {
   const [panelOpen, setPanelOpen] = useState(false)
   const [navHidden, setNavHidden] = useState(false)
   const lastScrollY = useRef(0)
-  const guildMobileScrollLastY = useRef(0)
-  const { mobileNavOpen: guildDrawerOpen } = useGuildSettingsMobileNav()
-  const { guildName: dashboardGuildName } = useDashboardGuildBreadcrumb()
-
-  const isDashboard = pathname.startsWith('/dashboard')
 
   useEffect(() => {
-    const isGuildSettings = /^\/dashboard\/\d+/.test(pathname)
-    if (!isGuildSettings) {
-      document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
-      return
-    }
-
-    const mq = window.matchMedia('(max-width: 1024px)')
-    let raf = 0
-    let ticking = false
-
-    const apply = () => {
-      ticking = false
-      if (!mq.matches || guildDrawerOpen) {
-        document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
-        guildMobileScrollLastY.current = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0)
-        return
-      }
-      const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0)
-      const prev = guildMobileScrollLastY.current
-      const delta = y - prev
-
-      if (y < 12) {
-        document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
-      } else if (delta > 10 && y > 88) {
-        document.body.classList.add(GUILD_SETTINGS_SCROLL_CLASS)
-      } else if (delta < -10) {
-        document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
-      }
-      guildMobileScrollLastY.current = y
-    }
-
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      raf = window.requestAnimationFrame(apply)
-    }
-
-    guildMobileScrollLastY.current = Math.max(
-      0,
-      window.scrollY || document.documentElement.scrollTop || 0
-    )
-    window.addEventListener('scroll', onScroll, { passive: true })
-    mq.addEventListener('change', apply)
-    apply()
-
-    return () => {
-      window.cancelAnimationFrame(raf)
-      ticking = false
-      window.removeEventListener('scroll', onScroll)
-      mq.removeEventListener('change', apply)
-      document.body.classList.remove(GUILD_SETTINGS_SCROLL_CLASS)
-    }
-  }, [pathname, guildDrawerOpen])
-
-  useEffect(() => {
-    if (isDashboard) {
-      setNavHidden(false)
-      return
-    }
     const handleScroll = () => {
       const sy = window.scrollY
       if (sy > lastScrollY.current && sy > 96 && !panelOpen) {
@@ -113,7 +44,7 @@ export default function Navbar() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [panelOpen, isDashboard])
+  }, [panelOpen])
 
   useEffect(() => {
     if (!panelOpen) return
@@ -129,72 +60,16 @@ export default function Navbar() {
     document.body.classList.remove('nav-open')
   }
 
-  const openPanel = () => {
-    setPanelOpen(true)
-    document.body.classList.add('nav-open')
-  }
-
   const togglePanel = () => {
     if (panelOpen) closePanel()
-    else openPanel()
+    else {
+      setPanelOpen(true)
+      document.body.classList.add('nav-open')
+    }
   }
 
   const isActive = (page: string) =>
     page === 'home' ? pathname === '/' : pathname.startsWith('/' + page)
-
-  if (isDashboard) {
-    const isOnGuildPage = /^\/dashboard\/\d+/.test(pathname)
-    return (
-      <header className="site-nav site-nav--dashboard" role="banner">
-        <div className="site-nav__bar">
-          <div className="site-nav__bar-inner">
-            <div className="site-nav__dash-left">
-              <Link href={routes.home} className="site-nav__brand site-nav__brand--icon" title="Home">
-                <img src="/img/evict.webp" alt="" className="site-nav__logo" width={22} height={22} />
-              </Link>
-              <nav className="site-nav__path" aria-label="Breadcrumb">
-                <span className="site-nav__path-seg site-nav__path-seg--muted">evict</span>
-                <span className="site-nav__path-sep" aria-hidden>
-                  ›
-                </span>
-                <Link
-                  href={routes.dashboard}
-                  className={`site-nav__path-seg${pathname === '/dashboard' ? ' is-current' : ''}`}
-                >
-                  dashboard
-                </Link>
-                {isOnGuildPage && (
-                  <>
-                    <span className="site-nav__path-sep" aria-hidden>
-                      ›
-                    </span>
-                    <span className="site-nav__path-guild">
-                      <span
-                        className="site-nav__path-seg is-current site-nav__path-seg--guild"
-                        title={dashboardGuildName ?? undefined}
-                      >
-                        {dashboardGuildName ?? 'server'}
-                      </span>
-                      <DashboardGuildSwitcher />
-                    </span>
-                  </>
-                )}
-              </nav>
-            </div>
-            <div className="site-nav__dash-right">
-              <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" className="site-nav__dash-link">
-                Docs
-              </a>
-              <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="site-nav__dash-link">
-                Support
-              </a>
-              <UserMenu variant="dashboard" />
-            </div>
-          </div>
-        </div>
-      </header>
-    )
-  }
 
   return (
     <header
