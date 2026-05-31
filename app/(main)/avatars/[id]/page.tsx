@@ -15,6 +15,7 @@ interface AvatarsResponse {
 interface UserInfo {
   display_name?: string
   username?: string
+  avatar?: string | null
 }
 
 async function fetchUserInfoForMeta(userId: string): Promise<string | null> {
@@ -92,6 +93,14 @@ export default async function AvatarsPage({ params }: { params: Promise<{ id: st
 
   const sortedAvatars = avatars.sort((a, b) => b.id - a.id)
   const username = userInfo?.display_name || userInfo?.username || null
+  const avatarHash = userInfo?.avatar ?? null
 
-  return <AvatarsView avatars={sortedAvatars} userId={id} username={username} />
+  return (
+    <AvatarsView
+      avatars={sortedAvatars}
+      userId={id}
+      username={username}
+      avatarHash={avatarHash}
+    />
+  )
 }

@@ -3,8 +3,9 @@ import { INVITE_URL, SUPPORT_URL } from '@/lib/discord/urls'
 import GuildCarousel from '@/components/home/guild-carousel'
 import HeroBento from '@/components/home/hero-bento'
 import HeroProof from '@/components/home/hero-proof'
+import type { TopGuild } from '@/lib/marketing/top-guilds-shared'
 
-export default function HeroSection() {
+export default function HeroSection({ topGuilds }: { topGuilds: TopGuild[] }) {
   return (
     <section className="hero" aria-label="Introduction">
       <div className="hero-inner">
@@ -62,7 +63,7 @@ export default function HeroSection() {
           </div>
 
           <div className="hero-carousel-wrap">
-            <GuildCarousel />
+            <GuildCarousel initialGuilds={topGuilds} />
           </div>
 
           <HeroProof />

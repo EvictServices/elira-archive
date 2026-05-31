@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
 
 interface Dot {
   x: number
@@ -12,8 +11,6 @@ interface Dot {
   opacity: number
   phase: number
 }
-
-const LINK_DIST = 95
 
 function dotCountForViewport(width: number, height: number) {
   if (width < 768) {
@@ -53,7 +50,6 @@ function scaleDots(dots: Dot[], fromW: number, fromH: number, toW: number, toH: 
 }
 
 export default function SiteDots() {
-  const pathname = usePathname()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dotsRef = useRef<Dot[]>([])
   const mouseRef = useRef({ x: -9999, y: -9999 })
@@ -61,9 +57,6 @@ export default function SiteDots() {
   const coarsePointerRef = useRef(false)
   const frameRef = useRef<number | undefined>(undefined)
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
-  const drawLinksRef = useRef(true)
-
-  drawLinksRef.current = pathname !== '/'
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -173,23 +166,6 @@ export default function SiteDots() {
 
         const pulse = drift ? 0.78 + Math.sin(t * 1.6 + dot.phase) * 0.22 : 0.82
         const alpha = dot.opacity * pulse
-
-        if (drawLinksRef.current) {
-          for (let j = i + 1; j < dots.length; j++) {
-            const other = dots[j]
-            const lx = dot.x - other.x
-            const ly = dot.y - other.y
-            const ld = Math.sqrt(lx * lx + ly * ly)
-            if (ld > LINK_DIST) continue
-            const lineAlpha = (1 - ld / LINK_DIST) * 0.14 * pulse
-            ctx.beginPath()
-            ctx.moveTo(dot.x, dot.y)
-            ctx.lineTo(other.x, other.y)
-            ctx.strokeStyle = `rgba(255, 255, 255, ${lineAlpha})`
-            ctx.lineWidth = 1
-            ctx.stroke()
-          }
-        }
 
         ctx.beginPath()
         ctx.arc(dot.x, dot.y, dot.size, 0, Math.PI * 2)

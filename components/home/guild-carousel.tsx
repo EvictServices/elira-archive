@@ -2,15 +2,34 @@
 
 import { useEffect, useState } from 'react'
 import { guildInitials } from '@/lib/discord/format'
+import { TOP_GUILDS_CACHE_TTL_SEC, type TopGuild } from '@/lib/marketing/top-guilds-shared'
 import { api } from '@/lib/routes'
 
-type TopGuild = {
-  id: string
-  name: string
-  member_count: number
-  icon_url: string | null
-  vanity_code?: string | null
-  join_url?: string | null
+const CLIENT_CACHE_KEY = 'evict:top-guilds'
+const CLIENT_CACHE_TTL_MS = TOP_GUILDS_CACHE_TTL_SEC * 1000
+
+function readClientCache(): TopGuild[] | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = sessionStorage.getItem(CLIENT_CACHE_KEY)
+    if (!raw) return null
+    const { guilds, fetchedAt } = JSON.parse(raw) as { guilds: TopGuild[]; fetchedAt: number }
+    if (!Array.isArray(guilds) || Date.now() - fetchedAt > CLIENT_CACHE_TTL_MS) return null
+    return guilds
+  } catch {
+    return null
+  }
+}
+
+function writeClientCache(guilds: TopGuild[]) {
+  try {
+    sessionStorage.setItem(
+      CLIENT_CACHE_KEY,
+      JSON.stringify({ guilds, fetchedAt: Date.now() }),
+    )
+  } catch {
+    /* quota / private mode */
+  }
 }
 
 function GuildChip({ guild }: { guild: TopGuild }) {
@@ -66,18 +85,33 @@ function SkeletonChip() {
   )
 }
 
-export default function GuildCarousel() {
-  const [guilds, setGuilds] = useState<TopGuild[]>([])
-  const [loading, setLoading] = useState(true)
+export default function GuildCarousel({ initialGuilds = [] }: { initialGuilds?: TopGuild[] }) {
+  const hasInitial = initialGuilds.length > 0
+  const [guilds, setGuilds] = useState<TopGuild[]>(() => (hasInitial ? initialGuilds : []))
+  const [loading, setLoading] = useState(!hasInitial)
 
   useEffect(() => {
+    if (hasInitial) {
+      writeClientCache(initialGuilds)
+      return
+    }
+
+    const cached = readClientCache()
+    if (cached?.length) {
+      setGuilds(cached)
+      setLoading(false)
+      return
+    }
+
     let cancelled = false
 
     fetch(api.guildsTop)
       .then((r) => (r.ok ? r.json() : { guilds: [] }))
       .then((data: { guilds?: TopGuild[] }) => {
         if (cancelled) return
-        setGuilds(Array.isArray(data.guilds) ? data.guilds : [])
+        const list = Array.isArray(data.guilds) ? data.guilds : []
+        setGuilds(list)
+        if (list.length) writeClientCache(list)
       })
       .catch(() => {
         if (!cancelled) setGuilds([])
@@ -89,7 +123,7 @@ export default function GuildCarousel() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [hasInitial, initialGuilds])
 
   if (!loading && guilds.length === 0) return null
 

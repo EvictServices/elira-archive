@@ -11,6 +11,8 @@ interface User {
 
 import { userAvatarUrl } from '@/lib/discord/cdn'
 
+const loginEnabled = process.env.NODE_ENV === 'development'
+
 export default function UserMenu({
   variant = 'marketing',
   onNavigate,
@@ -50,6 +52,7 @@ export default function UserMenu({
   }
 
   if (!user) {
+    if (!loginEnabled) return null
     return (
       <a href="/api/auth/login" className={loginClass}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

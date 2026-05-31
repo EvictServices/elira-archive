@@ -126,12 +126,7 @@ export default function EmbedBuilderView() {
   }, [script])
 
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh', color: '#dbdee1', position: 'relative' }}>
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '400px',
-        background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(88,101,242,0.12) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+    <div style={{ minHeight: '100vh', color: '#dbdee1', position: 'relative' }}>
       <Autocomplete inputRef={lastInputRef} onInsert={insertVariable} />
       <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem', position: 'relative' }}>
         <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>

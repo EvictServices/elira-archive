@@ -1,18 +1,14 @@
+import { unstable_cache } from 'next/cache'
 import { fetchGuild } from '@/lib/cluster/client'
 import { vanityJoinUrl } from '@/lib/discord/urls'
 import redis from '@/lib/infra/redis'
+import { TOP_GUILDS_CACHE_TTL_SEC, type TopGuild } from '@/lib/marketing/top-guilds-shared'
 
-export type TopGuild = {
-  id: string
-  name: string
-  member_count: number
-  icon_url: string | null
-  vanity_code: string | null
-  join_url: string | null
-}
+export type { TopGuild } from '@/lib/marketing/top-guilds-shared'
+export { TOP_GUILDS_CACHE_TTL_SEC as CACHE_TTL_SEC } from '@/lib/marketing/top-guilds-shared'
 
 const CACHE_KEY = 'website:top_guilds:v2'
-const CACHE_TTL_SEC = 120
+const CACHE_TTL_SEC = TOP_GUILDS_CACHE_TTL_SEC
 
 function parseGuildList(raw: string): RawGuild[] {
   const safe = raw.replace(/"id":\s*(\d{15,})/g, '"id":"$1"')
@@ -103,3 +99,10 @@ export async function fetchTopGuilds(limit = 24): Promise<TopGuild[]> {
   await redis.set(CACHE_KEY, JSON.stringify(enriched), 'EX', CACHE_TTL_SEC)
   return enriched
 }
+
+/** Next.js data cache for the landing carousel (aligned with Redis TTL). */
+export const getCachedTopGuilds = unstable_cache(
+  async () => fetchTopGuilds(24),
+  ['marketing-top-guilds-v2'],
+  { revalidate: CACHE_TTL_SEC },
+)
