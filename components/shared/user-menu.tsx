@@ -9,9 +9,8 @@ interface User {
   avatar: string | null
 }
 
+import { authEnabled } from '@/lib/auth/env'
 import { userAvatarUrl } from '@/lib/discord/cdn'
-
-const loginEnabled = process.env.NODE_ENV === 'development'
 
 export default function UserMenu({
   variant = 'marketing',
@@ -21,11 +20,12 @@ export default function UserMenu({
   onNavigate?: () => void
 }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(authEnabled)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (!authEnabled) return
     fetch('/api/auth/me')
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setUser(data?.user ?? null))
@@ -47,12 +47,13 @@ export default function UserMenu({
       ? 'site-nav__btn site-nav__btn--ghost site-nav__btn--sm'
       : 'site-nav__btn site-nav__btn--ghost site-nav__btn--compact'
 
+  if (!authEnabled) return null
+
   if (loading) {
     return <div className="site-nav__user-skeleton" aria-hidden />
   }
 
   if (!user) {
-    if (!loginEnabled) return null
     return (
       <a href="/api/auth/login" className={loginClass}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

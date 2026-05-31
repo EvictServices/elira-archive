@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { authEnabled } from '@/lib/auth/env'
 import { SESSION_COOKIE } from '@/lib/auth/session-meta'
 import { parseSignedSessionCookieEdge } from '@/lib/auth/session-cookie-edge'
 
@@ -36,6 +37,7 @@ export async function middleware(req: NextRequest) {
   )
 
   if (!isProtected) return NextResponse.next()
+  if (!authEnabled) return NextResponse.next()
 
   const secret = process.env.SESSION_SECRET
   if (!secret || secret.length < 32) {
