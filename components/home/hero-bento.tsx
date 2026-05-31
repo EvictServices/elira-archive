@@ -18,7 +18,8 @@ const EXTRA_TAGS = [
   { label: '+ much more', href: '#features' },
 ]
 
-const WAVE_BARS = 24
+const WAVE_BARS_DESKTOP = 24
+const WAVE_BARS_MOBILE = 14
 
 function wrapIndex(i: number, len: number) {
   return ((i % len) + len) % len
@@ -121,9 +122,13 @@ function tagClass(tag: LogTag) {
 function CardBody({
   card,
   logOffset,
+  waveBars,
+  logLines,
 }: {
   card: HeroBentoCard
   logOffset: number
+  waveBars: number
+  logLines: number
 }) {
   const body = card.body
 
@@ -132,7 +137,7 @@ function CardBody({
       <>
         <p className="hero-bento-stat">{body.desc}</p>
         <div className="hero-bento-wave is-idle" aria-hidden>
-          {Array.from({ length: WAVE_BARS }, (_, i) => (
+          {Array.from({ length: waveBars }, (_, i) => (
             <span key={i} className="hero-bento-bar" style={{ ['--i' as string]: i }} />
           ))}
         </div>
@@ -141,7 +146,9 @@ function CardBody({
   }
 
   if (body.type === 'log') {
-    const visible = [0, 1, 2].map((n) => body.events[wrapIndex(logOffset + n, body.events.length)])
+    const visible = Array.from({ length: logLines }, (_, n) =>
+      body.events[wrapIndex(logOffset + n, body.events.length)],
+    )
     return (
       <ul className="hero-bento-log" aria-live="polite">
         {visible.map((ev, i) => (
@@ -217,10 +224,14 @@ function BentoCard({
   card,
   slot,
   logOffset,
+  waveBars,
+  logLines,
 }: {
   card: HeroBentoCard
   slot: number
   logOffset: number
+  waveBars: number
+  logLines: number
 }) {
   const tall = card.body.type === 'wave' || card.body.type === 'log'
 
@@ -235,14 +246,31 @@ function BentoCard({
         <span className="hero-bento-title">{card.title}</span>
         {'pill' in card && card.pill ? <span className="hero-bento-pill">{card.pill}</span> : null}
       </header>
-      <CardBody card={card} logOffset={logOffset} />
+      <CardBody card={card} logOffset={logOffset} waveBars={waveBars} logLines={logLines} />
     </article>
   )
+}
+
+function useCompactBento() {
+  const [compact, setCompact] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => setCompact(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  return compact
 }
 
 export default function HeroBento() {
   const [setIndex, setSetIndex] = useState(0)
   const [logOffset, setLogOffset] = useState(0)
+  const compact = useCompactBento()
+  const waveBars = compact ? WAVE_BARS_MOBILE : WAVE_BARS_DESKTOP
+  const logLines = compact ? 2 : 3
 
   const set = HERO_BENTO_SETS[setIndex]
 
@@ -269,7 +297,14 @@ export default function HeroBento() {
     <div className="hero-bento" aria-label="Feature preview">
       <div className="hero-bento-grid" key={set.id}>
         {set.cards.map((card, slot) => (
-          <BentoCard key={card.id} card={card} slot={slot} logOffset={logOffset} />
+          <BentoCard
+            key={card.id}
+            card={card}
+            slot={slot}
+            logOffset={logOffset}
+            waveBars={waveBars}
+            logLines={logLines}
+          />
         ))}
       </div>
 

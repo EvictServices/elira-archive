@@ -9,7 +9,7 @@ module.exports = {
       exec_mode: 'fork',
       autorestart: true,
       watch: false,
-      max_memory_restart: '400M',
+      max_memory_restart: '1GB',
       min_uptime: '10s',
       max_restarts: 10,
       env: {

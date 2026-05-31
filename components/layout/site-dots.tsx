@@ -40,13 +40,25 @@ function seedDots(width: number, height: number, slow: boolean): Dot[] {
   return dots
 }
 
+function scaleDots(dots: Dot[], fromW: number, fromH: number, toW: number, toH: number) {
+  if (!fromW || !fromH) return
+  const sx = toW / fromW
+  const sy = toH / fromH
+  for (const dot of dots) {
+    dot.x *= sx
+    dot.y *= sy
+    dot.x = Math.min(Math.max(dot.x, 0), toW)
+    dot.y = Math.min(Math.max(dot.y, 0), toH)
+  }
+}
+
 export default function SiteDots() {
   const pathname = usePathname()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dotsRef = useRef<Dot[]>([])
   const mouseRef = useRef({ x: -9999, y: -9999 })
   const pointerFineRef = useRef(false)
-  const lastTouchAtRef = useRef(0)
+  const coarsePointerRef = useRef(false)
   const frameRef = useRef<number | undefined>(undefined)
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
   const drawLinksRef = useRef(true)
@@ -62,46 +74,66 @@ export default function SiteDots() {
 
     const slowMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const pointerFineMq = window.matchMedia('(pointer: fine)')
+    const coarseMq = window.matchMedia('(pointer: coarse)')
     pointerFineRef.current = pointerFineMq.matches
+    coarsePointerRef.current = coarseMq.matches
 
-    const onPointerFineChange = (e: MediaQueryListEvent) => {
-      pointerFineRef.current = e.matches
-      if (!e.matches) mouseRef.current = { x: -9999, y: -9999 }
+    const syncPointerMode = () => {
+      pointerFineRef.current = pointerFineMq.matches
+      coarsePointerRef.current = coarseMq.matches
+      if (!pointerFineMq.matches) mouseRef.current = { x: -9999, y: -9999 }
     }
 
-    const resize = () => {
+    const applyResize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
       const width = window.innerWidth
       const height = window.innerHeight
-      sizeRef.current = { width, height, dpr }
+      const prev = sizeRef.current
+      const widthDelta = prev.width ? Math.abs(width - prev.width) : Infinity
+      const heightDelta = prev.height ? Math.abs(height - prev.height) : Infinity
+      const widthChanged = !prev.width || widthDelta > 48
+      const shouldScale =
+        prev.width &&
+        prev.height &&
+        !widthChanged &&
+        (widthDelta > 0 || heightDelta > 100)
 
+      if (!dotsRef.current.length || widthChanged) {
+        dotsRef.current = seedDots(width, height, slowMotion)
+      } else if (shouldScale) {
+        scaleDots(dotsRef.current, prev.width, prev.height, width, height)
+      } else if (!prev.width || !prev.height) {
+        dotsRef.current = seedDots(width, height, slowMotion)
+      }
+
+      sizeRef.current = { width, height, dpr }
       canvas.width = Math.floor(width * dpr)
       canvas.height = Math.floor(height * dpr)
       canvas.style.width = `${width}px`
       canvas.style.height = `${height}px`
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-
-      dotsRef.current = seedDots(width, height, slowMotion)
     }
 
-    resize()
-    window.addEventListener('resize', resize)
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined
+    const scheduleResize = () => {
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(applyResize, 180)
+    }
 
-    const markTouch = () => {
-      lastTouchAtRef.current = Date.now()
-      mouseRef.current = { x: -9999, y: -9999 }
+    applyResize()
+    window.addEventListener('resize', scheduleResize)
+    if (!coarsePointerRef.current) {
+      window.visualViewport?.addEventListener('resize', scheduleResize)
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!pointerFineRef.current) return
-      if (Date.now() - lastTouchAtRef.current < 500) return
+      if (!pointerFineRef.current || coarsePointerRef.current) return
       mouseRef.current = { x: e.clientX, y: e.clientY }
     }
 
-    pointerFineMq.addEventListener('change', onPointerFineChange)
-    window.addEventListener('touchstart', markTouch, { passive: true })
-    window.addEventListener('touchmove', markTouch, { passive: true })
-    if (pointerFineRef.current) {
+    pointerFineMq.addEventListener('change', syncPointerMode)
+    coarseMq.addEventListener('change', syncPointerMode)
+    if (pointerFineRef.current && !coarsePointerRef.current) {
       window.addEventListener('mousemove', handleMouseMove, { passive: true })
     }
 
@@ -116,16 +148,19 @@ export default function SiteDots() {
 
       const dots = dotsRef.current
       const t = time * 0.001
+      const drift = !slowMotion && !coarsePointerRef.current
 
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i]
-        dot.x += dot.vx
-        dot.y += dot.vy
 
-        if (dot.x < 0 || dot.x > width) dot.vx *= -1
-        if (dot.y < 0 || dot.y > height) dot.vy *= -1
+        if (drift) {
+          dot.x += dot.vx
+          dot.y += dot.vy
+          if (dot.x < 0 || dot.x > width) dot.vx *= -1
+          if (dot.y < 0 || dot.y > height) dot.vy *= -1
+        }
 
-        if (!slowMotion && pointerFineRef.current) {
+        if (drift && pointerFineRef.current) {
           const dx = dot.x - mouseRef.current.x
           const dy = dot.y - mouseRef.current.y
           const dist = Math.sqrt(dx * dx + dy * dy)
@@ -136,7 +171,7 @@ export default function SiteDots() {
           }
         }
 
-        const pulse = 0.78 + Math.sin(t * 1.6 + dot.phase) * 0.22
+        const pulse = drift ? 0.78 + Math.sin(t * 1.6 + dot.phase) * 0.22 : 0.82
         const alpha = dot.opacity * pulse
 
         if (drawLinksRef.current) {
@@ -168,11 +203,14 @@ export default function SiteDots() {
     frameRef.current = requestAnimationFrame(animate)
 
     return () => {
-      window.removeEventListener('resize', resize)
+      clearTimeout(resizeTimer)
+      window.removeEventListener('resize', scheduleResize)
+      if (!coarseMq.matches) {
+        window.visualViewport?.removeEventListener('resize', scheduleResize)
+      }
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('touchstart', markTouch)
-      window.removeEventListener('touchmove', markTouch)
-      pointerFineMq.removeEventListener('change', onPointerFineChange)
+      pointerFineMq.removeEventListener('change', syncPointerMode)
+      coarseMq.removeEventListener('change', syncPointerMode)
       if (frameRef.current) cancelAnimationFrame(frameRef.current)
     }
   }, [])

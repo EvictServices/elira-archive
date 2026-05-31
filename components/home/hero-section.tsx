@@ -60,11 +60,12 @@ export default function HeroSection() {
             >
             </a>
           </div>
-          <HeroProof />
-        </div>
 
-        <div className="hero-carousel-wrap" data-reveal>
-          <GuildCarousel />
+          <div className="hero-carousel-wrap">
+            <GuildCarousel />
+          </div>
+
+          <HeroProof />
         </div>
 
         <div className="hero-bento-wrap" data-reveal>

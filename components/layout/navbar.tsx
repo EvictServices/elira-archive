@@ -28,14 +28,14 @@ function BrandMark({ onNavigate }: { onNavigate?: () => void }) {
 
 export default function Navbar() {
   const pathname = usePathname()
-  const [panelOpen, setPanelOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [navHidden, setNavHidden] = useState(false)
   const lastScrollY = useRef(0)
 
   useEffect(() => {
     const handleScroll = () => {
       const sy = window.scrollY
-      if (sy > lastScrollY.current && sy > 96 && !panelOpen) {
+      if (sy > lastScrollY.current && sy > 96 && !menuOpen) {
         setNavHidden(true)
       } else if (sy < lastScrollY.current) {
         setNavHidden(false)
@@ -44,28 +44,26 @@ export default function Navbar() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [panelOpen])
+  }, [menuOpen])
 
   useEffect(() => {
-    if (!panelOpen) return
+    if (!menuOpen) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closePanel()
+      if (e.key === 'Escape') closeMenu()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [panelOpen])
+  }, [menuOpen])
 
-  const closePanel = () => {
-    setPanelOpen(false)
+  const closeMenu = () => {
+    setMenuOpen(false)
     document.body.classList.remove('nav-open')
   }
 
-  const togglePanel = () => {
-    if (panelOpen) closePanel()
-    else {
-      setPanelOpen(true)
-      document.body.classList.add('nav-open')
-    }
+  const toggleMenu = () => {
+    const next = !menuOpen
+    setMenuOpen(next)
+    document.body.classList.toggle('nav-open', next)
   }
 
   const isActive = (page: string) =>
@@ -77,7 +75,7 @@ export default function Navbar() {
         'site-nav',
         'site-nav--float',
         navHidden ? 'site-nav--hidden' : '',
-        panelOpen ? 'site-nav--panel-open' : '',
+        menuOpen ? 'site-nav--menu-open' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -85,7 +83,7 @@ export default function Navbar() {
     >
       <div className="site-nav__float">
         <div className="site-nav__dock">
-          <BrandMark onNavigate={closePanel} />
+          <BrandMark onNavigate={closeMenu} />
 
           <nav className="site-nav__pages" aria-label="Main navigation">
             {PAGES.map(({ href, page, label }) => (
@@ -116,90 +114,74 @@ export default function Navbar() {
               Invite
             </a>
             <div className="site-nav__dock-user">
-              <UserMenu variant="marketing" onNavigate={closePanel} />
+              <UserMenu variant="marketing" onNavigate={closeMenu} />
             </div>
             <button
               type="button"
-              className={`site-nav__menu-btn${panelOpen ? ' is-open' : ''}`}
-              aria-label={panelOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={panelOpen}
-              aria-controls="site-nav-panel"
-              onClick={togglePanel}
+              className={`site-nav__menu-btn${menuOpen ? ' is-open' : ''}`}
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              aria-controls="site-nav-mobile-menu"
+              onClick={toggleMenu}
             >
-              <span className="site-nav__menu-icon" aria-hidden />
+              <span className="site-nav__menu-bars" aria-hidden>
+                <span />
+                <span />
+                <span />
+              </span>
             </button>
           </div>
         </div>
-      </div>
 
-      <button
-        type="button"
-        className={`site-nav__scrim${panelOpen ? ' is-visible' : ''}`}
-        aria-label="Close menu"
-        tabIndex={panelOpen ? 0 : -1}
-        onClick={closePanel}
-      />
-
-      <aside
-        id="site-nav-panel"
-        className={`site-nav__panel${panelOpen ? ' is-open' : ''}`}
-        aria-hidden={!panelOpen}
-        aria-label="Mobile navigation"
-      >
-        <div className="site-nav__panel-top">
-          <BrandMark onNavigate={closePanel} />
-          <button type="button" className="site-nav__panel-close" aria-label="Close menu" onClick={closePanel}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <nav className="site-nav__panel-nav">
-          {PAGES.map(({ href, page, label }) => (
-            <Link
-              key={page}
-              href={href}
-              className={`site-nav__panel-link${isActive(page) ? ' is-active' : ''}`}
-              onClick={closePanel}
-              aria-current={isActive(page) ? 'page' : undefined}
+        <div
+          id="site-nav-mobile-menu"
+          className={`site-nav__mobile-menu${menuOpen ? ' is-open' : ''}`}
+          aria-hidden={!menuOpen}
+        >
+          <nav className="site-nav__mobile-links" aria-label="Mobile navigation">
+            {PAGES.map(({ href, page, label }) => (
+              <Link
+                key={page}
+                href={href}
+                className={`site-nav__mobile-link${isActive(page) ? ' is-active' : ''}`}
+                onClick={closeMenu}
+                aria-current={isActive(page) ? 'page' : undefined}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+          <div className="site-nav__mobile-actions">
+            <a
+              href={DOCS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-nav__btn site-nav__btn--outline"
+              onClick={closeMenu}
             >
-              <span className="site-nav__panel-link-label">{label}</span>
-              {isActive(page) && <span className="site-nav__panel-link-dot" aria-hidden />}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="site-nav__panel-foot">
-          <a
-            href={DOCS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="site-nav__panel-meta"
-            onClick={closePanel}
-          >
-            Documentation
-          </a>
-          <a
-            href={SUPPORT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="site-nav__btn site-nav__btn--outline"
-            onClick={closePanel}
-          >
-            Support
-          </a>
-          <a
-            href={INVITE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="site-nav__btn site-nav__btn--primary"
-            onClick={closePanel}
-          >
-            Add to Server
-          </a>
+              Documentation
+            </a>
+            <a
+              href={SUPPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-nav__btn site-nav__btn--outline"
+              onClick={closeMenu}
+            >
+              Support
+            </a>
+            <a
+              href={INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-nav__btn site-nav__btn--primary"
+              onClick={closeMenu}
+            >
+              Add to Server
+            </a>
+          </div>
         </div>
-      </aside>
+      </div>
     </header>
   )
 }

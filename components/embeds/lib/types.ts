@@ -1,5 +1,3 @@
-import { extractEmbedTags } from './parse'
-
 export interface EmbedField {
   name: string
   value: string
@@ -108,30 +106,4 @@ export function generateScript(data: EmbedData): string {
   }
 
   return lines.join('\n')
-}
-
-/**
- * Best-effort inverse of {@link generateScript} for dashboard round-trip.
- *
- * Delegates to the brace-aware extractor so multi-line tag values, multiple tags on the
- * same line, and nested template variables (e.g. `{thumbnail: {user.avatar}}`) all parse
- * correctly. Unknown `{x.y}` blocks (like `{user.mention}`) are preserved as literal text
- * inside the value they appear in.
- */
-export function parseScriptToEmbed(template: string): EmbedData {
-  const data = defaultEmbed()
-  const { patch } = extractEmbedTags(template)
-  if (patch.content !== undefined) data.content = patch.content
-  if (patch.color !== undefined) data.color = patch.color
-  if (patch.url !== undefined) data.url = patch.url
-  if (patch.title !== undefined) data.title = patch.title
-  if (patch.description !== undefined) data.description = patch.description
-  if (patch.thumbnail !== undefined) data.thumbnail = patch.thumbnail
-  if (patch.image !== undefined) data.image = patch.image
-  if (patch.timestamp !== undefined) data.timestamp = patch.timestamp
-  if (patch.footer) data.footer = patch.footer
-  if (patch.author) data.author = patch.author
-  if (patch.addFields?.length) data.fields = [...data.fields, ...patch.addFields]
-  if (patch.addButtons?.length) data.buttons = [...data.buttons, ...patch.addButtons]
-  return data
 }

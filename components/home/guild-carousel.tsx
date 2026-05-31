@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { guildInitials } from '@/lib/discord/format'
+import { api } from '@/lib/routes'
 
 type TopGuild = {
   id: string
@@ -10,9 +12,6 @@ type TopGuild = {
   vanity_code?: string | null
   join_url?: string | null
 }
-
-import { guildInitials } from '@/lib/discord/format'
-import { api } from '@/lib/routes'
 
 function GuildChip({ guild }: { guild: TopGuild }) {
   const label = `${guild.name}, ${guild.member_count.toLocaleString()} members`
@@ -55,34 +54,54 @@ function GuildChip({ guild }: { guild: TopGuild }) {
   )
 }
 
+function SkeletonChip() {
+  return (
+    <div className="guild-carousel-chip guild-carousel-chip--skeleton" aria-hidden>
+      <span className="guild-carousel-chip-icon guild-carousel-skeleton-icon" />
+      <span className="guild-carousel-chip-text">
+        <span className="guild-carousel-skeleton-line guild-carousel-skeleton-line--name" />
+        <span className="guild-carousel-skeleton-line guild-carousel-skeleton-line--count" />
+      </span>
+    </div>
+  )
+}
+
 export default function GuildCarousel() {
   const [guilds, setGuilds] = useState<TopGuild[]>([])
-  const fetched = useRef(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (fetched.current) return
-    fetched.current = true
+    let cancelled = false
 
     fetch(api.guildsTop)
       .then((r) => (r.ok ? r.json() : { guilds: [] }))
       .then((data: { guilds?: TopGuild[] }) => {
-        const list = Array.isArray(data.guilds) ? data.guilds : []
-        if (list.length > 0) setGuilds(list)
+        if (cancelled) return
+        setGuilds(Array.isArray(data.guilds) ? data.guilds : [])
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setGuilds([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  if (guilds.length === 0) return null
+  if (!loading && guilds.length === 0) return null
 
-  const loop = [...guilds, ...guilds]
+  const loop = guilds.length > 0 ? [...guilds, ...guilds] : []
 
   return (
     <div className="guild-carousel">
       <div className="guild-carousel-viewport">
-        <div className="guild-carousel-track">
-          {loop.map((guild, i) => (
-            <GuildChip key={`${guild.id}-${i}`} guild={guild} />
-          ))}
+        <div className={`guild-carousel-track${loading ? ' is-loading' : ''}`}>
+          {loading
+            ? Array.from({ length: 8 }, (_, i) => <SkeletonChip key={`sk-${i}`} />)
+            : loop.map((guild, i) => <GuildChip key={`${guild.id}-${i}`} guild={guild} />)}
         </div>
       </div>
     </div>

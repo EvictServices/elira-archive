@@ -1,31 +1,14 @@
-- date: 2026-02-15
-  version: v0.0.0
-  title: Prefix Management
-  description: Customize the bot's prefix with server-wide and personal prefix options.
+- date: 2026-04-16
+  version: v5.0.3
+  title: Patch Notes - v5.0.3
+  description: A smaller release focused on stability and performance improvements following the codebase change, with bug fixes, backend enhancements, and key feature additions.
   changes:
-    - new: Server prefix management with set and reset commands
-    - new: Personal prefix system allowing users to set their own prefix
-    - new: Prefix validation (max 5 characters, no leading spaces)
-    - new: Automatic conflict prevention between server and personal prefixes
-
-- date: 2026-02-14
-  version: v0.0.0
-  title: Website Launch
-  description: The official evict website is now live.
-  changes:
-    - new: Live status page with real-time shard and latency monitoring
-    - new: Full command directory with search, filtering, and detailed info cards
-    - new: Updates page for tracking changes and new features
-    - new: Responsive design with mobile support
-
-- date: 2026-02-15
-  version: v0.0.0
-  title: Highlight System
-  description: Get notified when specific keywords are mentioned in your server.
-  changes:
-    - new: Keyword highlight system with DM notifications
-    - new: Highlight ignore list for users and channels
-    - new: Per-server highlight management (add, remove, list, reset)
-    - improved: Error handler now correctly catches cooldown and permission errors
-    - improved: Help command no longer shows subcommands as top-level commands
-    - fixed: Website permissions now pulled from command docstrings
+    - fixed: An issue with uncrossable not giving users their earnings
+    - fixed: An issue with the new customize features not working despite working in initial testing
+    - fixed: Default ban messages showing an error instead of mentioning the user on bans/unbans despite still banning/unbanning them
+    - improved: Faster API endpoints for things like the commands and status endpoints
+    - improved: Faster API endpoints for fetching server information for commands like serverinfo, membercount, etc
+    - improved: Faster grabbing of profiles for things like purge and ticket logs
+    - new: Purge logs and bulk message deletion logs
+    - changed: The commands steal and emoji bulk add/many now require antinuke whitelist
+    - new: Command detection for emoji additions/deletions for antinuke

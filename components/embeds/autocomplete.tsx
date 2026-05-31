@@ -31,10 +31,7 @@ export default function Autocomplete({ inputRef, onInsert }: AutocompleteProps) 
         setSelected(0)
 
         const rect = el.getBoundingClientRect()
-        const menuWidth = Math.min(280, window.innerWidth - 16)
-        const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8))
-        const top = Math.min(rect.bottom + 4, window.innerHeight - 200)
-        setPosition({ top, left })
+        setPosition({ top: rect.bottom + 4, left: rect.left })
       } else {
         setSuggestions([])
       }

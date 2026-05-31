@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { timeAgo, type Update } from '@/lib/marketing/parse-yaml'
 
 interface Props {
@@ -24,9 +24,13 @@ export default function UpdatesView({ updates }: Props) {
   const u = updates[activeIndex]
 
   return (
-    <div className="upd-wrap" style={{ background: '#1a1a1a', minHeight: '100vh' }}>
+    <div className="upd-wrap">
       <div className="container">
-        <div className="section-header" style={{ textAlign: 'left', marginBottom: '2.5rem' }} data-reveal>
+        <div
+          className="section-header"
+          style={{ textAlign: 'left', marginBottom: '2.5rem' }}
+          data-reveal
+        >
           <h2 className="section-title">Updates</h2>
           <p className="section-desc" style={{ margin: 0 }}>
             Latest changelog entries and release notes for Evict.
@@ -38,7 +42,7 @@ export default function UpdatesView({ updates }: Props) {
             <div className="upd-sidebar-label">Releases</div>
             <div id="updates-timeline">
               {updates.length === 0 ? (
-                <div style={{ padding: '1.65rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
+                <div style={{ padding: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
                   No updates yet.
                 </div>
               ) : (
@@ -81,7 +85,14 @@ export default function UpdatesView({ updates }: Props) {
                 </div>
                 <div className="update-detail-body">
                   {u.description && (
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem', fontSize: '0.9rem', lineHeight: 1.65 }}>
+                    <p
+                      style={{
+                        color: 'var(--text-secondary)',
+                        marginBottom: '1.25rem',
+                        fontSize: '0.9rem',
+                        lineHeight: 1.65,
+                      }}
+                    >
                       {u.description}
                     </p>
                   )}

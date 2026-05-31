@@ -7,7 +7,7 @@ export const BUTTON_STYLES = [
 ]
 
 export const BUTTON_STYLE_COLORS: Record<string, string> = {
-  link: '#4f545c',
+  link: '#5865f2',
   blurple: '#5865f2',
   blue: '#5865f2',
   primary: '#5865f2',

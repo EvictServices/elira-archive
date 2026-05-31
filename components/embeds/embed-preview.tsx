@@ -3,17 +3,16 @@
 import type { EmbedData } from '@/components/embeds/lib/types'
 import { BUTTON_STYLE_COLORS } from '@/components/embeds/lib/constants'
 import DiscordMarkdown from '@/components/embeds/discord-markdown'
-import { resolveExampleImageUrl, type PreviewContext } from '@/components/embeds/lib/preview'
 
-export default function EmbedPreview({ data, context }: { data: EmbedData; context?: PreviewContext }) {
+export default function EmbedPreview({ data }: { data: EmbedData }) {
   const hasEmbed = data.title || data.description || data.thumbnail || data.image ||
     data.author.name || data.footer.text || data.fields.length > 0
 
   return (
-    <div>
+    <div style={{ fontFamily: "'Outfit', sans-serif" }}>
       {data.content && (
         <div style={{ color: '#dcddde', fontSize: '0.9rem', marginBottom: hasEmbed ? '0.5rem' : 0, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-          <DiscordMarkdown text={data.content} context={context} />
+          <DiscordMarkdown text={data.content} />
         </div>
       )}
 
@@ -22,27 +21,27 @@ export default function EmbedPreview({ data, context }: { data: EmbedData; conte
           display: 'flex', maxWidth: '520px', borderRadius: '4px', overflow: 'hidden',
           background: '#2b2d31', borderLeft: `4px solid ${data.color || '#2b2d31'}`,
         }}>
-          <div style={{ padding: '0.65rem 0.85rem', flex: 1, minWidth: 0 }}>
+          <div style={{ padding: '0.75rem 1rem', flex: 1, minWidth: 0 }}>
             {data.author.name && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
                 {data.author.icon_url && (
-                  <img src={resolveExampleImageUrl(data.author.icon_url, context)} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
+                  <img src={data.author.icon_url} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
                 )}
                 <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>
-                  <DiscordMarkdown text={data.author.name} context={context} />
+                  <DiscordMarkdown text={data.author.name} />
                 </span>
               </div>
             )}
 
             {data.title && (
               <div style={{ color: data.url ? '#00aff4' : '#fff', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.35rem', cursor: data.url ? 'pointer' : 'default' }}>
-                <DiscordMarkdown text={data.title} context={context} />
+                <DiscordMarkdown text={data.title} />
               </div>
             )}
 
             {data.description && (
               <div style={{ color: '#dcddde', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.5rem', whiteSpace: 'pre-wrap' }}>
-                <DiscordMarkdown text={data.description} context={context} />
+                <DiscordMarkdown text={data.description} />
               </div>
             )}
 
@@ -51,10 +50,10 @@ export default function EmbedPreview({ data, context }: { data: EmbedData; conte
                 {data.fields.map((field, i) => (
                   <div key={i} style={{ gridColumn: field.inline ? 'span 1' : 'span 3' }}>
                     <div style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.15rem' }}>
-                      <DiscordMarkdown text={field.name} context={context} />
+                      <DiscordMarkdown text={field.name} />
                     </div>
                     <div style={{ color: '#dcddde', fontSize: '0.8rem', lineHeight: 1.4 }}>
-                      <DiscordMarkdown text={field.value} context={context} />
+                      <DiscordMarkdown text={field.value} />
                     </div>
                   </div>
                 ))}
@@ -62,16 +61,16 @@ export default function EmbedPreview({ data, context }: { data: EmbedData; conte
             )}
 
             {data.image && (
-              <img src={resolveExampleImageUrl(data.image, context)} alt="" style={{ maxWidth: '100%', borderRadius: '4px', marginBottom: '0.5rem', maxHeight: 300, objectFit: 'contain' }} />
+              <img src={data.image} alt="" style={{ maxWidth: '100%', borderRadius: '4px', marginBottom: '0.5rem', maxHeight: 300, objectFit: 'contain' }} />
             )}
 
             {(data.footer.text || data.timestamp) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
                 {data.footer.icon_url && (
-                  <img src={resolveExampleImageUrl(data.footer.icon_url, context)} alt="" style={{ width: 20, height: 20, borderRadius: '50%' }} />
+                  <img src={data.footer.icon_url} alt="" style={{ width: 20, height: 20, borderRadius: '50%' }} />
                 )}
                 <span style={{ color: '#a3a6aa', fontSize: '0.75rem' }}>
-                  <DiscordMarkdown text={data.footer.text} context={context} />
+                  <DiscordMarkdown text={data.footer.text} />
                   {data.footer.text && data.timestamp && ' • '}
                   {data.timestamp && new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
@@ -80,8 +79,8 @@ export default function EmbedPreview({ data, context }: { data: EmbedData; conte
           </div>
 
           {data.thumbnail && (
-            <div style={{ padding: '0.65rem 0.85rem 0.65rem 0', flexShrink: 0 }}>
-              <img src={resolveExampleImageUrl(data.thumbnail, context)} alt="" style={{ width: 80, height: 80, borderRadius: '4px', objectFit: 'cover' }} />
+            <div style={{ padding: '0.75rem 1rem 0.75rem 0', flexShrink: 0 }}>
+              <img src={data.thumbnail} alt="" style={{ width: 80, height: 80, borderRadius: '4px', objectFit: 'cover' }} />
             </div>
           )}
         </div>
@@ -100,11 +99,7 @@ export default function EmbedPreview({ data, context }: { data: EmbedData; conte
                 display: 'flex', alignItems: 'center', gap: '0.35rem',
               }}
             >
-              {btn.emoji && (
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  <DiscordMarkdown text={btn.emoji} context={context} />
-                </span>
-              )}
+              {btn.emoji && <span>{btn.emoji}</span>}
               {btn.label}
               {btn.style === 'link' && (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: 2, opacity: 0.7 }}>
