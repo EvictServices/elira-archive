@@ -1,18 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import AvatarCardImage from '@/components/avatars/avatar-card-image'
+import type { AvatarRecord } from '@/lib/avatars/types'
 import { userAvatarUrl } from '@/lib/discord/cdn'
 
 const PAGE_SIZE = 24
 
-interface Avatar {
-  id: number
-  url: string
-  created_at: number
-}
-
 interface AvatarsViewProps {
-  avatars: Avatar[]
+  avatars: AvatarRecord[]
   userId: string
   username: string | null
   avatarHash?: string | null
@@ -45,7 +41,7 @@ function AvatarPopout({
   avatarId,
   onClose,
 }: {
-  avatar: Avatar
+  avatar: AvatarRecord
   avatarId: number
   onClose: () => void
 }) {
@@ -124,7 +120,7 @@ function AvatarPopout({
 }
 
 export default function AvatarsView({ avatars, userId, username, avatarHash }: AvatarsViewProps) {
-  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null)
+  const [selectedAvatar, setSelectedAvatar] = useState<AvatarRecord | null>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const visibleAvatars = useMemo(() => avatars.slice(0, visibleCount), [avatars, visibleCount])
@@ -146,6 +142,8 @@ export default function AvatarsView({ avatars, userId, username, avatarHash }: A
                   className="av-user-icon"
                   width={44}
                   height={44}
+                  decoding="async"
+                  fetchPriority="high"
                 />
                 <h1 className="st-title">{title}</h1>
               </div>
@@ -192,10 +190,10 @@ export default function AvatarsView({ avatars, userId, username, avatarHash }: A
                 title={formatFullDate(avatar.created_at)}
               >
                 <div className="avatar-card-media">
-                  <img
-                    src={avatar.url}
+                  <AvatarCardImage
+                    url={avatar.url}
                     alt={`Avatar from ${formatFullDate(avatar.created_at)}`}
-                    loading="lazy"
+                    index={idx}
                   />
                 </div>
                 <div className="avatar-card-foot">
