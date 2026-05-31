@@ -9,11 +9,13 @@ module.exports = {
       exec_mode: 'fork',
       autorestart: true,
       watch: false,
-      max_memory_restart: '1GB',
+      max_memory_restart: '768M',
       min_uptime: '10s',
       max_restarts: 10,
+      kill_timeout: 5000,
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        NODE_OPTIONS: '--max-old-space-size=640',
       },
       error_file: '~/.pm2/logs/elira-dashboard-error.log',
       out_file: '~/.pm2/logs/elira-dashboard-out.log',

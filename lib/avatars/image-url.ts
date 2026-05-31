@@ -1,4 +1,4 @@
-/** Prefer a smaller CDN variant for grid thumbnails (~148px cells). */
+/** Smaller Discord CDN variant for grid thumbnails (~148px cells). */
 export function avatarThumbUrl(url: string, size = 160): string {
   try {
     const u = new URL(url)
@@ -7,10 +7,7 @@ export function avatarThumbUrl(url: string, size = 160): string {
       u.searchParams.set('size', String(size))
       return u.toString()
     }
-    if (!u.searchParams.has('size') && !u.searchParams.has('w') && !u.searchParams.has('width')) {
-      u.searchParams.set('size', String(size))
-    }
-    return u.toString()
+    return url
   } catch {
     return url
   }
