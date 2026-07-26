@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache'
+import { CLUSTER_API_BASE } from '@/lib/cluster/config'
 import { fetchGuild } from '@/lib/cluster/client'
 import { vanityJoinUrl } from '@/lib/discord/urls'
 import redis from '@/lib/infra/redis'
@@ -9,45 +10,37 @@ export { TOP_GUILDS_CACHE_TTL_SEC as CACHE_TTL_SEC } from '@/lib/marketing/top-g
 
 const CACHE_KEY = 'website:top_guilds:v2'
 const CACHE_TTL_SEC = TOP_GUILDS_CACHE_TTL_SEC
-/** Cap in-memory candidates while scanning shard keys (avoids huge Maps on cache miss). */
-const SCAN_CANDIDATE_CAP = 80
 const ENRICH_BATCH_SIZE = 4
 
-function parseGuildList(raw: string): RawGuild[] {
-  const safe = raw.replace(/"id":\s*(\d{15,})/g, '"id":"$1"')
-  const list = JSON.parse(safe) as RawGuild[]
-  return Array.isArray(list) ? list : []
-}
-
-async function clusterGuildKeys(): Promise<string[]> {
-  const keys: string[] = []
-  let cursor = '0'
-  do {
-    const [next, batch] = await redis.scan(cursor, 'MATCH', 'cluster:guilds:*', 'COUNT', 64)
-    cursor = next
-    keys.push(...batch)
-  } while (cursor !== '0')
-  return keys
-}
-
-type RawGuild = {
-  id: number | string
+type ClusterTopGuild = {
+  id: string | number
   name: string
-  member_count?: number
-  icon_url?: string
+  member_count: number
+  icon_url?: string | null
 }
 
-function mergeCandidate(candidates: TopGuild[], entry: TopGuild) {
-  const idx = candidates.findIndex((g) => g.id === entry.id)
-  if (idx >= 0) {
-    if (entry.member_count > candidates[idx].member_count) candidates[idx] = entry
-    return
-  }
-  candidates.push(entry)
-  if (candidates.length > SCAN_CANDIDATE_CAP) {
-    candidates.sort((a, b) => b.member_count - a.member_count)
-    candidates.length = SCAN_CANDIDATE_CAP
-  }
+async function fetchTopGuildsFromCluster(limit: number): Promise<TopGuild[]> {
+  const res = await fetch(`${CLUSTER_API_BASE}/guilds/top?limit=${limit}`, {
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  })
+  if (!res.ok) return []
+
+  const data = (await res.json()) as ClusterTopGuild[]
+  if (!Array.isArray(data)) return []
+
+  return data.map((g) => {
+    const id = String(g.id).trim()
+    const icon = typeof g.icon_url === 'string' ? g.icon_url.trim() : ''
+    return {
+      id,
+      name: g.name || 'Unknown',
+      member_count: g.member_count ?? 0,
+      icon_url: icon || null,
+      vanity_code: null,
+      join_url: null,
+    }
+  })
 }
 
 async function enrichGuildsBatch(guilds: TopGuild[]): Promise<TopGuild[]> {
@@ -85,38 +78,8 @@ export async function fetchTopGuilds(limit = 24): Promise<TopGuild[]> {
     }
   }
 
-  const keys = await clusterGuildKeys()
-  const candidates: TopGuild[] = []
-
-  for (const key of keys) {
-    const raw = await redis.get(key)
-    if (!raw) continue
-    let list: RawGuild[]
-    try {
-      list = parseGuildList(raw)
-    } catch {
-      continue
-    }
-
-    for (const g of list) {
-      const id = String(g.id).trim()
-      if (!id) continue
-      const member_count = g.member_count ?? 0
-      const icon = g.icon_url?.trim()
-      mergeCandidate(candidates, {
-        id,
-        name: g.name,
-        member_count,
-        icon_url: icon ? icon : null,
-        vanity_code: null,
-        join_url: null,
-      })
-    }
-  }
-
-  const top = candidates
-    .sort((a, b) => b.member_count - a.member_count)
-    .slice(0, limit)
+  const top = await fetchTopGuildsFromCluster(limit)
+  if (!top.length) return []
 
   const enriched = await enrichGuildsBatch(top)
 
@@ -127,6 +90,6 @@ export async function fetchTopGuilds(limit = 24): Promise<TopGuild[]> {
 /** Next.js data cache for the landing carousel (aligned with Redis TTL). */
 export const getCachedTopGuilds = unstable_cache(
   async () => fetchTopGuilds(24),
-  ['marketing-top-guilds-v2'],
+  ['marketing-top-guilds-v3'],
   { revalidate: CACHE_TTL_SEC },
 )
